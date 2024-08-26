@@ -24,50 +24,50 @@ export default function Home() {
     <Box minHeight="100vh">
       <Stack direction="column" width="100%" justifyContent="center" alignItems="center">
   {/* Title and Call to Action */}
-        <Stack direction="column" alignItems="center" textAlign="center" my={15} mx={2}>
-          <Box display="flex" flexWrap="wrap" justifyContent="center" my={5}>
-            <Typography
-              variant="h1"
-              color={`${green_light}`} 
-              bgcolor={`${green_dark}`}
-              borderRadius={"10px"} 
-              px={1}
-            >
-              Room
-            </Typography>
-            <Typography 
-              variant="h1" 
-              color={`${green_dark}`} 
-            >
-              ventory
-            </Typography>
-          </Box>
-          <Typography variant="h5" color={`${gray_dark}`} mb={5} mx={5}>The collective inventory for you and your roomates</Typography>
-          <SignedOut>
-            <Button
-              variant="contained"
-              sx={{
-                color: `${gray_dark}`,
-                bgcolor: `${green_light}`,
-                borderRadius: "10px",
-                transition: "200ms",
-                "&:hover": {
-                  color: `${green_light}`,
-                  bgcolor: `${green_dark}`,
-                  transform: "scale(1.1)",
-                },
-              }}
-              href="/signup"
-            >
-              <Typography variant="h6">I'm Interested</Typography>
-            </Button>
-          </SignedOut>
-          <SignedIn>
-            <Typography>
-              You're in! Thank you for joining the waitlist!
-            </Typography>
-          </SignedIn>
-        </Stack>
+          <Stack direction="column" alignItems="center" textAlign="center" my={15} mx={2}>
+            <Box display="flex" flexWrap="wrap" justifyContent="center" my={5} sx={{ background: `linear-gradient(to right, ${green_light}, ${green_light}, #fff)` }}>
+              <Typography
+                variant="h1"
+                color={`${green_light}`} 
+                bgcolor={`${green_dark}`}
+                borderRadius={"10px"} 
+                px={1}
+              >
+                Room
+              </Typography>
+              <Typography 
+                variant="h1" 
+                color={`${green_dark}`} 
+              >
+                ventory
+              </Typography>
+            </Box>
+            <Typography variant="h5" color={`${gray_dark}`} mb={5} mx={5}>The collective inventory for you and your roomates</Typography>
+            <SignedOut>
+              <Button
+                variant="contained"
+                sx={{
+                  color: `${gray_dark}`,
+                  bgcolor: `${green_light}`,
+                  borderRadius: "10px",
+                  transition: "200ms",
+                  "&:hover": {
+                    color: `${green_light}`,
+                    bgcolor: `${green_dark}`,
+                    transform: "scale(1.1)",
+                  },
+                }}
+                href="/signup"
+              >
+                <Typography variant="h6">I'm Interested</Typography>
+              </Button>
+            </SignedOut>
+            <SignedIn>
+              <Typography>
+                You're in! Thank you for joining the waitlist!
+              </Typography>
+            </SignedIn>
+          </Stack>
   {/* Toilet Paper Example */}
         <Box 
           display="flex" 
@@ -77,7 +77,7 @@ export default function Home() {
           flexWrap="wrap" 
           width="100%"
           mb={10}
-          bgcolor={`${green_dark}`} 
+          bgcolor={`${green_dark}`}
         >
           <Stack direction="column" justifyContent="center" alignContent="center">
             <Stack 
@@ -99,7 +99,7 @@ export default function Home() {
             </Stack>
           </Stack>
           <Box my={3} mx={4}>
-            <Image src={toiletpaper} alt="Roomventory Chat" height={500}></Image>
+            <Image src={toiletpaper} alt="Roomventory Toilet Paper Image" height={500}></Image>
           </Box>
         </Box>
   {/* Features and Explanation */}
@@ -118,37 +118,37 @@ export default function Home() {
             </Typography>
             </Grid>
             <Grid item xs={12} md={6} lg={4}>
-              <Box height="100%" p={2} sx={{ boxShadow: `0 0 10px ${green_dark}` }}>
+              <Box height="100%" p={2} sx={{ boxShadow: `0 0 10px ${green_dark}`, background: `linear-gradient(to bottom, #fff, ${green_light})` }}>
                 <Typography variant="h5" mb={2}>Inventory Collections</Typography>
                 <Typography>Manage your inventory by placing items in collections. Toilet paper goes in the bathroom, not the kitchen!</Typography>
               </Box>
             </Grid>
             <Grid item xs={12} md={6} lg={4}>
-              <Box height="100%" p={2} sx={{ boxShadow: `0 0 10px ${green_dark}` }}>
+              <Box height="100%" p={2} sx={{ boxShadow: `0 0 10px ${green_dark}`, background: `linear-gradient(to bottom, #fff, ${green_light})` }}>
                 <Typography variant="h5" mb={2}>Multiple Group Inventories</Typography>
                 <Typography>Keep inventories separate by joining and participating in multiple groups, each with their own inventories.</Typography>
               </Box>
             </Grid>
             <Grid item xs={12} md={6} lg={4}>
-              <Box height="100%" p={2} sx={{ boxShadow: `0 0 10px ${green_dark}` }}>
-                <Typography variant="h5" mb={2}>Item Tags</Typography>
-                <Typography>Know who bought what, so you can blame 'that' guy for not buying his share of toilet paper.</Typography>
-              </Box>
-            </Grid>
-            <Grid item xs={12} md={6} lg={4}>
-              <Box height="100%" p={2} sx={{ boxShadow: `0 0 10px ${green_dark}` }}>
+              <Box height="100%" p={2} sx={{ boxShadow: `0 0 10px ${green_dark}`, background: `linear-gradient(to bottom, #fff, ${green_light})` }}>
                 <Typography variant="h5" mb={2}>Item Alerts</Typography>
                 <Typography>Use item alerts to check at a glance if items in your inventories are nearly out.</Typography>
               </Box>
             </Grid>
             <Grid item xs={12} md={6} lg={4}>
-              <Box height="100%" p={2} sx={{ boxShadow: `0 0 10px ${green_dark}` }}>
+              <Box height="100%" p={2} sx={{ boxShadow: `0 0 10px ${green_dark}`, background: `linear-gradient(to bottom, #fff, ${green_light})` }}>
+                <Typography variant="h5" mb={2}>Future Goal: Item Tags</Typography>
+                <Typography>Know who bought what, so you can blame 'that' guy for not buying his share of toilet paper.</Typography>
+              </Box>
+            </Grid>
+            <Grid item xs={12} md={6} lg={4}>
+              <Box height="100%" p={2} sx={{ boxShadow: `0 0 10px ${green_dark}`, background: `linear-gradient(to bottom, #fff, ${green_light})` }}>
                 <Typography variant="h5" mb={2}>Future Goal: Picture Perfect</Typography>
                 <Typography>Leverage computer vision and AI to add items to your inventories automatically.</Typography>
               </Box>
             </Grid>
             <Grid item xs={12} md={6} lg={4}>
-            <Box height="100%" p={2} sx={{ boxShadow: `0 0 10px ${green_dark}` }}>
+            <Box height="100%" p={2} sx={{ boxShadow: `0 0 10px ${green_dark}`, background: `linear-gradient(to bottom, #fff, ${green_light})` }}>
                 <Typography variant="h5" mb={2}>Future Goal: AI Suggests</Typography>
                 <Typography>Helpful AI prompting suggests items that you might need based on your current inventory.</Typography>
               </Box>
