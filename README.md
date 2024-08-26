@@ -1,4 +1,5 @@
-![Roomventory Logo](./public/rv_logo.png)
+<img src="./public/rv_logo.png" alt="roomventory logo" width="200px" />
+
 ## Roomventory
 
 ### The collective inventory for you and your roommates
