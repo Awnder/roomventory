@@ -1,3 +1,4 @@
+![Roomventory Logo](./public/rv_logo.png)
 ## Roomventory
 
 ### The collective inventory for you and your roommates
