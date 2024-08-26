@@ -1,36 +1,20 @@
-This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
+## Roomventory
 
-## Getting Started
+### The collective inventory for you and your roommates
 
-First, run the development server:
+* Know what you have
+* Know what you need
+* Never buy too much toilet paper again
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+Never deal with four people all buying toilet paper and no one buying what you actually need (like forks).
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Roomventory is a FREE group-based inventory tracker for you and your friends to track your inventory.
 
-You can start editing the page by modifying `app/page.js`. The page auto-updates as you edit the file.
+### Main Features:
+* Multiple groups: have multiple group inventories with different people
+* Inventory collections: manage your inventory by organizing items in different collections (toilet paper goes in the bathroom, not the kitchen)
+* Item tags: know who bought what, so you know who to blame when something runs out
 
-This project uses [`next/font`](https://nextjs.org/docs/basic-features/font-optimization) to automatically optimize and load Inter, a custom Google Font.
-
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js/) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/deployment) for more details.
+### Credits
+This is a software project built by @awnder, @rafiks07, and @connerng for [Headstarter](https://headstarter.co/), built to solve a problem that they faced in their lives. 
+Roomventory is powered by NextJS and MaterialUI, with Firestore and Clerk.
