@@ -28,7 +28,7 @@ export default function NavBar() {
           <Box display="flex" alignItems="center" flexGrow={1}>
             <Link href="./"><Image src={rv_logo} alt="Roomventory Logo" width={50}></Image></Link>
           </Box>
-          <SignedOut>
+          {/* <SignedOut>
             <Button
               variant="contained"
               sx={{
@@ -67,7 +67,7 @@ export default function NavBar() {
         </SignedOut>
         <SignedIn>
           <UserButton />
-        </SignedIn>
+        </SignedIn> */}
       </Toolbar>
       </Container>
     </AppBar>

@@ -43,7 +43,26 @@ export default function Home() {
               </Typography>
             </Box>
             <Typography variant="h5" color={`${gray_dark}`} mb={5} mx={5}>The collective inventory for you and your roomates</Typography>
-            <SignedOut>
+            <Button
+                variant="contained"
+                sx={{
+                  color: `${gray_dark}`,
+                  bgcolor: `${green_light}`,
+                  borderRadius: "10px",
+                  transition: "200ms",
+                  "&:hover": {
+                    color: `${green_light}`,
+                    bgcolor: `${green_dark}`,
+                    transform: "scale(1.1)",
+                  },
+                }}
+                href="https://forms.gle/K4Xh9gu6SV6EhQV39"
+                target="_blank"
+              >
+                <Typography variant="h6">Join the Waitlist</Typography>
+              </Button>
+            {/* <Typography variant="h6" py={2} px={4} bgcolor={green_light} borderRadius="10px">Coming Soon!</Typography> */}
+            {/* <SignedOut>
               <Button
                 variant="contained"
                 sx={{
@@ -66,7 +85,7 @@ export default function Home() {
               <Typography>
                 You're in! Thank you for joining the waitlist!
               </Typography>
-            </SignedIn>
+            </SignedIn> */}
           </Stack>
   {/* Toilet Paper Example */}
         <Box 
@@ -131,13 +150,7 @@ export default function Home() {
             </Grid>
             <Grid item xs={12} md={6} lg={4}>
               <Box height="100%" p={2} sx={{ boxShadow: `0 0 10px ${green_dark}`, background: `linear-gradient(to bottom, #fff, ${green_light})` }}>
-                <Typography variant="h5" mb={2}>Item Alerts</Typography>
-                <Typography>Use item alerts to check at a glance if items in your inventories are nearly out.</Typography>
-              </Box>
-            </Grid>
-            <Grid item xs={12} md={6} lg={4}>
-              <Box height="100%" p={2} sx={{ boxShadow: `0 0 10px ${green_dark}`, background: `linear-gradient(to bottom, #fff, ${green_light})` }}>
-                <Typography variant="h5" mb={2}>Future Goal: Item Tags</Typography>
+                <Typography variant="h5" mb={2}>Item Tags</Typography>
                 <Typography>Know who bought what, so you can blame 'that' guy for not buying his share of toilet paper.</Typography>
               </Box>
             </Grid>
