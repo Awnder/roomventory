@@ -151,13 +151,13 @@ export default function Home() {
             <Grid item xs={12} md={6} lg={4}>
               <Box height="100%" p={2} sx={{ boxShadow: `0 0 10px ${green_dark}`, background: `linear-gradient(to bottom, #fff, ${green_light})` }}>
                 <Typography variant="h5" mb={2}>Item Tags</Typography>
-                <Typography>Know who bought what, so you can blame 'that' guy for not buying his share of toilet paper.</Typography>
+                <Typography>Items come with name tags, so you know who added what. Now you can blame 'that' guy for not buying his share of toilet paper. Additionally, emergency tags let you know if items are low.</Typography>
               </Box>
             </Grid>
             <Grid item xs={12} md={6} lg={4}>
               <Box height="100%" p={2} sx={{ boxShadow: `0 0 10px ${green_dark}`, background: `linear-gradient(to bottom, #fff, ${green_light})` }}>
                 <Typography variant="h5" mb={2}>Future Goal: Picture Perfect</Typography>
-                <Typography>Leverage computer vision and AI to add items to your inventories automatically.</Typography>
+                <Typography>Leverage computer vision and AI to add items to your inventories with a photo of your items.</Typography>
               </Box>
             </Grid>
             <Grid item xs={12} md={6} lg={4}>
