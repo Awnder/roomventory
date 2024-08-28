@@ -42,7 +42,7 @@ export default function Home() {
                 ventory
               </Typography>
             </Box>
-            <Typography variant="h5" color={`${gray_dark}`} mb={5} mx={5}>The collective inventory for you and your roomates</Typography>
+            <Typography variant="h5" color={`${gray_dark}`} mb={5} mx={5}>The collective inventory for you and your roommates</Typography>
             <Button
                 variant="contained"
                 sx={{
