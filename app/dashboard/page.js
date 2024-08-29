@@ -1,10 +1,19 @@
-'use client';
+"use client";
 
-import { Box, Grid, Typography, Modal, Stack, Button, TextField } from "@mui/material";
-import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
+import {
+  Box,
+  Grid,
+  Typography,
+  Modal,
+  Stack,
+  Button,
+  TextField,
+} from "@mui/material";
+import AddCircleOutlineIcon from "@mui/icons-material/AddCircleOutline";
 import { useRouter } from "next/navigation";
 import { useUser } from "@clerk/nextjs";
-
+import { db } from "@/firebase";
+import { writeBatch, doc, collection, getDoc } from "firebase/firestore";
 import { useState, useEffect } from "react";
 
 // colors
@@ -19,39 +28,93 @@ export default function Dashboard() {
   const { isLoaded, isSignedIn, user } = useUser();
   const [addInventoryModal, setAddInventoryModal] = useState(false);
   const [inventoryName, setInventoryName] = useState("");
-  const [flashcards, setFlashcards] = useState([]);
+  const [groupName, setGroupName] = useState("");
+  const [groups, setGroups] = useState([]);
   const router = useRouter();
 
   const handleSubmit = async () => {
     setInventoryName("");
     setAddInventoryModal(false);
-  }
+  };
 
-  // useEffect(() => {
-  //   async function getInventories() {
-  //     if (!user) return;
-  //     const docRef = doc(collection(db, "users"), user.id);
-  //     const docSnap = await getDoc(docRef);
+  //function to add a group (that includes the user that created it) to the database
+  const createGroup = async () => {
+    if (!groupName) {
+      alert("Please enter a group name");
+      return;
+    }
 
-  //     if (docSnap.exists()) {
-  //       const collections = docSnap.data().inventories || [];
+    const newGroup = {
+      members: [user.id],
+      inventories: [],
+    };
 
-  //       setFlashcards(docSnap.data().inventories);
-  //     } else {
-  //       await setDoc(docRef, { inventories: [] });
-  //     }
-  //   }
-  //   getFlashcards();
-  // }, [user]);
+    const batch = writeBatch(db);
+    const userDocRef = doc(collection(db, "users"), user.id);
+    const groupDocRef = doc(collection(db, "groups"), groupName);
 
-  // if (!isLoaded || !isSignedIn) {
-  //   return <></>;
-  // }
+    try {
+      // Check if user exists
+      const userSnap = await getDoc(userDocRef);
 
-  // const handleCardClick = (id) => {
-  //   router.push(`/inventory?id=${id}`);
-  // };
+      if (!userSnap.exists()) {
+        // Create user if it does not exist
+        const newUser = {
+          ID: user.id,
+          name: `${user.firstName} ${user.lastName}`,
+          groups: [groupName],
+        };
+        batch.set(userDocRef, newUser);
+      } else {
+        // Update user with new group
+        const userData = userSnap.data();
+        if (!userData.groups.includes(groupName)) {
+          batch.update(userDocRef, {
+            groups: [...userData.groups, groupName], // Alternatively use arrayUnion if you want to handle duplicates automatically
+          });
+        }
+      }
 
+      // Create group if it does not exist
+      const groupSnap = await getDoc(groupDocRef);
+      if (!groupSnap.exists()) {
+        batch.set(groupDocRef, newGroup);
+      } else {
+        alert("Group already exists");
+        return;
+      }
+
+      // Commit the batch
+      await batch.commit();
+
+      // Clear the input field
+      setGroupName("");
+    } catch (error) {
+      console.error("Error creating group:", error);
+      alert("An error occurred while creating the group. Please try again.");
+    }
+  };
+
+  //function to fetch the user's groups from the database (will be executed on page load)
+  const getGroups = async () => {
+    if (!user) return;
+
+    const userRef = doc(collection(db, "users"), user.id);
+    const userSnap = await getDoc(userRef);
+
+    if (userSnap.exists()) {
+      const collection = userSnap.data().groups || [];
+      console.log("collection", collection);
+
+      setGroups(collection);
+    } else {
+      console.log("User does not exist");
+    }
+  };
+
+  useEffect(() => {
+    getGroups();
+  }, [user]);
 
   return (
     <Box
@@ -61,7 +124,7 @@ export default function Dashboard() {
       minHeight="100vh"
     >
       <Box width="80%" maxWidth="lg">
-        <Typography 
+        <Typography
           variant="h3"
           textAlign="center"
           color={green_light}
@@ -75,7 +138,7 @@ export default function Dashboard() {
         </Typography>
       </Box>
       <Box width="80%" maxWidth="lg">
-        <Grid 
+        <Grid
           container
           flexGrow={1}
           display="flex"
@@ -106,7 +169,11 @@ export default function Dashboard() {
               </Typography>
             </Grid>  
           ))} */}
-          <Grid item xs={12} sm={6} md={4}
+          <Grid
+            item
+            xs={12}
+            sm={6}
+            md={4}
             display="flex"
             justifyContent="center"
             alignItems="center"
@@ -119,23 +186,27 @@ export default function Dashboard() {
               transition: "500ms",
               "&:hover": {
                 transform: "scale(1.02)",
-              }
+              },
             }}
           >
-            <Typography 
-              variant="h6" 
+            <Typography
+              variant="h6"
               maxHeight="100%"
               width="90%"
-              overflow="auto" 
+              overflow="auto"
               textAlign="center"
               color={green_white}
-              sx={{overflowWrap: "break-word"}}
+              sx={{ overflowWrap: "break-word" }}
             >
               Inventory name here
             </Typography>
           </Grid>
 
-          <Grid item xs={12} sm={6} md={4}
+          <Grid
+            item
+            xs={12}
+            sm={6}
+            md={4}
             display="flex"
             justifyContent="center"
             alignItems="center"
@@ -148,23 +219,27 @@ export default function Dashboard() {
               transition: "500ms",
               "&:hover": {
                 transform: "scale(1.02)",
-              }
+              },
             }}
           >
-            <Typography 
-              variant="h6" 
+            <Typography
+              variant="h6"
               maxHeight="100%"
               width="90%"
-              overflow="auto" 
+              overflow="auto"
               textAlign="center"
               color={green_white}
-              sx={{overflowWrap: "break-word"}}
+              sx={{ overflowWrap: "break-word" }}
             >
               Inventory name here
             </Typography>
           </Grid>
 
-          <Grid item xs={12} sm={6} md={4}
+          <Grid
+            item
+            xs={12}
+            sm={6}
+            md={4}
             display="flex"
             justifyContent="center"
             alignItems="center"
@@ -177,38 +252,46 @@ export default function Dashboard() {
               transition: "500ms",
               "&:hover": {
                 transform: "scale(1.02)",
-              }
+              },
             }}
           >
-            <Typography 
-              variant="h6" 
+            <Typography
+              variant="h6"
               maxHeight="100%"
               width="90%"
-              overflow="auto" 
+              overflow="auto"
               textAlign="center"
               color={green_white}
-              sx={{overflowWrap: "break-word"}}
+              sx={{ overflowWrap: "break-word" }}
             >
               Inventory name here
             </Typography>
           </Grid>
         </Grid>
       </Box>
-      <Box width="80%" maxWidth="lg" display="flex" sx={{ justifyContent: { xs:"center", sm:"center", md:"flex-end" } }} >
-        <AddCircleOutlineIcon 
-          onClick={() => setAddInventoryModal(true)} 
-          color="success" 
-          sx={{ 
-            fontSize: 70, 
+      <Box
+        width="80%"
+        maxWidth="lg"
+        display="flex"
+        sx={{ justifyContent: { xs: "center", sm: "center", md: "flex-end" } }}
+      >
+        <AddCircleOutlineIcon
+          onClick={() => setAddInventoryModal(true)}
+          color="success"
+          sx={{
+            fontSize: 70,
             transition: "200ms",
             "&:hover": {
               transform: "rotate(90deg) scale(1.05)",
-            }
-          }} 
+            },
+          }}
         />
       </Box>
 
-      <Modal open={addInventoryModal} onClose={() => setAddInventoryModal(false)}>
+      <Modal
+        open={addInventoryModal}
+        onClose={() => setAddInventoryModal(false)}
+      >
         <Box
           flex="display"
           justifyContent="center"
@@ -218,7 +301,9 @@ export default function Dashboard() {
           height="200px"
           p={2}
         >
-          <Typography variant="h4" textAlign="center" color={green_main}>Add Inventory</Typography>
+          <Typography variant="h4" textAlign="center" color={green_main}>
+            Add Inventory
+          </Typography>
           <Stack flexDirection="row">
             <TextField
               fullWidth
@@ -232,6 +317,23 @@ export default function Dashboard() {
           </Stack>
         </Box>
       </Modal>
+      <Box width="80%" maxWidth="lg" mt={5}>
+        <Typography variant="h4" textAlign="center">
+          Test Form
+        </Typography>
+        <Box display="flex" flexDirection="column" alignItems="center" mt={2}>
+          <TextField
+            label="Test Input"
+            variant="outlined"
+            value={groupName}
+            onChange={(e) => setGroupName(e.target.value)}
+            sx={{ mb: 2 }}
+          />
+          <Button variant="contained" onClick={createGroup}>
+            Submit
+          </Button>
+        </Box>
+      </Box>
     </Box>
-  )
+  );
 }
