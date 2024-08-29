@@ -74,17 +74,8 @@ export default function Dashboard() {
           Welcome to your Dashboard
         </Typography>
       </Box>
-      <Box width="80%" maxWidth="lg">
-        <Grid 
-          container
-          flexGrow={1}
-          display="flex"
-          justifyContent="center"
-          alignItems="center"
-          rowGap={2}
-          columnGap={2}
-          my={5}
-        >
+      <Box width="80%" maxWidth="lg" my={5}>
+        <Grid container flexGrow={1} spacing={2}>
           {/* {inventories.map((inventory, index) => (
             <Grid item xs={12} sm={6} md={4} key={index}
               onClick={() => handleInventoryClick(inventory.name)}
@@ -106,91 +97,106 @@ export default function Dashboard() {
               </Typography>
             </Grid>  
           ))} */}
-          <Grid item xs={12} sm={6} md={4}
-            display="flex"
-            justifyContent="center"
-            alignItems="center"
-            borderRadius={"15px"}
-            minHeight="200px"
-            bgcolor={green_main}
-            border={`2px solid ${green_dark}`}
-            onClick={() => handleInventoryClick(inventory.name)}
-            sx={{
-              transition: "500ms",
-              "&:hover": {
-                transform: "scale(1.02)",
-              }
-            }}
-          >
-            <Typography 
-              variant="h6" 
-              maxHeight="100%"
-              width="90%"
-              overflow="auto" 
-              textAlign="center"
+          <Grid item xs={12} sm={6} md={4}>
+            <Box 
+              height="100%"
+              display="flex"
+              justifyContent="center"
+              alignItems="center"
+              borderRadius={"15px"}
+              minHeight="200px"
+              bgcolor={green_dark}
               color={green_white}
-              sx={{overflowWrap: "break-word"}}
+              border={`2px solid ${green_dark}`}
+              onClick={() => handleInventoryClick(inventory.name)}
+              sx={{
+                transition: "500ms",
+                "&:hover": {
+                  transform: "scale(1.02)",
+                  bgcolor:`${green_light}`,
+                  color:`${green_dark}`
+                }
+              }}
             >
-              Inventory name here
-            </Typography>
+              <Typography 
+                variant="h6" 
+                maxHeight="100%"
+                width="90%"
+                overflow="auto" 
+                textAlign="center"
+                sx={{overflowWrap: "break-word"}}
+              >
+                Inventory name here
+              </Typography>
+            </Box>
           </Grid>
 
-          <Grid item xs={12} sm={6} md={4}
-            display="flex"
-            justifyContent="center"
-            alignItems="center"
-            borderRadius={"15px"}
-            minHeight="200px"
-            bgcolor={green_main}
-            border={`2px solid ${green_dark}`}
-            onClick={() => handleInventoryClick(inventory.name)}
-            sx={{
-              transition: "500ms",
-              "&:hover": {
-                transform: "scale(1.02)",
-              }
-            }}
-          >
-            <Typography 
-              variant="h6" 
-              maxHeight="100%"
-              width="90%"
-              overflow="auto" 
-              textAlign="center"
+          <Grid item xs={12} sm={6} md={4}>
+            <Box 
+              height="100%"
+              display="flex"
+              justifyContent="center"
+              alignItems="center"
+              borderRadius={"15px"}
+              minHeight="200px"
+              bgcolor={green_dark}
               color={green_white}
-              sx={{overflowWrap: "break-word"}}
+              border={`2px solid ${green_dark}`}
+              onClick={() => handleInventoryClick(inventory.name)}
+              sx={{
+                transition: "500ms",
+                "&:hover": {
+                  transform: "scale(1.02)",
+                  bgcolor:`${green_light}`,
+                  color:`${green_dark}`
+                }
+              }}
             >
-              Inventory name here
-            </Typography>
+              <Typography 
+                variant="h6" 
+                maxHeight="100%"
+                width="90%"
+                overflow="auto" 
+                textAlign="center"
+                sx={{overflowWrap: "break-word"}}
+              >
+                Inventory name here
+              </Typography>
+            </Box>
           </Grid>
 
-          <Grid item xs={12} sm={6} md={4}
-            display="flex"
-            justifyContent="center"
-            alignItems="center"
-            borderRadius={"15px"}
-            minHeight="200px"
-            bgcolor={green_main}
-            border={`2px solid ${green_dark}`}
-            onClick={() => handleInventoryClick(inventory.name)}
-            sx={{
-              transition: "500ms",
-              "&:hover": {
-                transform: "scale(1.02)",
-              }
-            }}
-          >
-            <Typography 
-              variant="h6" 
-              maxHeight="100%"
-              width="90%"
-              overflow="auto" 
-              textAlign="center"
+          <Grid item xs={12} sm={6} md={4}>
+            <Box 
+              height="100%"
+              display="flex"
+              justifyContent="center"
+              alignItems="center"
+              borderRadius={"15px"}
+              minHeight="200px"
+              bgcolor={green_dark}
               color={green_white}
-              sx={{overflowWrap: "break-word"}}
+              border={`2px solid ${green_dark}`}
+              onClick={() => handleInventoryClick(inventory.name)}
+              sx={{
+                transition: "500ms",
+                "&:hover": {
+                  transform: "scale(1.02)",
+                  bgcolor:`${green_light}`,
+                  color:`${green_dark}`
+                }
+              }}
             >
-              Inventory name here
-            </Typography>
+              <Typography 
+                variant="h6" 
+                maxHeight="100%"
+                width="90%"
+                overflow="auto" 
+                textAlign="center"
+                sx={{overflowWrap: "break-word"}}
+              >
+                Inventory name here
+              </Typography>
+            </Box>
           </Grid>
         </Grid>
       </Box>
@@ -202,7 +208,7 @@ export default function Dashboard() {
             fontSize: 70, 
             transition: "200ms",
             "&:hover": {
-              transform: "rotate(90deg) scale(1.05)",
+              transform: "rotate(180deg) scale(1.05)",
             }
           }} 
         />
@@ -226,7 +232,7 @@ export default function Dashboard() {
             transform: "translate(-50%, -50%)",
           }}
         >
-          <Typography variant="h4" textAlign="center" color={green_main} mb={2}>Add Inventory</Typography>
+          <Typography variant="h4" textAlign="center" color={green_dark} mb={2}>Add Inventory</Typography>
           <Stack flexDirection="row">
             <TextField
               fullWidth
