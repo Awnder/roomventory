@@ -10,9 +10,7 @@ import { useState, useEffect } from "react";
 // colors
 const green_white = "#F3F6F9";
 const green_light = "#D3F8CC";
-const green_main = "#7EB09B";
 const green_dark = "#4E826B";
-const green_darkest = "#1D3417";
 const gray_dark = "#1C2025";
 
 export default function Dashboard() {
@@ -105,16 +103,16 @@ export default function Dashboard() {
               alignItems="center"
               borderRadius={"15px"}
               minHeight="200px"
-              bgcolor={green_dark}
-              color={green_white}
+              bgcolor={green_light}
+              color={green_dark}
               border={`2px solid ${green_dark}`}
               onClick={() => handleInventoryClick(inventory.name)}
               sx={{
                 transition: "500ms",
                 "&:hover": {
                   transform: "scale(1.02)",
-                  bgcolor:`${green_light}`,
-                  color:`${green_dark}`
+                  bgcolor:`${green_dark}`,
+                  color:`${green_white}`
                 }
               }}
             >
@@ -139,16 +137,16 @@ export default function Dashboard() {
               alignItems="center"
               borderRadius={"15px"}
               minHeight="200px"
-              bgcolor={green_dark}
-              color={green_white}
+              bgcolor={green_light}
+              color={green_dark}
               border={`2px solid ${green_dark}`}
               onClick={() => handleInventoryClick(inventory.name)}
               sx={{
                 transition: "500ms",
                 "&:hover": {
                   transform: "scale(1.02)",
-                  bgcolor:`${green_light}`,
-                  color:`${green_dark}`
+                  bgcolor:`${green_dark}`,
+                  color:`${green_white}`
                 }
               }}
             >
@@ -173,16 +171,16 @@ export default function Dashboard() {
               alignItems="center"
               borderRadius={"15px"}
               minHeight="200px"
-              bgcolor={green_dark}
-              color={green_white}
+              bgcolor={green_light}
+              color={green_dark}
               border={`2px solid ${green_dark}`}
               onClick={() => handleInventoryClick(inventory.name)}
               sx={{
                 transition: "500ms",
                 "&:hover": {
                   transform: "scale(1.02)",
-                  bgcolor:`${green_light}`,
-                  color:`${green_dark}`
+                  bgcolor:`${green_dark}`,
+                  color:`${green_white}`
                 }
               }}
             >
