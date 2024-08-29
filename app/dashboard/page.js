@@ -214,17 +214,26 @@ export default function Dashboard() {
           justifyContent="center"
           alignItems="center"
           bgcolor={green_white}
-          width="400px"
+          width="500px"
           height="200px"
-          p={2}
+          border="2px solid black"
+          borderRadius="15px"
+          p={3}
+          sx={{
+            position: "absolute",
+            top: "50%",
+            left: "50%",
+            transform: "translate(-50%, -50%)",
+          }}
         >
-          <Typography variant="h4" textAlign="center" color={green_main}>Add Inventory</Typography>
+          <Typography variant="h4" textAlign="center" color={green_main} mb={2}>Add Inventory</Typography>
           <Stack flexDirection="row">
             <TextField
               fullWidth
               label="Inventory Name"
               value={inventoryName}
               onChange={(e) => setInventoryName(e.target.value)}
+              sx={{ mr: 2 }}
             />
             <Button variant="contained" color="success" onClick={handleSubmit}>
               Create
