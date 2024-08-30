@@ -11,11 +11,16 @@ import {
   InputAdornment,
   Accordion,
   AccordionDetails,
-  AccordionSummary
+  AccordionSummary,
+  Chip,
+  Avatar
  } from "@mui/material";
 import SettingsIcon from '@mui/icons-material/Settings';
 import SearchIcon from '@mui/icons-material/Search';
 import ArrowDropDownIcon from '@mui/icons-material/ArrowDropDown';
+import AddIcon from '@mui/icons-material/Add';
+import RemoveIcon from '@mui/icons-material/Remove';
+import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
 import { Search } from "@mui/icons-material";
 
 import { useState } from "react";
@@ -117,9 +122,9 @@ export default function Inventory() {
           />
         </Box>
       </Stack>
-      <Box width="80%" maxWidth="lg" display="flex" justifyContent="center" alignItems="center">
+      <Box width="80%" maxWidth="xl" display="flex" justifyContent="center" alignItems="center">
         <Grid container flexGrow={1} spacing={2}>
-          <Grid item xs={12} sm={6}>
+          <Grid item xs={12} sm={12} md={12} lg={6}>
             <Accordion>
               <AccordionSummary
                 expandIcon={<ArrowDropDownIcon />}
@@ -133,7 +138,7 @@ export default function Inventory() {
               </AccordionDetails>
             </Accordion>
           </Grid>
-          <Grid item xs={12} sm={6}>
+          <Grid item xs={12} sm={12} md={12} lg={6}>
           <Accordion>
               <AccordionSummary 
                 expandIcon={<ArrowDropDownIcon />}
@@ -146,10 +151,28 @@ export default function Inventory() {
                   textOverflow:"ellipsis"
                 }}
               >
-                <Typography color="black" border={'2px solid blue'} width="100%" sx={{ typography: {xs: "h6", sm: "h5"} }}>loreumloreumloreumloreumloreumloreumloreumloreumloreumloreumloreumloreumloreum</Typography>
+                <Typography color="black" border={'2px solid blue'} width="100%" sx={{ typography: {xs: "h6", sm: "h5"} }}>loreumloreumloreumloreumloremloreumloreumloreum</Typography>
               </AccordionSummary>
               <AccordionDetails>
-                
+                <Stack direction="column" my={1}>
+                  <Stack direction="row" flexDirection="space-between">
+                      <Grid container border={"2px solid blue"} width="auto" height="auto">
+                        <Grid item xs={12} border={'2px solid green'}>
+                          <Chip avatar={<Avatar>A</Avatar>} label="Andrew Shiroma" variant="outlined" size="small" />
+                        </Grid>
+                        <Grid item xs={12}>
+                          <Chip avatar={<Avatar>R</Avatar>} label="Rafik Shukralla" variant="outlined" size="small" />
+                        </Grid>  
+                      </Grid>
+                    <Typography>Name of item</Typography>
+                    <Typography># of item</Typography>
+                    <Box>
+                      <RemoveIcon />
+                      <AddIcon />
+                      <DeleteOutlineIcon />
+                    </Box>
+                  </Stack>
+                </Stack>
               </AccordionDetails>
             </Accordion>
           </Grid>
