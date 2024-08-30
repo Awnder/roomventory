@@ -8,7 +8,6 @@ import {
   Stack,
   Button,
   TextField,
-  Gridcontainer,
 } from "@mui/material";
 import AddCircleOutlineIcon from "@mui/icons-material/AddCircleOutline";
 import { useRouter } from "next/navigation";
@@ -159,7 +158,7 @@ export default function Dashboard() {
         </Typography>
       </Box>
       <Box width="80%" maxWidth="lg" my={5}>
-        <Gridcontainer flexGrow={1} spacing={2}>
+        <Grid flexGrow={1} spacing={2}>
           {/* {inventories.map((inventory, index) => (
             <Grid item xs={12} sm={6} md={4} key={index}
               onClick={() => handleInventoryClick(inventory.name)}
@@ -282,7 +281,7 @@ export default function Dashboard() {
               </Typography>
             </Box>
           </Grid>
-        </Gridcontainer>
+        </Grid>
       </Box>
       <Box
         width="80%"
