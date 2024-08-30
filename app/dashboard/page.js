@@ -8,6 +8,7 @@ import {
   Stack,
   Button,
   TextField,
+  Gridcontainer,
 } from "@mui/material";
 import AddCircleOutlineIcon from "@mui/icons-material/AddCircleOutline";
 import { useRouter } from "next/navigation";
@@ -281,7 +282,7 @@ export default function Dashboard() {
               </Typography>
             </Box>
           </Grid>
-        </Grid>
+        </Gridcontainer>
       </Box>
       <Box
         width="80%"
@@ -338,23 +339,6 @@ export default function Dashboard() {
           </Stack>
         </Box>
       </Modal>
-      <Box width="80%" maxWidth="lg" mt={5}>
-        <Typography variant="h4" textAlign="center">
-          Test Form
-        </Typography>
-        <Box display="flex" flexDirection="column" alignItems="center" mt={2}>
-          <TextField
-            label="Test Input"
-            variant="outlined"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            sx={{ mb: 2 }}
-          />
-          <Button variant="contained" onClick={handleInvite}>
-            Submit
-          </Button>
-        </Box>
-      </Box>
     </Box>
   );
 }
