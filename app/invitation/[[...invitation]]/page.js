@@ -8,7 +8,7 @@ import { Box, Typography } from "@mui/material";
 import { SignedIn, SignedOut, useSignUp } from "@clerk/nextjs";
 import { useAuth } from "@clerk/nextjs";
 import { useUser } from "@clerk/nextjs";
-import { db } from "@/firebase";
+import { db } from "/firebase";
 import { writeBatch, doc, collection, getDoc } from "firebase/firestore";
 
 export default function Page() {
