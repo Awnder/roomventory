@@ -13,8 +13,7 @@ import {
   AccordionDetails,
   AccordionSummary,
   Chip,
-  Avatar,
-  Divider
+  Tooltip
  } from "@mui/material";
 import SettingsIcon from '@mui/icons-material/Settings';
 import SearchIcon from '@mui/icons-material/Search';
@@ -22,7 +21,7 @@ import ArrowDropDownIcon from '@mui/icons-material/ArrowDropDown';
 import AddIcon from '@mui/icons-material/Add';
 import RemoveIcon from '@mui/icons-material/Remove';
 import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
-import { Search } from "@mui/icons-material";
+import { Opacity, Search } from "@mui/icons-material";
 
 import { useState } from "react";
 
@@ -32,34 +31,10 @@ const green_light = "#D3F8CC";
 const green_dark = "#4E826B";
 const gray_dark = "#1C2025";
 
-function InventoryAccordion({inventoryItems, containerName, index}) {
-  return (
-    <Accordion>
-      <AccordionSummary 
-        expandIcon={<ArrowDropDownIcon />}
-        aria-controls={index}
-        id={index}
-        sx={{
-          width: "100%",
-          maxWidth: "100%",
-          textOverflow:"ellipsis"
-        }}
-      >
-        <Typography color="black" width="100%" sx={{ typography: {xs: "h6", sm: "h5"} }}>{containerName}</Typography>
-      </AccordionSummary>
-      <AccordionDetails>
-        <Stack direction="column" my={1}>
-          {inventoryItems}
-        </Stack>
-      </AccordionDetails>
-    </Accordion>
-  )
-}
-
 function InventoryItem({children, itemName, itemNumber}) {
   return (
     <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ border:`2px solid ${green_dark}` }}>
-      <Stack direction="column" alignItems="center">
+      <Stack direction="column">
         {children}
       </Stack>
       <Typography>{itemName}</Typography>
@@ -77,11 +52,8 @@ export default function Inventory() {
   const [search, setSearch] = useState("") 
 
   return (
-    <Stack
-      direction="column"
-      alignItems="center"
-      minHeight="100vh"
-    >
+    <Stack direction="column" alignItems="center" minHeight="100vh">
+{/* Begin Document */}
       <Stack
         direction="column"
         alignItems="center"
@@ -113,7 +85,8 @@ export default function Inventory() {
           py={3}
           mb={5}
         >
-          <SettingsIcon sx={{ ml: 2, fontSize: {xs: 40, sm: 50}, color: `${green_dark}` }} />
+          {/* invisible icon to balance out justifyContent space-between */}
+          <SettingsIcon sx={{ ml: 2, fontSize: {xs: 40, sm: 50}, color: `${green_dark}` }} /> 
           <Box>
             <Typography 
               flexGrow={1} 
@@ -141,19 +114,16 @@ export default function Inventory() {
         <Box 
           width="60%" 
           maxWidth="md"
-          bgcolor={green_light} 
           border="1px solid black"
           borderRadius="20px" 
           p={2}
+          sx={{ background: `linear-gradient(to left, #fff, ${green_light})`}}
         >
           <TextField
             fullWidth
             label="Search"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            sx={{
-              borderRadius: "20px"
-            }}
             InputProps={{
               endAdornment: (
                 <InputAdornment>
@@ -164,17 +134,88 @@ export default function Inventory() {
           />
         </Box>
       </Stack>
+{/* Inventory Area */}
       <Box width="80%" maxWidth="xl" display="flex" justifyContent="center" alignItems="center">
-        <Grid container flexGrow={1} spacing={2}>
-          <Grid item xs={12} sm={12} md={12} lg={6}>
-            <InventoryAccordion containerName="hello there" index="1">
-              <InventoryItem itemName="popcorn" itemNumber="2">
-                <Chip avatar={<Avatar>A</Avatar>} label="Andrew" variant="outlined" />
-              </InventoryItem>
-            </InventoryAccordion>
-          </Grid>
-          <Grid item xs={12} sm={12} md={12} lg={6}>
-            
+        <Grid container spacing={2}>
+          <Grid item xs={12} sm={12} md={12} lg={6} xl={6}>
+          <Accordion>
+              <AccordionSummary 
+                expandIcon={<ArrowDropDownIcon />}
+                aria-controls="index number"
+                id="index number"
+                sx={{
+                  border:"2px solid red",
+                  width: "100%",
+                  maxWidth: "100%",
+                  textOverflow:"ellipsis"
+                }}
+              >
+                <Typography color="black" border={'2px solid blue'} width="100%" sx={{ typography: {xs: "h6", sm: "h5"} }}>loreumloreumloreumloreumloremloreumloreumloreum</Typography>
+              </AccordionSummary>
+              <AccordionDetails>
+                <Stack direction="column">
+                  {/* below is an inventory item */}
+                  <Stack 
+                    direction="row" 
+                    justifyContent="space-between" 
+                    alignItems="center" 
+                    borderRadius="15px"
+                    position="relative"
+                    mb={2}
+                    sx={{
+                      background: `linear-gradient(to bottom, ${green_light}, #fff)`,
+                      "&::before": {
+                        position: "absolute",
+                        content: "''",
+                        top: 0,
+                        right: 0,
+                        bottom: 0,
+                        left: 0,
+                        background: `linear-gradient(to bottom, #fff, ${green_light})`,
+                        transition: "opacity 200ms linear",
+                        opacity: 0,
+                        borderRadius:"15px"
+                      },
+                      "&:hover::before": {
+                        opacity: 1,
+                        zIndex: 1,
+                        borderRadius:"15px"
+                      }
+                    }}
+                  >
+                    <Stack direction="column" zIndex={2}>
+                      <Chip label="Andrew" variant="outlined" size="small" sx={{ ml: 1, my: 1, background: `linear-gradient(to bottom, lightblue, white)` }} />
+                      <Chip label="Rafik" variant="outlined" size="small" sx={{ ml: 1, mb: 1, background: `linear-gradient(to bottom, yellow, white)` }} />
+                    </Stack>
+                    <Box zIndex={2}>
+                      <Typography sx={{ display: {xs: "block", sm: "inline"}, pr: {xs: 0, sm: 2, md: 3, lg: 3, xl: 4} }}>Name of item</Typography>
+                      <Typography sx={{ display: {xs: "block", sm: "inline"}, pl: {xs: 0, sm: 2, md: 3, lg: 3, xl: 4} }}># of item</Typography>
+                    </Box>
+                    <Box zIndex={2}>
+                      <Tooltip title="Delete" placement="top" arrow 
+                        slotProps={{
+                          popper: {
+                            modifiers: [
+                              {
+                                name: 'offset',
+                                options: {
+                                  offset: [0, -10],
+                                },
+                              },
+                            ],
+                          }
+                        }}
+                      >
+                        <DeleteOutlineIcon />
+                      </Tooltip>
+                      <RemoveIcon />
+                      <AddIcon sx={{ mr: 1 }} />
+                    </Box>
+                  </Stack>
+                  
+                </Stack>
+              </AccordionDetails>
+            </Accordion>
           </Grid>
         </Grid>
       </Box>
