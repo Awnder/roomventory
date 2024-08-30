@@ -12,7 +12,7 @@ import {
 import AddCircleOutlineIcon from "@mui/icons-material/AddCircleOutline";
 import { useRouter } from "next/navigation";
 import { useUser } from "@clerk/nextjs";
-import { db } from "@/firebase";
+import { db } from "/firebase";
 import { writeBatch, doc, collection, getDoc } from "firebase/firestore";
 import { useState, useEffect } from "react";
 

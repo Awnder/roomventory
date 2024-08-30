@@ -15,7 +15,7 @@ import {
   Chip,
   Tooltip,
 } from "@mui/material";
-import TooltipIcon from "@/Components/tooltipicon";
+import TooltipIcon from "../../Components/tooltipicon";
 import SettingsIcon from "@mui/icons-material/Settings";
 import SearchIcon from "@mui/icons-material/Search";
 import ArrowDropDownIcon from "@mui/icons-material/ArrowDropDown";
@@ -25,7 +25,7 @@ import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
 import { Opacity, Search } from "@mui/icons-material";
 import { useRouter } from "next/navigation";
 import { useUser } from "@clerk/nextjs";
-import { db } from "@/firebase";
+import { db } from "/firebase";
 import {
   writeBatch,
   doc,
