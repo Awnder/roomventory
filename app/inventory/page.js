@@ -15,6 +15,7 @@ import {
   Chip,
   Tooltip,
 } from "@mui/material";
+import TooltipIcon from "@/Components/tooltipicon";
 import SettingsIcon from "@mui/icons-material/Settings";
 import SearchIcon from "@mui/icons-material/Search";
 import ArrowDropDownIcon from "@mui/icons-material/ArrowDropDown";
@@ -366,27 +367,15 @@ export default function Inventory() {
                       </Typography>
                     </Box>
                     <Box zIndex={2}>
-                      <Tooltip
-                        title="Delete"
-                        placement="top"
-                        arrow
-                        slotProps={{
-                          popper: {
-                            modifiers: [
-                              {
-                                name: "offset",
-                                options: {
-                                  offset: [0, -10],
-                                },
-                              },
-                            ],
-                          },
-                        }}
-                      >
+                      <TooltipIcon title="Delete" placement="top">
                         <DeleteOutlineIcon />
-                      </Tooltip>
-                      <RemoveIcon />
-                      <AddIcon sx={{ mr: 1 }} />
+                      </TooltipIcon>
+                      <TooltipIcon title="-1" placement="top">
+                        <RemoveIcon sx={{ mx: {xs: 1} }}/>
+                      </TooltipIcon>
+                      <TooltipIcon title="+1" placement="top">
+                        <AddIcon sx={{ mr: 1 }} />
+                      </TooltipIcon>
                     </Box>
                   </Stack>
                 </Stack>
