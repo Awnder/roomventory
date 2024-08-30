@@ -37,6 +37,27 @@ export default function Dashboard() {
     setAddInventoryModal(false);
   };
 
+  const [email, setEmail] = useState("");
+
+  const handleInvite = async (event) => {
+    event.preventDefault();
+    const res = await fetch("/api/invite", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json", // Specify the content type
+      },
+      body: JSON.stringify({ email: email, group: "home" }), // Stringify the email object
+    });
+
+    if (!res.ok) {
+      throw new Error(`HTTP error! status: ${res.status}`);
+    }
+
+    const data = await res.json();
+    // Handle response
+    console.log(data);
+  };
+
   //function to add a group (that includes the user that created it) to the database
   const createGroup = async () => {
     if (!groupName) {
@@ -44,9 +65,10 @@ export default function Dashboard() {
       return;
     }
 
+    const userName = `${user.firstName} ${user.lastName}`;
+
     const newGroup = {
-      members: [user.id],
-      inventories: [],
+      members: [userName],
     };
 
     const batch = writeBatch(db);
@@ -61,7 +83,7 @@ export default function Dashboard() {
         // Create user if it does not exist
         const newUser = {
           ID: user.id,
-          name: `${user.firstName} ${user.lastName}`,
+          name: userName,
           groups: [groupName],
         };
         batch.set(userDocRef, newUser);
@@ -325,11 +347,11 @@ export default function Dashboard() {
           <TextField
             label="Test Input"
             variant="outlined"
-            value={groupName}
-            onChange={(e) => setGroupName(e.target.value)}
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
             sx={{ mb: 2 }}
           />
-          <Button variant="contained" onClick={createGroup}>
+          <Button variant="contained" onClick={handleInvite}>
             Submit
           </Button>
         </Box>
