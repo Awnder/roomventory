@@ -53,7 +53,7 @@ export default function Home() {
                     transform: "scale(1.1)",
                   },
                 }}
-                href="https://forms.gle/K4Xh9gu6SV6EhQV39"
+                href="https://forms.gle/r4Q1dvHoLoNzeecS7"
                 target="_blank"
               >
                 <Typography variant="h6">Join the Waitlist</Typography>
