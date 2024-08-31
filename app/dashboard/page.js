@@ -12,8 +12,16 @@ import {
 import AddCircleOutlineIcon from "@mui/icons-material/AddCircleOutline";
 import { useRouter } from "next/navigation";
 import { useUser } from "@clerk/nextjs";
-import { db } from "@/firebase";
-import { writeBatch, doc, collection, getDoc } from "firebase/firestore";
+import { db } from "/firebase";
+import {
+  writeBatch,
+  doc,
+  collection,
+  getDoc,
+  getDocs,
+  setDocs,
+  setDoc,
+} from "firebase/firestore";
 import { useState, useEffect } from "react";
 
 // colors
@@ -26,6 +34,7 @@ export default function Dashboard() {
   const { isLoaded, isSignedIn, user } = useUser();
   const [addInventoryModal, setAddInventoryModal] = useState(false);
   const [inventoryName, setInventoryName] = useState("");
+  const [itemName, setItemName] = useState("");
   const [groupName, setGroupName] = useState("");
   const [groups, setGroups] = useState([]);
   const router = useRouter();
@@ -136,6 +145,158 @@ export default function Dashboard() {
     getGroups();
   }, [user]);
 
+  //function to delete a group from the database
+  const deleteGroup = async (group, batch) => {
+    console.log('group', group);
+    const groupRef = doc(collection(db, "groups"), group);
+    console.log("test");
+    const groupSnap = await getDoc(groupRef);
+
+    // Get inventories collection
+    const inventoriesCollection = collection(db, "groups", group, "inventories");
+    console.log("inventories Collection", inventoriesCollection);
+    const inventoriesSnap = await getDocs(inventoriesCollection);
+    console.log("inventories Snap", inventoriesSnap);
+
+    if (groupSnap.exists() && inventoriesSnap.size > 0) {
+        // Process inventories
+        const inventoryPromises = inventoriesSnap.docs.map(async (inventory) => {
+            console.log("inventory", inventory);
+            const inventoryName = inventory.data().name;
+            const inventoryRef = doc(inventoriesCollection, inventoryName);
+            const inventorySnap = await getDoc(inventoryRef);
+
+            const itemsCollection = collection(db, "groups", group, "inventories", inventoryName, "items");
+            const itemsSnap = await getDocs(itemsCollection);
+
+            if (inventorySnap.exists() && itemsSnap.size > 0) {
+                // Process items
+                const itemPromises = itemsSnap.docs.map(async (item) => {
+                    const itemName = item.data().name;
+                    const itemRef = doc(itemsCollection, itemName);
+
+                    batch.delete(itemRef);
+                    console.log("Item scheduled for deletion");
+                });
+
+                // Wait for all item deletions to be scheduled
+                await Promise.all(itemPromises);
+            }
+
+            batch.delete(inventoryRef);
+            console.log("Inventory scheduled for deletion");
+        });
+
+        // Wait for all inventory deletions to be scheduled
+        await Promise.all(inventoryPromises);
+    }
+
+    // Finally, delete the group
+    batch.delete(groupRef);
+    console.log("Group scheduled for deletion");    
+};
+
+
+  //function to leave a group
+  const leaveGroup = async () => {
+    const userName = `${user.firstName} ${user.lastName}`;
+    const userDocRef = doc(collection(db, "users"), user.id);
+    console.log("Group Name:", groupName);
+
+    const groupDocRef = doc(collection(db, "groups"), groupName);
+
+    const batch = writeBatch(db);
+
+    //adjust user's groups
+    try {
+      const userSnap = await getDoc(userDocRef);
+
+      if (userSnap.exists()) {
+        const userData = userSnap.data();
+        const newGroups = userData.groups.filter(
+          (group) => group !== groupName
+        );
+
+        batch.update(userDocRef, {
+          groups: newGroups,
+        });
+      }
+    } catch (error) {
+      console.error("Error adjusting user's groups:", error);
+      alert("An error occurred while leaving the group. Please try again.");
+    }
+
+    //adjust group's members
+    try {
+      const groupSnap = await getDoc(groupDocRef);
+      if (groupSnap.exists()) {
+        const groupData = groupSnap.data();
+        const newMembers = groupData.members.filter(
+          (member) => member !== userName
+        );
+
+        if (newMembers.length === 0) {
+          await deleteGroup(groupName, batch);
+        } else {
+          batch.update(groupDocRef, {
+            members: newMembers,
+          });
+        }
+      }
+    } catch (error) {
+      console.error("Error adjusting group's members:", error);
+      alert("An error occurred while leaving the group. Please try again.");
+    }
+
+    await batch.commit();
+    console.log('Commit is DONE')
+  };
+
+  const createInventory = async () => {
+    if (!inventoryName) {
+      alert("Please enter an inventory name");
+      return;
+    }
+
+    const batch = writeBatch(db);
+
+    const groupRef = doc(collection(db, "groups"), "home");
+    const inventoryCollection = collection(groupRef, "inventories");
+
+    const inventoryRef = doc(inventoryCollection, inventoryName);
+    const inventorySnap = await getDoc(inventoryRef);
+
+    if (inventorySnap.exists()) {
+      alert("Inventory already exists");
+      return;
+    } else {
+      await setDoc(inventoryRef, { name: inventoryName });
+    }
+    setInventoryName("");
+  };
+
+  const addItem = async () => {
+    const groupRef = doc(collection(db, "groups"), "home");
+    const inventoryCollection = collection(groupRef, "inventories");
+
+    const inventoryRef = doc(inventoryCollection, "Bathroom");
+
+    const itemsCollection = collection(inventoryRef, "items");
+
+    const itemRef = doc(itemsCollection, itemName);
+    const itemSnap = await getDoc(itemRef);
+
+    //this can be adjusted later to add quantity to the item
+    if (itemSnap.exists()) {
+      alert("Item already exists, maybe add quantity?");
+      return;
+    } else {
+      //fields in the item document can be adjusted later
+      await setDoc(itemRef, { name: itemName, quantity: 1 });
+    }
+    setItemName("");
+  };
+
   return (
     <Box
       display="flex"
@@ -181,7 +342,7 @@ export default function Dashboard() {
             </Grid>  
           ))} */}
           <Grid item xs={12} sm={6} md={4}>
-            <Box 
+            <Box
               height="100%"
               display="flex"
               justifyContent="center"
@@ -196,18 +357,18 @@ export default function Dashboard() {
                 transition: "500ms",
                 "&:hover": {
                   transform: "scale(1.02)",
-                  bgcolor:`${green_dark}`,
-                  color:`${green_white}`
-                }
+                  bgcolor: `${green_dark}`,
+                  color: `${green_white}`,
+                },
               }}
             >
-              <Typography 
-                variant="h6" 
+              <Typography
+                variant="h6"
                 maxHeight="100%"
                 width="90%"
-                overflow="auto" 
+                overflow="auto"
                 textAlign="center"
-                sx={{overflowWrap: "break-word"}}
+                sx={{ overflowWrap: "break-word" }}
               >
                 Inventory name here
               </Typography>
@@ -215,7 +376,7 @@ export default function Dashboard() {
           </Grid>
 
           <Grid item xs={12} sm={6} md={4}>
-            <Box 
+            <Box
               height="100%"
               display="flex"
               justifyContent="center"
@@ -230,18 +391,18 @@ export default function Dashboard() {
                 transition: "500ms",
                 "&:hover": {
                   transform: "scale(1.02)",
-                  bgcolor:`${green_dark}`,
-                  color:`${green_white}`
-                }
+                  bgcolor: `${green_dark}`,
+                  color: `${green_white}`,
+                },
               }}
             >
-              <Typography 
-                variant="h6" 
+              <Typography
+                variant="h6"
                 maxHeight="100%"
                 width="90%"
-                overflow="auto" 
+                overflow="auto"
                 textAlign="center"
-                sx={{overflowWrap: "break-word"}}
+                sx={{ overflowWrap: "break-word" }}
               >
                 Inventory name here
               </Typography>
@@ -249,7 +410,7 @@ export default function Dashboard() {
           </Grid>
 
           <Grid item xs={12} sm={6} md={4}>
-            <Box 
+            <Box
               height="100%"
               display="flex"
               justifyContent="center"
@@ -264,18 +425,18 @@ export default function Dashboard() {
                 transition: "500ms",
                 "&:hover": {
                   transform: "scale(1.02)",
-                  bgcolor:`${green_dark}`,
-                  color:`${green_white}`
-                }
+                  bgcolor: `${green_dark}`,
+                  color: `${green_white}`,
+                },
               }}
             >
-              <Typography 
-                variant="h6" 
+              <Typography
+                variant="h6"
                 maxHeight="100%"
                 width="90%"
-                overflow="auto" 
+                overflow="auto"
                 textAlign="center"
-                sx={{overflowWrap: "break-word"}}
+                sx={{ overflowWrap: "break-word" }}
               >
                 Inventory name here
               </Typography>
@@ -297,8 +458,8 @@ export default function Dashboard() {
             transition: "200ms",
             "&:hover": {
               transform: "rotate(180deg) scale(1.05)",
-            }
-          }} 
+            },
+          }}
         />
       </Box>
 
@@ -323,7 +484,9 @@ export default function Dashboard() {
             transform: "translate(-50%, -50%)",
           }}
         >
-          <Typography variant="h4" textAlign="center" color={green_dark} mb={2}>Add Inventory</Typography>
+          <Typography variant="h4" textAlign="center" color={green_dark} mb={2}>
+            Add Inventory
+          </Typography>
           <Stack flexDirection="row">
             <TextField
               fullWidth
@@ -338,6 +501,14 @@ export default function Dashboard() {
           </Stack>
         </Box>
       </Modal>
+      <Box>
+        <Typography>Leave Group Form</Typography>
+        <TextField
+          value={groupName}
+          onChange={(e) => setGroupName(e.target.value)}
+        />
+        <Button onClick={leaveGroup}>Leave</Button>
+      </Box>
     </Box>
   );
 }
