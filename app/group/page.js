@@ -39,7 +39,7 @@ import { useSearchParams } from "next/navigation";
 
 import banner from "../../public/banner.png";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import Image from "next/image"; 
 
 // colors
@@ -80,10 +80,13 @@ export default function Inventory() {
   const [groupMembers, setGroupMembers] = useState([]);
   const [openMemberModal, setOpenMemberModal] = useState(false);
   const [newMember, setNewMember] = useState('');
+  const [email, setEmail] = useState("");
 
 
   const searchParams = useSearchParams();
   const groupName = searchParams.get("id");
+
+  const textInput = useRef(null);
 
 
   useEffect(() => {
@@ -264,20 +267,40 @@ export default function Inventory() {
     fetchData();
   }, [user, groupName]);
 
-  const handleAddNewMember = async() => {
-    if (!newMember) {
-      return;
+  // const handleAddNewMember = async() => {
+  //   if (!newMember) {
+  //     return;
+  //   }
+
+  //   try {
+  //     const groupRef = doc(collection(db, "groups"), groupName);
+  //     await setDoc(groupRef, {members: [...members, newMember]});
+  //     setGroupMembers([...groupMembers, newMember]);
+  //     setNewMember('');
+  //   } catch (err) {
+  //     console.error('Error adding member: ', err);
+  //   };
+  // }
+  const handleInvite = async (event) => {
+    if (!email) {
+      return;   
+    }
+    const res = await fetch("/api/invite", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json", // Specify the content type
+      },
+      body: JSON.stringify({ email: email, group: groupName }), // Stringify the email object
+    });
+
+    if (!res.ok) {
+      throw new Error(`HTTP error! status: ${res.status}`);
     }
 
-    try {
-      const groupRef = doc(collection(db, "groups"), groupName);
-      await setDoc(groupRef, {members: [...members, newMember]});
-      setGroupMembers([...groupMembers, newMember]);
-      setNewMember('');
-    } catch (err) {
-      console.error('Error adding member: ', err);
-    };
-  }
+    const data = await res.json();
+    // Handle response
+    console.log(data);
+  };
 
   // Optionally, log the inventories state in a separate useEffect
   useEffect(() => {
@@ -444,9 +467,10 @@ export default function Inventory() {
             </Stack>
             <Stack direction="row" spacing={2}>
               <TextField
-                placeholder="New Member"
-                value={newMember}
-                onChange={(e) => setNewMember(e.target.value)}
+                placeholder="New Member Email"
+                inputRef={textInput}
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
               />
               <Button
                 variant="contained"
@@ -460,9 +484,12 @@ export default function Inventory() {
                     transform: "scale(1.1)",
                   },
                 }}
-                onClick={handleAddNewMember}
+                onClick={(e) => {
+                  textInput.current.value = "";
+                  handleInvite();
+                }}
               >
-                Add Member
+                Invite
               </Button>
             </Stack>
             <Button
