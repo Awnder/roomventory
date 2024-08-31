@@ -78,6 +78,8 @@ export default function Inventory() {
   const [itemName, setItemName] = useState("");
   const router = useRouter();
   const [groupMembers, setGroupMembers] = useState([]);
+  const [openMemberModal, setOpenMemberModal] = useState(false);
+  const [newMember, setNewMember] = useState('');
 
 
   const searchParams = useSearchParams();
@@ -262,10 +264,28 @@ export default function Inventory() {
     fetchData();
   }, [user, groupName]);
 
+  const handleAddNewMember = async() => {
+    if (!newMember) {
+      return;
+    }
+
+    try {
+      const groupRef = doc(collection(db, "groups"), groupName);
+      await setDoc(groupRef, {members: [...members, newMember]});
+      setGroupMembers([...groupMembers, newMember]);
+      setNewMember('');
+    } catch (err) {
+      console.error('Error adding member: ', err);
+    };
+  }
+
   // Optionally, log the inventories state in a separate useEffect
   useEffect(() => {
     console.log("final inventories", inventories);
   }, [inventories]);
+
+  const handleOpenMemberModal = () => setOpenMemberModal(true);
+  const handleCloseMemberModal = () => setOpenMemberModal(false);
 
   return (
     <Stack direction="column" alignItems="center" minHeight="100vh">
@@ -339,9 +359,11 @@ export default function Inventory() {
             >
               Roommates
             </Typography>
-            <Typography textAlign="center" color="white">
-              REPLACE WITH ROOMMATES HERE
-            </Typography>
+            <Stack direction="column" spacing={2}>
+              {groupMembers.map((member) => (
+                <Typography textAlign="center" color="white">{member}</Typography>
+              ))}
+            </Stack>
           </Box>
           <SettingsIcon
             sx={{
@@ -352,6 +374,9 @@ export default function Inventory() {
               "&:hover": {
                 transform: "rotate(180deg) scale(1.05)",
               },
+            }}
+            onClick={(e) => {
+              handleOpenMemberModal();
             }}
           />
         </Stack>
@@ -388,6 +413,78 @@ export default function Inventory() {
         justifyContent="center"
         alignItems="center"
       >
+        <Modal
+          open={openMemberModal}
+          onOpen={handleOpenMemberModal}
+        >
+          <Box
+            position="absolute"
+            top="50%"
+            left = "50%"
+            width={500}
+            bgcolor={green_light}
+            border="2px solid #000"
+            p={2}
+            display="flex"
+            flexDirection="column"
+            justifyContent="center"
+            alignItems="center"
+            gap={3}
+            sx={{
+              transform: "translate(-50%,-50%)"
+            }}
+          >
+            <Typography variant="h5" textAlign="center" mt={1}>
+              Edit Group
+            </Typography>
+            <Stack direction="column" spacing={1}>
+              {groupMembers.map((member) => (
+                <Chip key={member} label={member} variant="filled"/>
+              ))}
+            </Stack>
+            <Stack direction="row" spacing={2}>
+              <TextField
+                placeholder="New Member"
+                value={newMember}
+                onChange={(e) => setNewMember(e.target.value)}
+              />
+              <Button
+                variant="contained"
+                sx={{
+                  color: "white",
+                  bgcolor: `${green_dark}`,
+                  borderRadius: "10px",
+                  transition: "200ms",
+                  "&:hover": {
+                    bgcolor: `${green_dark}`,
+                    transform: "scale(1.1)",
+                  },
+                }}
+                onClick={handleAddNewMember}
+              >
+                Add Member
+              </Button>
+            </Stack>
+            <Button
+              variant="contained"
+              sx={{
+                color: "white",
+                bgcolor: `${green_dark}`,
+                borderRadius: "10px",
+                transition: "200ms",
+                "&:hover": {
+                  bgcolor: `${green_dark}`,
+                  transform: "scale(1.1)",
+                },
+              }}
+              onClick={() => {
+                handleCloseMemberModal()
+              }}
+            >
+              Close
+            </Button>
+          </Box>
+        </Modal>
         <Grid container spacing={2}>
           <Grid item xs={12} sm={12} md={12} lg={6} xl={6}>
             <Accordion>
