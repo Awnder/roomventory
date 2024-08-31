@@ -22,7 +22,7 @@ import ArrowDropDownIcon from "@mui/icons-material/ArrowDropDown";
 import AddIcon from "@mui/icons-material/Add";
 import RemoveIcon from "@mui/icons-material/Remove";
 import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
-import { Opacity, Search } from "@mui/icons-material";
+import { Category, Opacity, Search } from "@mui/icons-material";
 import { useRouter } from "next/navigation";
 import { useUser } from "@clerk/nextjs";
 import { db } from "/firebase";
@@ -75,6 +75,7 @@ export default function Inventory() {
   const [inventoryName, setInventoryName] = useState("");
   const [inventories, setInventories] = useState([]);
   const [items, setItems] = useState([]);
+  const [neededItems, setNeededItems] = useState([]);
   const [itemName, setItemName] = useState("");
   const router = useRouter();
   const [groupMembers, setGroupMembers] = useState([]);
@@ -127,7 +128,7 @@ export default function Inventory() {
       alert("Inventory already exists");
       return;
     } else {
-      await setDoc(inventoryRef, { name: inventoryName, items: [] });
+      await setDoc(inventoryRef, { name: inventoryName, items: [], neededItems: [] });
     }
     setInventoryName("");
   };
@@ -153,12 +154,57 @@ export default function Inventory() {
       const items = inventorySnap.data().items;
 
       const newItem = {
-        name: itemName,
-        quantity: 1,
+        name: itemName, // require user to give name
+        quantity: 1, //allow user to adjust quantity (default to 1)
+        inventory: "Bathroom", // automatically selected based on the inventory selected
+        Category: null, // allow user to adjust category (default to null)
+        expiryDate: null, // allow  user to adjust expiry date (default to null)
+        dateAdded: Date.now(), // default to time now
+        lastUpdated: Date.now(), // default to date added
+        isPerishable: false, // allow user to adjust (default to false)
+        minimumQuantity: 0, // allow user to specify (default to 0)
+        notes: "" // allow user to add notes (default to empty string)
       };
 
       const newItems = [...items, newItem];
       await setDoc(inventoryRef, { items: newItems });
+    }
+    setItemName("");
+  };
+
+  const addNeededItem = async () => {
+    const groupRef = doc(collection(db, "groups"), groupName);
+    const inventoryCollection = collection(groupRef, "inventories");
+
+    const inventoryRef = doc(inventoryCollection, "Bathroom"); //inventory should be dynamically selected
+
+    //const itemsCollection = collection(inventoryRef, "items");
+
+    //const itemRef = doc(itemsCollection, itemName);
+    // const itemSnap = await getDoc(itemRef);
+
+    //this can be adjusted later to add quantity to the item
+    const inventorySnap = await getDoc(inventoryRef);
+
+    if (!inventorySnap.exists()) {
+      alert("Inventory does not exist");
+      return;
+    } else {
+      const items = inventorySnap.data().neededItems;
+
+      const newNeededItem = {
+        name: itemName, // require user to give name
+        quantityNeeded: 1, // allow user to adjust quantity (default to 1)
+        inventory: "Bathroom", // automatically selected based on the inventory selected
+        priority: "Low", // allow user to adjust priority (default to Low)
+        addedBy: user.firstName + " " + user.lastName, // automatically selected based on the user
+        status: "Needed", // automatically set to Needed
+        dateAdded: Date.now(), // default to time now
+        notes: "" // allow user to add notes (default to empty string)
+      };
+
+      const newItems = [...items, newNeededItem];
+      await setDoc(inventoryRef, { neededItems: newItems });
     }
     setItemName("");
   };
