@@ -42,11 +42,9 @@ export default function Dashboard() {
   const router = useRouter();
   const [email, setEmail] = useState("");
 
-
-  const handleGroupClick = (id) => {
-    router.push(`/group?id=${id}`);
-
-  }
+  const handleGroupClick = (name) => {
+    router.push(`/group?id=${name}`);
+  };
 
   const handleInvite = async (event) => {
     event.preventDefault();
@@ -155,6 +153,7 @@ export default function Dashboard() {
         const inventoryRef = doc(inventoriesCollection, inventoryName);
         const inventorySnap = await getDoc(inventoryRef);
 
+        /*
         const itemsCollection = collection(
           db,
           "groups",
@@ -178,6 +177,7 @@ export default function Dashboard() {
           // Wait for all item deletions to be scheduled
           await Promise.all(itemPromises);
         }
+        */
 
         batch.delete(inventoryRef);
         console.log("Inventory scheduled for deletion");
@@ -245,51 +245,7 @@ export default function Dashboard() {
 
     await batch.commit();
     console.log("Commit is DONE");
-  };
-
-  const createInventory = async () => {
-    if (!inventoryName) {
-      alert("Please enter an inventory name");
-      return;
-    }
-
-    const batch = writeBatch(db);
-
-    const groupRef = doc(collection(db, "groups"), "home");
-    const inventoryCollection = collection(groupRef, "inventories");
-
-    const inventoryRef = doc(inventoryCollection, inventoryName);
-    const inventorySnap = await getDoc(inventoryRef);
-
-    if (inventorySnap.exists()) {
-      alert("Inventory already exists");
-      return;
-    } else {
-      await setDoc(inventoryRef, { name: inventoryName });
-    }
-    setInventoryName("");
-  };
-
-  const addItem = async () => {
-    const groupRef = doc(collection(db, "groups"), "home");
-    const inventoryCollection = collection(groupRef, "inventories");
-
-    const inventoryRef = doc(inventoryCollection, "Bathroom");
-
-    const itemsCollection = collection(inventoryRef, "items");
-
-    const itemRef = doc(itemsCollection, itemName);
-    const itemSnap = await getDoc(itemRef);
-
-    //this can be adjusted later to add quantity to the item
-    if (itemSnap.exists()) {
-      alert("Item already exists, maybe add quantity?");
-      return;
-    } else {
-      //fields in the item document can be adjusted later
-      await setDoc(itemRef, { name: itemName, quantity: 1 });
-    }
-    setItemName("");
+    setGroupName("");
   };
 
   //function to fetch the user's groups from the database (will be executed on page load)
@@ -309,9 +265,9 @@ export default function Dashboard() {
 
         const querySnapshot = await getDocs(q);
 
-        const groupObjects = querySnapshot.docs.map(doc => doc.data())
+        const groupObjects = querySnapshot.docs.map((doc) => doc.data());
 
-        console.log('actual group objects', groupObjects);
+        console.log("actual group objects", groupObjects);
 
         setGroups(groupObjects);
       } else {
@@ -362,7 +318,7 @@ export default function Dashboard() {
                 bgcolor={green_light}
                 color={green_dark}
                 border={`2px solid ${green_dark}`}
-                onClick={() => handleGroupClick(group.id)}
+                onClick={() => handleGroupClick(group.name)}
                 sx={{
                   transition: "500ms",
                   "&:hover": {
@@ -531,17 +487,17 @@ export default function Dashboard() {
           }}
         >
           <Typography variant="h4" textAlign="center" color={green_dark} mb={2}>
-            Add Inventory
+            Create New Group
           </Typography>
           <Stack flexDirection="row">
             <TextField
               fullWidth
-              label="Inventory Name"
+              label="Group Name"
               value={groupName}
               onChange={(e) => setGroupName(e.target.value)}
               sx={{ mr: 2 }}
             />
-            <Button variant="contained" color="success" onClick={createGroup}>
+            <Button variant="contained" color="success" onClick={leaveGroup}>
               Create
             </Button>
           </Stack>

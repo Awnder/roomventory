@@ -35,8 +35,9 @@ import {
   getDocs,
   setDoc,
 } from "firebase/firestore";
+import { useSearchParams } from "next/navigation";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 // colors
 const green_white = "#F3F6F9";
@@ -69,11 +70,14 @@ export default function Inventory() {
   const { isLoaded, isSignedIn, user } = useUser();
   const [addInventoryModal, setAddInventoryModal] = useState(false);
   const [inventoryName, setInventoryName] = useState("");
+  const [inventories, setInventories] = useState([]);
+  const [items, setItems] = useState([]);
   const [itemName, setItemName] = useState("");
   const router = useRouter();
 
-  //just for testing (change it to be dynamic later)
-  const groupName = "home";
+  const searchParams = useSearchParams();
+  const groupName = searchParams.get("id");
+
   //just for testing (change it to be dynamic later)
   const inventory = "Kithcen";
 
@@ -110,63 +114,75 @@ export default function Inventory() {
     const groupRef = doc(collection(db, "groups"), groupName);
     const inventoryCollection = collection(groupRef, "inventories");
 
-    const inventoryRef = doc(inventoryCollection, inventory);
+    const inventoryRef = doc(inventoryCollection, "Bathroom"); //inventory should be dynamically selected
 
-    const itemsCollection = collection(inventoryRef, "items");
+    //const itemsCollection = collection(inventoryRef, "items");
 
-    const itemRef = doc(itemsCollection, itemName);
-    const itemSnap = await getDoc(itemRef);
+    //const itemRef = doc(itemsCollection, itemName);
+    // const itemSnap = await getDoc(itemRef);
 
     //this can be adjusted later to add quantity to the item
-    if (itemSnap.exists()) {
-      alert("Item already exists, maybe add quantity?");
+    const inventorySnap = await getDoc(inventoryRef);
+
+    if (!inventorySnap.exists()) {
+      alert("Inventory does not exist");
       return;
     } else {
-      //fields in the item document can be adjusted later
-      await setDoc(itemRef, { name: itemName, quantity: 1 });
+      const items = inventorySnap.data().items;
+
+      const newItem = {
+        name: itemName,
+        quantity: 1,
+      };
+
+      const newItems = [...items, newItem];
+      await setDoc(inventoryRef, { items: newItems });
     }
     setItemName("");
   };
 
-  /*
   const deleteItem = async () => {
     const groupRef = doc(collection(db, "groups"), groupName);
     const inventoryCollection = collection(groupRef, "inventories");
-    
-    const inventoryRef = doc(inventoryCollection, inventory);
 
-    const itemsCollection = collection(inventoryRef, "items");
+    const inventoryRef = doc(inventoryCollection, "Bathroom"); //inventory should be dynamically selected
 
-    const itemRef = doc(itemsCollection, itemName);
-    const itemSnap = await getDoc(itemRef);
+    //const itemsCollection = collection(inventoryRef, "items");
 
-    if (itemSnap.exists()) {
-        await deleteDoc(itemRef);
+    //const itemRef = doc(itemsCollection, itemName);
+    //const itemSnap = await getDoc(itemRef);
+
+    const inventorySnap = await getDoc(inventoryRef);
+
+    if (!inventorySnap.exists()) {
+      alert("Inventory does not exist");
+      return;
+    } else {
+        const items = inventorySnap.data().items;
+
+        const newItems = items.filter((item) => item.name !== itemName);
+        await setDoc(inventoryRef, { items: newItems });
     }
-    else{
-      alert("Item does not exist");
-    }
-  }
-    */
+    setItemName("");
+  };
 
-  /*
   const deleteInventory = async () => {
     try {
       const groupRef = doc(collection(db, "groups"), groupName);
       const inventoryCollection = collection(groupRef, "inventories");
 
-      const inventoryRef = doc(inventoryCollection, inventory);
+      const inventoryRef = doc(inventoryCollection, inventoryName);
 
-      const itemsCollectionRef = collection(inventoryRef, "items");
+      //const itemsCollectionRef = collection(inventoryRef, "items");
 
       // Fetch all documents in the subcollection
-      const itemsSnap = await getDocs(itemsCollectionRef);
+      //const itemsSnap = await getDocs(itemsCollectionRef);
 
       // Delete each document in the subcollection
-      const deletePromises = itemsSnap.docs.map((doc) => deleteDoc(doc.ref));
-      await Promise.all(deletePromises);
+      //const deletePromises = itemsSnap.docs.map((doc) => deleteDoc(doc.ref));
+      //await Promise.all(deletePromises);
 
-      console.log("All documents in the subcollection deleted successfully!");
+      //console.log("All documents in the subcollection deleted successfully!");
 
       const inventorySnap = await getDoc(inventoryRef);
 
@@ -178,9 +194,56 @@ export default function Inventory() {
     } catch (error) {
       console.error("Error deleting inventory:", error);
     }
-
+    setInventoryName("");
   };
-*/
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        if (!user) return;
+
+        const inventoriesCol = collection(
+          db,
+          "groups",
+          groupName,
+          "inventories"
+        );
+        console.log("inventoriesCol", inventoriesCol);
+
+        const inventoriesSnap = await getDocs(inventoriesCol);
+        console.log("inventoriesSnap", inventoriesSnap);
+        console.log("inventoriesSnap.docs", inventoriesSnap.docs);
+
+        const inventoriesList = [];
+
+        // Collect promises if there are async operations to perform on itemsCol
+        const inventoriesPromises = inventoriesSnap.docs.map(
+          async (inventory) => {
+            const inventoryData = inventory.data();
+            console.log("inventory", inventoryData);
+            inventoriesList.push(inventoryData);
+
+            const itemsCol = inventoryData.items;
+            console.log("itemsCol", itemsCol);
+          }
+        );
+
+        // Wait for all inventory promises to resolve
+        await Promise.all(inventoriesPromises);
+
+        setInventories(inventoriesList);
+      } catch (error) {
+        console.error("Error fetching data:", error);
+      }
+    };
+
+    fetchData();
+  }, [user, groupName]);
+
+  // Optionally, log the inventories state in a separate useEffect
+  useEffect(() => {
+    console.log("final inventories", inventories);
+  }, [inventories]);
 
   return (
     <Stack direction="column" alignItems="center" minHeight="100vh">
@@ -197,7 +260,7 @@ export default function Inventory() {
           mb={5}
           sx={{ typography: { xs: "h5", sm: "h4" } }}
         >
-          Welcome name to roommate group 1
+          Welcome to your {groupName} inventory!
         </Typography>
         <Stack
           direction="row"
@@ -371,7 +434,7 @@ export default function Inventory() {
                         <DeleteOutlineIcon />
                       </TooltipIcon>
                       <TooltipIcon title="-1" placement="top">
-                        <RemoveIcon sx={{ mx: {xs: 1} }}/>
+                        <RemoveIcon sx={{ mx: { xs: 1 } }} />
                       </TooltipIcon>
                       <TooltipIcon title="+1" placement="top">
                         <AddIcon sx={{ mr: 1 }} />
@@ -382,6 +445,14 @@ export default function Inventory() {
               </AccordionDetails>
             </Accordion>
           </Grid>
+          <Box>
+            <TextField
+              label="Item Name"
+              value={inventoryName}
+              onChange={(e) => setInventoryName(e.target.value)}
+            />
+            <Button onClick={deleteInventory}>Add</Button>
+          </Box>
         </Grid>
       </Box>
     </Stack>
