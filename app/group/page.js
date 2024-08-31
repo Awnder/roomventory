@@ -232,61 +232,46 @@ export default function Inventory() {
         </Box>
         {/* Roommate Banner and Add Container Button */}
         <Stack
-          direction={{ xs: "column", sm: "row" }}
-          justifyContent="center"
+          direction="row"
+          justifyContent="space-between"
           alignItems="center"
           width="80%"
           maxWidth="lg"
-          border='2px solid red'
+          bgcolor={green_dark}
+          borderRadius="20px"
+          py={3}
+          mb={2}
         >
-          <Typography
-            textAlign="center"
-            border={'2px solid blue'}
-            bgcolor={green_dark}
-            borderRadius="20px"
-            p={3}
-          >
-            Add Container
-          </Typography>
-          <Stack
-            direction="row"
-            justifyContent="space-between"
-            alignItems="center"
-            bgcolor={green_dark}
-            borderRadius="20px"
-            py={3}
-          >
-            {/* invisible icon to balance out justifyContent space-between */}
-            <SettingsIcon
-              sx={{ ml: 2, fontSize: { xs: 40, sm: 50 }, color: `${green_dark}` }}
-            />
-            <Box>
-              <Typography
-                flexGrow={1}
-                textAlign="center"
-                color={green_light}
-                px={2}
-                mb={2}
-                sx={{ typography: { xs: "h5", sm: "h4" } }}
-              >
-                Roommates
-              </Typography>
-              <Typography textAlign="center" color="white">
-                REPLACE WITH ROOMMATES HERE
-              </Typography>
-            </Box>
-            <SettingsIcon
-              sx={{
-                mr: 2,
-                fontSize: { xs: 40, sm: 50 },
-                color: `${green_light}`,
-                transition: "200ms",
-                "&:hover": {
-                  transform: "rotate(180deg) scale(1.05)",
-                },
-              }}
-            />
-          </Stack>
+          {/* invisible icon to balance out justifyContent space-between */}
+          <SettingsIcon
+            sx={{ ml: 2, fontSize: { xs: 40, sm: 50 }, color: `${green_dark}` }}
+          />
+          <Box>
+            <Typography
+              flexGrow={1}
+              textAlign="center"
+              color={green_light}
+              px={2}
+              mb={2}
+              sx={{ typography: { xs: "h5", sm: "h4" } }}
+            >
+              Roommates
+            </Typography>
+            <Typography textAlign="center" color="white">
+              REPLACE WITH ROOMMATES HERE
+            </Typography>
+          </Box>
+          <SettingsIcon
+            sx={{
+              mr: 2,
+              fontSize: { xs: 40, sm: 50 },
+              color: `${green_light}`,
+              transition: "200ms",
+              "&:hover": {
+                transform: "rotate(180deg) scale(1.05)",
+              },
+            }}
+          />
         </Stack>
         
         {/* Search Bar */}
