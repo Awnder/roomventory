@@ -8,6 +8,7 @@ import CloseIcon from '@mui/icons-material/Close';
 
 import Image from "next/image";
 import toiletpaper from '/public/toiletpaper.jpg';
+import "./globals.css";
 // import chat from "public/chat.png"
 
 //colors
@@ -22,19 +23,30 @@ export default function Home() {
       <Stack direction="column" width="100%" justifyContent="center" alignItems="center">
   {/* Title and Call to Action */}
           <Stack direction="column" alignItems="center" textAlign="center" my={15} mx={2}>
-            <Box display="flex" flexWrap="wrap" justifyContent="center" my={5} sx={{ background: `linear-gradient(to right, ${green_light}, ${green_light}, #fff)` }}>
+            <Box display="flex" borderRadius="10px" justifyContent="center" my={5} sx={{ background: `linear-gradient(to right, ${green_light}, ${green_light}, #fff)` }}>
               <Typography
+                className="title"
                 variant="h1"
                 color={`${green_light}`} 
                 bgcolor={`${green_dark}`}
                 borderRadius={"10px"} 
                 px={1}
+                sx={{
+                  '@media only screen and (max-width: 600px)': {
+                    fontSize: "75px"
+                  },
+                }}
               >
                 Room
               </Typography>
               <Typography 
-                variant="h1" 
+                variant="h1"
                 color={`${green_dark}`} 
+                sx={{
+                  '@media only screen and (max-width: 600px)': {
+                    fontSize: "75px"
+                  },
+                }}
               >
                 ventory
               </Typography>
@@ -123,42 +135,98 @@ export default function Home() {
           <Grid container flexGrow={1} spacing={3}>
             <Grid item xs={12}>
               <Typography
-              variant="h3"
-              textAlign="center"
-              color={`${green_light}`} 
-              bgcolor={`${green_dark}`}
-              borderRadius="10px" 
-              py={2}
-            >
-              Features & Goals
-            </Typography>
+                variant="h3"
+                textAlign="center"
+                color={`${green_light}`} 
+                bgcolor={`${green_dark}`}
+                borderRadius="10px" 
+                py={2}
+                boxShadow="0 0 10px black"
+              >
+                Features & Goals
+              </Typography>
             </Grid>
             <Grid item xs={12} md={6} lg={4}>
-              <Box height="100%" p={2} sx={{ boxShadow: `0 0 10px ${green_dark}`, background: `linear-gradient(to bottom, #fff, ${green_light})` }}>
+              <Box
+                height="100%"
+                p={2}
+                sx={{
+                  boxShadow: `0 0 10px ${green_dark}`,
+                  background: `linear-gradient(to bottom, #fff,${green_light})`,
+                  '&:hover': {
+                    transform: "scale(1.1)",
+                    transition: "0.1s ease-out"
+                  },
+                }}
+              >
                 <Typography variant="h5" mb={2}>Inventory Collections</Typography>
                 <Typography>Manage your inventory by placing items in collections. Toilet paper goes in the bathroom, not the kitchen!</Typography>
               </Box>
             </Grid>
             <Grid item xs={12} md={6} lg={4}>
-              <Box height="100%" p={2} sx={{ boxShadow: `0 0 10px ${green_dark}`, background: `linear-gradient(to bottom, #fff, ${green_light})` }}>
+              <Box
+                height="100%"
+                p={2}
+                sx={{
+                  boxShadow: `0 0 10px ${green_dark}`,
+                  background: `linear-gradient(to bottom, #fff,${green_light})`,
+                  '&:hover': {
+                    transform: "scale(1.1)",
+                    transition: "0.1s ease-out"
+                  },
+                }}
+              >
                 <Typography variant="h5" mb={2}>Multiple Group Inventories</Typography>
                 <Typography>Keep inventories separate by joining and participating in multiple groups, each with their own inventories.</Typography>
               </Box>
             </Grid>
             <Grid item xs={12} md={6} lg={4}>
-              <Box height="100%" p={2} sx={{ boxShadow: `0 0 10px ${green_dark}`, background: `linear-gradient(to bottom, #fff, ${green_light})` }}>
+              <Box
+                height="100%"
+                p={2}
+                sx={{
+                  boxShadow: `0 0 10px ${green_dark}`,
+                  background: `linear-gradient(to bottom, #fff,${green_light})`,
+                  '&:hover': {
+                    transform: "scale(1.1)",
+                    transition: "0.1s ease-out"
+                  },
+                }}
+              >
                 <Typography variant="h5" mb={2}>Item Tags</Typography>
                 <Typography>Items come with name tags, so you know who added what. Now you can blame 'that' guy for not buying his share of toilet paper. Additionally, emergency tags let you know if items are low.</Typography>
               </Box>
             </Grid>
             <Grid item xs={12} md={6} lg={4}>
-              <Box height="100%" p={2} sx={{ boxShadow: `0 0 10px ${green_dark}`, background: `linear-gradient(to bottom, #fff, ${green_light})` }}>
+              <Box
+                height="100%"
+                p={2}
+                sx={{
+                  boxShadow: `0 0 10px ${green_dark}`,
+                  background: `linear-gradient(to bottom, #fff,${green_light})`,
+                  '&:hover': {
+                    transform: "scale(1.1)",
+                    transition: "0.1s ease-out"
+                  },
+                }}
+              >
                 <Typography variant="h5" mb={2}>Future Goal: Picture Perfect</Typography>
                 <Typography>Leverage computer vision and AI to add items to your inventories with a photo of your items.</Typography>
               </Box>
             </Grid>
             <Grid item xs={12} md={6} lg={4}>
-            <Box height="100%" p={2} sx={{ boxShadow: `0 0 10px ${green_dark}`, background: `linear-gradient(to bottom, #fff, ${green_light})` }}>
+              <Box
+                height="100%"
+                p={2}
+                sx={{
+                  boxShadow: `0 0 10px ${green_dark}`,
+                  background: `linear-gradient(to bottom, #fff,${green_light})`,
+                  '&:hover': {
+                    transform: "scale(1.1)",
+                    transition: "0.1s ease-out"
+                  },
+                }}
+              >
                 <Typography variant="h5" mb={2}>Future Goal: AI Suggests</Typography>
                 <Typography>Helpful AI prompting suggests items that you might need based on your current inventory.</Typography>
               </Box>
