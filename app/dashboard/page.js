@@ -22,7 +22,7 @@ import {
   setDocs,
   setDoc,
 } from "firebase/firestore";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 
 // colors
 const green_white = "#F3F6F9";
@@ -66,15 +66,17 @@ export default function Dashboard() {
   };
 
   //function to add a group (that includes the user that created it) to the database
-  const createGroup = async () => {
+  const createGroup = useCallback(async () => {
     if (!groupName) {
       alert("Please enter a group name");
+      console.log("No group name", groupName);
       return;
     }
 
     const userName = `${user.firstName} ${user.lastName}`;
 
     const newGroup = {
+      name: groupName,
       members: [userName],
     };
 
@@ -122,80 +124,71 @@ export default function Dashboard() {
       console.error("Error creating group:", error);
       alert("An error occurred while creating the group. Please try again.");
     }
-  };
-
-  //function to fetch the user's groups from the database (will be executed on page load)
-  const getGroups = async () => {
-    if (!user) return;
-
-    const userRef = doc(collection(db, "users"), user.id);
-    const userSnap = await getDoc(userRef);
-
-    if (userSnap.exists()) {
-      const collection = userSnap.data().groups || [];
-      console.log("collection", collection);
-
-      setGroups(collection);
-    } else {
-      console.log("User does not exist");
-    }
-  };
-
-  useEffect(() => {
-    getGroups();
-  }, [user]);
+    setAddInventoryModal(false);
+  }, [groupName, user]);
 
   //function to delete a group from the database
   const deleteGroup = async (group, batch) => {
-    console.log('group', group);
+    console.log("group", group);
     const groupRef = doc(collection(db, "groups"), group);
     console.log("test");
     const groupSnap = await getDoc(groupRef);
 
     // Get inventories collection
-    const inventoriesCollection = collection(db, "groups", group, "inventories");
+    const inventoriesCollection = collection(
+      db,
+      "groups",
+      group,
+      "inventories"
+    );
     console.log("inventories Collection", inventoriesCollection);
     const inventoriesSnap = await getDocs(inventoriesCollection);
     console.log("inventories Snap", inventoriesSnap);
 
     if (groupSnap.exists() && inventoriesSnap.size > 0) {
-        // Process inventories
-        const inventoryPromises = inventoriesSnap.docs.map(async (inventory) => {
-            console.log("inventory", inventory);
-            const inventoryName = inventory.data().name;
-            const inventoryRef = doc(inventoriesCollection, inventoryName);
-            const inventorySnap = await getDoc(inventoryRef);
+      // Process inventories
+      const inventoryPromises = inventoriesSnap.docs.map(async (inventory) => {
+        console.log("inventory", inventory);
+        const inventoryName = inventory.data().name;
+        const inventoryRef = doc(inventoriesCollection, inventoryName);
+        const inventorySnap = await getDoc(inventoryRef);
 
-            const itemsCollection = collection(db, "groups", group, "inventories", inventoryName, "items");
-            const itemsSnap = await getDocs(itemsCollection);
+        const itemsCollection = collection(
+          db,
+          "groups",
+          group,
+          "inventories",
+          inventoryName,
+          "items"
+        );
+        const itemsSnap = await getDocs(itemsCollection);
 
-            if (inventorySnap.exists() && itemsSnap.size > 0) {
-                // Process items
-                const itemPromises = itemsSnap.docs.map(async (item) => {
-                    const itemName = item.data().name;
-                    const itemRef = doc(itemsCollection, itemName);
+        if (inventorySnap.exists() && itemsSnap.size > 0) {
+          // Process items
+          const itemPromises = itemsSnap.docs.map(async (item) => {
+            const itemName = item.data().name;
+            const itemRef = doc(itemsCollection, itemName);
 
-                    batch.delete(itemRef);
-                    console.log("Item scheduled for deletion");
-                });
+            batch.delete(itemRef);
+            console.log("Item scheduled for deletion");
+          });
 
-                // Wait for all item deletions to be scheduled
-                await Promise.all(itemPromises);
-            }
+          // Wait for all item deletions to be scheduled
+          await Promise.all(itemPromises);
+        }
 
-            batch.delete(inventoryRef);
-            console.log("Inventory scheduled for deletion");
-        });
+        batch.delete(inventoryRef);
+        console.log("Inventory scheduled for deletion");
+      });
 
-        // Wait for all inventory deletions to be scheduled
-        await Promise.all(inventoryPromises);
+      // Wait for all inventory deletions to be scheduled
+      await Promise.all(inventoryPromises);
     }
 
     // Finally, delete the group
     batch.delete(groupRef);
-    console.log("Group scheduled for deletion");    
-};
-
+    console.log("Group scheduled for deletion");
+  };
 
   //function to leave a group
   const leaveGroup = async () => {
@@ -249,7 +242,7 @@ export default function Dashboard() {
     }
 
     await batch.commit();
-    console.log('Commit is DONE')
+    console.log("Commit is DONE");
   };
 
   const createInventory = async () => {
@@ -297,6 +290,32 @@ export default function Dashboard() {
     setItemName("");
   };
 
+  //function to fetch the user's groups from the database (will be executed on page load)
+  useEffect(() => {
+    const getGroups = async () => {
+      if (!user) return;
+
+      const userRef = doc(collection(db, "users"), user.id);
+      const userSnap = await getDoc(userRef);
+
+      if (userSnap.exists()) {
+        const collection = userSnap.data().groups || [];
+        console.log("collection", collection);
+
+        setGroups(collection);
+      } else {
+        console.log("User does not exist");
+      }
+    };
+
+    getGroups();
+  }, [user, createGroup]);
+
+  // Log the updated `groups` whenever it changes
+  useEffect(() => {
+    console.log("Updated Groups", groups);
+  }, [groups]);
+
   return (
     <Box
       display="flex"
@@ -319,28 +338,43 @@ export default function Dashboard() {
         </Typography>
       </Box>
       <Box width="80%" maxWidth="lg" my={5}>
-        <Grid flexGrow={1} spacing={2}>
-          {/* {inventories.map((inventory, index) => (
-            <Grid item xs={12} sm={6} md={4} key={index}
-              onClick={() => handleInventoryClick(inventory.name)}
-              sx={{
-                transition: "500ms",
-                "&:hover": {
-                  transform: "scale(1.02)",
-                }
-              }}
-            >
-              <Typography 
-                variant="h6" 
-                maxHeight="100%" 
-                overflow="auto" 
-                textAlign="center"
-                sx={{overflowWrap: "break-word"}}
+        <Grid container flexGrow={1} spacing={2}>
+          {groups.map((group, index) => (
+            <Grid item xs={12} sm={6} md={4}>
+              <Box
+                height="100%"
+                display="flex"
+                justifyContent="center"
+                alignItems="center"
+                borderRadius={"15px"}
+                minHeight="200px"
+                bgcolor={green_light}
+                color={green_dark}
+                border={`2px solid ${green_dark}`}
+                onClick={() => handleInventoryClick(group)}
+                sx={{
+                  transition: "500ms",
+                  "&:hover": {
+                    transform: "scale(1.02)",
+                    bgcolor: `${green_dark}`,
+                    color: `${green_white}`,
+                  },
+                }}
               >
-                {inventory.name}
-              </Typography>
-            </Grid>  
-          ))} */}
+                <Typography
+                  variant="h6"
+                  maxHeight="100%"
+                  width="90%"
+                  overflow="auto"
+                  textAlign="center"
+                  sx={{ overflowWrap: "break-word" }}
+                >
+                  {group}
+                </Typography>
+              </Box>
+            </Grid>
+          ))}
+          {/*
           <Grid item xs={12} sm={6} md={4}>
             <Box
               height="100%"
@@ -442,6 +476,7 @@ export default function Dashboard() {
               </Typography>
             </Box>
           </Grid>
+          */}
         </Grid>
       </Box>
       <Box
@@ -491,24 +526,16 @@ export default function Dashboard() {
             <TextField
               fullWidth
               label="Inventory Name"
-              value={inventoryName}
-              onChange={(e) => setInventoryName(e.target.value)}
+              value={groupName}
+              onChange={(e) => setGroupName(e.target.value)}
               sx={{ mr: 2 }}
             />
-            <Button variant="contained" color="success" onClick={handleSubmit}>
+            <Button variant="contained" color="success" onClick={createGroup}>
               Create
             </Button>
           </Stack>
         </Box>
       </Modal>
-      <Box>
-        <Typography>Leave Group Form</Typography>
-        <TextField
-          value={groupName}
-          onChange={(e) => setGroupName(e.target.value)}
-        />
-        <Button onClick={leaveGroup}>Leave</Button>
-      </Box>
     </Box>
   );
 }
