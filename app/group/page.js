@@ -77,9 +77,28 @@ export default function Inventory() {
   const [items, setItems] = useState([]);
   const [itemName, setItemName] = useState("");
   const router = useRouter();
+  const [groupMembers, setGroupMembers] = useState([]);
+
 
   const searchParams = useSearchParams();
   const groupName = searchParams.get("id");
+
+
+  useEffect(() => {
+    const getMembers = async () => {
+      const groupRef = doc(collection(db, "groups"), groupName);
+      const groupSnap = await getDoc(groupRef);
+
+      if (groupSnap.exists()) {
+        const groupData = groupSnap.data();
+        console.log("groupData", groupData);
+        setGroupMembers(groupData.members);
+      }
+    }
+
+    getMembers();
+  }, [user, groupName]);
+
 
   //just for testing (change it to be dynamic later)
   const inventory = "Kithcen";
@@ -383,6 +402,7 @@ export default function Inventory() {
                   textOverflow: "ellipsis",
                 }}
               >
+                {/* You can use inventory.name*/}
                 <Typography
                   color="black"
                   border={"2px solid blue"}
@@ -423,6 +443,7 @@ export default function Inventory() {
                       },
                     }}
                   >
+                    {/* You can use groupMembers here*/}
                     <Stack direction="column" zIndex={2}>
                       <Chip
                         label="Andrew"
@@ -446,6 +467,7 @@ export default function Inventory() {
                       />
                     </Stack>
                     <Box zIndex={2}>
+                      {/* You can use inventory.items.name here*/}
                       <Typography
                         sx={{
                           display: { xs: "block", sm: "inline" },
@@ -454,6 +476,7 @@ export default function Inventory() {
                       >
                         Name of item
                       </Typography>
+                      {/* You can use inventory.items.quantity here*/}
                       <Typography
                         sx={{
                           display: { xs: "block", sm: "inline" },
@@ -465,6 +488,7 @@ export default function Inventory() {
                     </Box>
                     <Box zIndex={2}>
                       <TooltipIcon title="Delete" placement="top">
+                        {/* You can use deleteItem here (probably pass item.name as parameter)*/}
                         <DeleteOutlineIcon />
                       </TooltipIcon>
                       <TooltipIcon title="-1" placement="top">
@@ -485,7 +509,7 @@ export default function Inventory() {
               value={inventoryName}
               onChange={(e) => setInventoryName(e.target.value)}
             />
-            <Button onClick={deleteInventory}>Add</Button>
+            <Button onClick={createInventory}>Add</Button>
           </Box>
         </Grid>
       </Box>

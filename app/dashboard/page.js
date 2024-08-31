@@ -497,7 +497,7 @@ export default function Dashboard() {
               onChange={(e) => setGroupName(e.target.value)}
               sx={{ mr: 2 }}
             />
-            <Button variant="contained" color="success" onClick={leaveGroup}>
+            <Button variant="contained" color="success" onClick={createGroup}>
               Create
             </Button>
           </Stack>
