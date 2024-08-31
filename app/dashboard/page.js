@@ -21,6 +21,8 @@ import {
   getDocs,
   setDocs,
   setDoc,
+  query,
+  where,
 } from "firebase/firestore";
 import { useState, useEffect, useCallback } from "react";
 
@@ -38,13 +40,13 @@ export default function Dashboard() {
   const [groupName, setGroupName] = useState("");
   const [groups, setGroups] = useState([]);
   const router = useRouter();
-
-  const handleSubmit = async () => {
-    setInventoryName("");
-    setAddInventoryModal(false);
-  };
-
   const [email, setEmail] = useState("");
+
+
+  const handleGroupClick = (id) => {
+    router.push(`/group?id=${id}`);
+
+  }
 
   const handleInvite = async (event) => {
     event.preventDefault();
@@ -299,10 +301,19 @@ export default function Dashboard() {
       const userSnap = await getDoc(userRef);
 
       if (userSnap.exists()) {
-        const collection = userSnap.data().groups || [];
-        console.log("collection", collection);
+        const groupsCol = userSnap.data().groups || [];
+        console.log("collection", groupsCol);
 
-        setGroups(collection);
+        const groupsRef = collection(db, "groups");
+        const q = query(groupsRef, where("name", "in", groupsCol));
+
+        const querySnapshot = await getDocs(q);
+
+        const groupObjects = querySnapshot.docs.map(doc => doc.data())
+
+        console.log('actual group objects', groupObjects);
+
+        setGroups(groupObjects);
       } else {
         console.log("User does not exist");
       }
@@ -351,7 +362,7 @@ export default function Dashboard() {
                 bgcolor={green_light}
                 color={green_dark}
                 border={`2px solid ${green_dark}`}
-                onClick={() => handleInventoryClick(group)}
+                onClick={() => handleGroupClick(group.id)}
                 sx={{
                   transition: "500ms",
                   "&:hover": {
@@ -369,7 +380,7 @@ export default function Dashboard() {
                   textAlign="center"
                   sx={{ overflowWrap: "break-word" }}
                 >
-                  {group}
+                  {group.name}
                 </Typography>
               </Box>
             </Grid>
