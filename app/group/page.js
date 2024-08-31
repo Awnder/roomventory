@@ -37,7 +37,10 @@ import {
 } from "firebase/firestore";
 import { useSearchParams } from "next/navigation";
 
+import banner from "../../public/banner.png";
+
 import { useState, useEffect } from "react";
+import Image from "next/image"; 
 
 // colors
 const green_white = "#F3F6F9";
@@ -247,21 +250,50 @@ export default function Inventory() {
 
   return (
     <Stack direction="column" alignItems="center" minHeight="100vh">
-      {/* Begin Document */}
+      {/* Welcome Statement */}
       <Stack direction="column" alignItems="center" width="100%" mt={8} mb={10}>
-        <Typography
-          textAlign="center"
-          color={green_light}
-          bgcolor={green_dark}
+        <Box
+          display="flex"
+          justifyContent="center"
+          alignItems="center"
           width="80%"
+          height="200px"
           maxWidth="lg"
+          position="relative"
+          overflow="hidden"
           borderRadius="20px"
-          p={3}
-          mb={5}
-          sx={{ typography: { xs: "h5", sm: "h4" } }}
+          mb={3}
         >
-          Welcome to your {groupName} inventory!
-        </Typography>
+          <Image 
+            src={banner} 
+            alt="Roomventory banner" 
+            placeholder="blur" 
+            fill 
+            priority
+            style={{
+              objectFit: "cover",
+              objectPosition: "center",
+              filter: "blur(3px)"
+            }}
+          />
+          <Box
+            width="80%"
+            maxWidth="lg"
+            borderRadius="20px"
+            position="absolute"
+            p={3}
+            bgcolor="rgba(78, 130, 107, 0.7)" // rgba for green_dark, needed opacity scale
+          >
+            <Typography
+              textAlign="center"
+              color={green_white}
+              sx={{ typography: { xs: "h5", sm: "h4" } }}
+            >
+              Welcome name to roommate group 1
+            </Typography>
+          </Box>
+        </Box>
+        {/* Roommate Banner and Add Container Button */}
         <Stack
           direction="row"
           justifyContent="space-between"
@@ -271,7 +303,7 @@ export default function Inventory() {
           bgcolor={green_dark}
           borderRadius="20px"
           py={3}
-          mb={5}
+          mb={2}
         >
           {/* invisible icon to balance out justifyContent space-between */}
           <SettingsIcon
@@ -304,6 +336,8 @@ export default function Inventory() {
             }}
           />
         </Stack>
+        
+        {/* Search Bar */}
         <Box
           width="60%"
           maxWidth="md"
