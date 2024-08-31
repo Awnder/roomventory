@@ -39,7 +39,7 @@ import { useSearchParams } from "next/navigation";
 
 import banner from "../../public/banner.png";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import Image from "next/image"; 
 
 // colors
@@ -79,10 +79,15 @@ export default function Inventory() {
   const [itemName, setItemName] = useState("");
   const router = useRouter();
   const [groupMembers, setGroupMembers] = useState([]);
+  const [openMemberModal, setOpenMemberModal] = useState(false);
+  const [newMember, setNewMember] = useState('');
+  const [email, setEmail] = useState("");
 
 
   const searchParams = useSearchParams();
   const groupName = searchParams.get("id");
+
+  const textInput = useRef(null);
 
 
   useEffect(() => {
@@ -308,10 +313,48 @@ export default function Inventory() {
     fetchData();
   }, [user, groupName]);
 
+  // const handleAddNewMember = async() => {
+  //   if (!newMember) {
+  //     return;
+  //   }
+
+  //   try {
+  //     const groupRef = doc(collection(db, "groups"), groupName);
+  //     await setDoc(groupRef, {members: [...members, newMember]});
+  //     setGroupMembers([...groupMembers, newMember]);
+  //     setNewMember('');
+  //   } catch (err) {
+  //     console.error('Error adding member: ', err);
+  //   };
+  // }
+  const handleInvite = async (event) => {
+    if (!email) {
+      return;   
+    }
+    const res = await fetch("/api/invite", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json", // Specify the content type
+      },
+      body: JSON.stringify({ email: email, group: groupName }), // Stringify the email object
+    });
+
+    if (!res.ok) {
+      throw new Error(`HTTP error! status: ${res.status}`);
+    }
+
+    const data = await res.json();
+    // Handle response
+    console.log(data);
+  };
+
   // Optionally, log the inventories state in a separate useEffect
   useEffect(() => {
     console.log("final inventories", inventories);
   }, [inventories]);
+
+  const handleOpenMemberModal = () => setOpenMemberModal(true);
+  const handleCloseMemberModal = () => setOpenMemberModal(false);
 
   return (
     <Stack direction="column" alignItems="center" minHeight="100vh">
@@ -385,9 +428,11 @@ export default function Inventory() {
             >
               Roommates
             </Typography>
-            <Typography textAlign="center" color="white">
-              REPLACE WITH ROOMMATES HERE
-            </Typography>
+            <Stack direction="column" spacing={2}>
+              {groupMembers.map((member) => (
+                <Typography textAlign="center" color="white">{member}</Typography>
+              ))}
+            </Stack>
           </Box>
           <SettingsIcon
             sx={{
@@ -398,6 +443,9 @@ export default function Inventory() {
               "&:hover": {
                 transform: "rotate(180deg) scale(1.05)",
               },
+            }}
+            onClick={(e) => {
+              handleOpenMemberModal();
             }}
           />
         </Stack>
@@ -434,6 +482,82 @@ export default function Inventory() {
         justifyContent="center"
         alignItems="center"
       >
+        <Modal
+          open={openMemberModal}
+          onOpen={handleOpenMemberModal}
+        >
+          <Box
+            position="absolute"
+            top="50%"
+            left = "50%"
+            width={500}
+            bgcolor={green_light}
+            border="2px solid #000"
+            p={2}
+            display="flex"
+            flexDirection="column"
+            justifyContent="center"
+            alignItems="center"
+            gap={3}
+            sx={{
+              transform: "translate(-50%,-50%)"
+            }}
+          >
+            <Typography variant="h5" textAlign="center" mt={1}>
+              Edit Group
+            </Typography>
+            <Stack direction="column" spacing={1}>
+              {groupMembers.map((member) => (
+                <Chip key={member} label={member} variant="filled"/>
+              ))}
+            </Stack>
+            <Stack direction="row" spacing={2}>
+              <TextField
+                placeholder="New Member Email"
+                inputRef={textInput}
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+              />
+              <Button
+                variant="contained"
+                sx={{
+                  color: "white",
+                  bgcolor: `${green_dark}`,
+                  borderRadius: "10px",
+                  transition: "200ms",
+                  "&:hover": {
+                    bgcolor: `${green_dark}`,
+                    transform: "scale(1.1)",
+                  },
+                }}
+                onClick={(e) => {
+                  textInput.current.value = "";
+                  handleInvite();
+                }}
+              >
+                Invite
+              </Button>
+            </Stack>
+            <Button
+              variant="contained"
+              sx={{
+                color: "white",
+                bgcolor: `${green_dark}`,
+                borderRadius: "10px",
+                transition: "200ms",
+                "&:hover": {
+                  bgcolor: `${green_dark}`,
+                  transform: "scale(1.1)",
+                },
+              }}
+              onClick={() => {
+                handleCloseMemberModal()
+              }}
+            >
+              Close
+            </Button>
+          </Box>
+        </Modal>
         <Grid container spacing={2}>
           <Grid item xs={12} sm={12} md={12} lg={6} xl={6}>
             <Accordion>
