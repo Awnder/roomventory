@@ -23,7 +23,19 @@ export default function Home() {
       <Stack direction="column" width="100%" justifyContent="center" alignItems="center">
   {/* Title and Call to Action */}
           <Stack direction="column" alignItems="center" textAlign="center" my={15} mx={2}>
-            <Box display="flex" borderRadius="10px" justifyContent="center" my={5} sx={{ background: `linear-gradient(to right, ${green_light}, ${green_light}, #fff)` }}>
+            <Box
+              display="flex"
+              borderRadius="10px"
+              justifyContent="center"
+              my={5}
+              sx={{
+                background: `linear-gradient(to right, ${green_light}, ${green_light}, #fff)`,
+                '@media only screen and (max-width: 600px)': {
+                    scale: "0.75"
+                },
+                animation: "entranceTitle 2s ease-out",
+              }}
+            >
               <Typography
                 className="title"
                 variant="h1"
@@ -51,7 +63,9 @@ export default function Home() {
                 ventory
               </Typography>
             </Box>
-            <Typography variant="h5" color={`${gray_dark}`} mb={5} mx={5}>The collective inventory for you and your roommates</Typography>
+            <Typography variant="h5" color={`${gray_dark}`} mb={5} mx={5} sx={{ animation: "entranceSubtitle 2s ease-out",}}>
+              The collective inventory for you and your roommates
+            </Typography>
             <Button
                 variant="contained"
                 sx={{
@@ -64,6 +78,7 @@ export default function Home() {
                     bgcolor: `${green_dark}`,
                     transform: "scale(1.1)",
                   },
+                  animation: "entranceButton 2s ease-out",
                 }}
                 href="https://forms.gle/r4Q1dvHoLoNzeecS7"
                 target="_blank"
@@ -155,7 +170,7 @@ export default function Home() {
                   background: `linear-gradient(to bottom, #fff,${green_light})`,
                   '&:hover': {
                     transform: "scale(1.1)",
-                    transition: "0.1s ease-out"
+                    transition: "100ms ease-out"
                   },
                 }}
               >
@@ -172,7 +187,7 @@ export default function Home() {
                   background: `linear-gradient(to bottom, #fff,${green_light})`,
                   '&:hover': {
                     transform: "scale(1.1)",
-                    transition: "0.1s ease-out"
+                    transition: "100ms ease-out"
                   },
                 }}
               >
@@ -189,7 +204,7 @@ export default function Home() {
                   background: `linear-gradient(to bottom, #fff,${green_light})`,
                   '&:hover': {
                     transform: "scale(1.1)",
-                    transition: "0.1s ease-out"
+                    transition: "100ms ease-out"
                   },
                 }}
               >
@@ -206,7 +221,7 @@ export default function Home() {
                   background: `linear-gradient(to bottom, #fff,${green_light})`,
                   '&:hover': {
                     transform: "scale(1.1)",
-                    transition: "0.1s ease-out"
+                    transition: "100ms ease-out"
                   },
                 }}
               >
@@ -223,7 +238,7 @@ export default function Home() {
                   background: `linear-gradient(to bottom, #fff,${green_light})`,
                   '&:hover': {
                     transform: "scale(1.1)",
-                    transition: "0.1s ease-out"
+                    transition: "100ms ease-out"
                   },
                 }}
               >
