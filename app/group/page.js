@@ -162,6 +162,7 @@ export default function Inventory() {
         name: itemName, // require user to give name
         quantity: 1, //allow user to adjust quantity (default to 1)
         inventory: "Bathroom", // automatically selected based on the inventory selected
+        unit: null, // allow user to adjust unit (default to null)
         Category: null, // allow user to adjust category (default to null)
         expiryDate: null, // allow  user to adjust expiry date (default to null)
         dateAdded: Date.now(), // default to time now
@@ -200,6 +201,7 @@ export default function Inventory() {
       const newNeededItem = {
         name: itemName, // require user to give name
         quantityNeeded: 1, // allow user to adjust quantity (default to 1)
+        unit: null, // allow user to adjust unit (default to null)
         inventory: "Bathroom", // automatically selected based on the inventory selected
         priority: "Low", // allow user to adjust priority (default to Low)
         addedBy: user.firstName + " " + user.lastName, // automatically selected based on the user
