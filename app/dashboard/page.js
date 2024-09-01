@@ -300,6 +300,7 @@ export default function Dashboard() {
           py={2}
           px={4}
           mt={5}
+          boxShadow="0 0 5px black"
         >
           Welcome to your Dashboard
         </Typography>
@@ -317,6 +318,7 @@ export default function Dashboard() {
                 minHeight="200px"
                 bgcolor={green_light}
                 color={green_dark}
+                boxShadow="0 0 5px black"
                 border={`2px solid ${green_dark}`}
                 onClick={() => handleGroupClick(group.name)}
                 sx={{

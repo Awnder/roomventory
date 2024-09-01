@@ -361,7 +361,7 @@ export default function Inventory() {
   return (
     <Stack direction="column" alignItems="center" minHeight="100vh">
       {/* Welcome Statement */}
-      <Stack direction="column" alignItems="center" width="100%" mt={8} mb={10}>
+      <Stack direction="column" alignItems="center" width="100%" mt={8} mb={4}>
         <Box
           display="flex"
           justifyContent="center"
@@ -399,7 +399,7 @@ export default function Inventory() {
               color={green_white}
               sx={{ typography: { xs: "h5", sm: "h4" } }}
             >
-              Welcome name to roommate group 1
+              Welcome *Name* to {groupName}
             </Typography>
           </Box>
         </Box>
@@ -481,8 +481,10 @@ export default function Inventory() {
         width="80%"
         maxWidth="xl"
         display="flex"
+        flexDirection="column"
         justifyContent="center"
         alignItems="center"
+        flexGrow={1}
       >
         <Modal
           open={openMemberModal}
@@ -560,7 +562,30 @@ export default function Inventory() {
             </Button>
           </Box>
         </Modal>
-        <Grid container spacing={2}>
+        <Stack direction="row" spacing={2} mb={4}>
+          <TextField
+            label="Item Name"
+            value={inventoryName}
+            onChange={(e) => setInventoryName(e.target.value)}
+          />
+          <Button
+            variant="contained"
+            sx={{
+              color: "white",
+              bgcolor: `${green_dark}`,
+              borderRadius: "10px",
+              transition: "200ms",
+              "&:hover": {
+                bgcolor: `${green_dark}`,
+                transform: "scale(1.1)",
+              },
+            }}
+            onClick={createInventory}
+          >
+            Add
+          </Button>
+        </Stack>
+        <Grid container spacing={2} mb={8} justifyContent={"center"} alignItems="center">
           <Grid item xs={12} sm={12} md={12} lg={6} xl={6}>
             <Accordion>
               <AccordionSummary
@@ -577,11 +602,12 @@ export default function Inventory() {
                 {/* You can use inventory.name*/}
                 <Typography
                   color="black"
+                  textAlign="center"
                   border={"2px solid blue"}
                   width="100%"
                   sx={{ typography: { xs: "h6", sm: "h5" } }}
                 >
-                  loreumloreumloreumloreumloremloreumloreumloreum
+                  Item List - {groupName}
                 </Typography>
               </AccordionSummary>
               <AccordionDetails>
@@ -675,14 +701,6 @@ export default function Inventory() {
               </AccordionDetails>
             </Accordion>
           </Grid>
-          <Box>
-            <TextField
-              label="Item Name"
-              value={inventoryName}
-              onChange={(e) => setInventoryName(e.target.value)}
-            />
-            <Button onClick={createInventory}>Add</Button>
-          </Box>
         </Grid>
       </Box>
     </Stack>
