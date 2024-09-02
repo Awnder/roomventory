@@ -66,6 +66,24 @@ export default function NavBar() {
             </Button>
         </SignedOut>
         <SignedIn>
+        <Button
+              variant="contained"
+              sx={{
+                color: `${green_light}`,
+                bgcolor: `${green_dark}`,
+                borderRadius: "10px",
+                transition: "200ms",
+                "&:hover": {
+                  color: `${green_black}`,
+                  bgcolor: `${green_light}`,
+                  transform: "scale(1.1)",
+                },
+                mr: 3,
+              }}
+              href="/dashboard"
+            >
+              Dashboard
+            </Button>
           <UserButton />
         </SignedIn>
       </Toolbar>

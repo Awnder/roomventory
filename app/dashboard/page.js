@@ -7,9 +7,11 @@ import {
   Modal,
   Stack,
   Button,
+  InputAdornment,
   TextField,
 } from "@mui/material";
 import AddCircleOutlineIcon from "@mui/icons-material/AddCircleOutline";
+import SearchIcon from "@mui/icons-material/Search";
 import { useRouter } from "next/navigation";
 import { useUser } from "@clerk/nextjs";
 import { db } from "/firebase";
@@ -38,9 +40,11 @@ export default function Dashboard() {
   const [inventoryName, setInventoryName] = useState("");
   const [itemName, setItemName] = useState("");
   const [groupName, setGroupName] = useState("");
+  const [filteredGroups, setFilteredGroups] = useState([]);
   const [groups, setGroups] = useState([]);
   const router = useRouter();
   const [email, setEmail] = useState("");
+  const [searchTerm, setSearchTerm] = useState("");
 
   const handleGroupClick = (name) => {
     router.push(`/group?id=${name}`);
@@ -270,6 +274,7 @@ export default function Dashboard() {
         console.log("actual group objects", groupObjects);
 
         setGroups(groupObjects);
+        setFilteredGroups(groupObjects);
       } else {
         console.log("User does not exist");
       }
@@ -282,6 +287,12 @@ export default function Dashboard() {
   useEffect(() => {
     console.log("Updated Groups", groups);
   }, [groups]);
+
+  useEffect(() => {
+    setFilteredGroups(groups.filter(group =>
+      group.name.toLowerCase().includes(searchTerm.toLowerCase())
+    ));
+  }, [searchTerm]);
 
   return (
     <Box
@@ -305,9 +316,32 @@ export default function Dashboard() {
           Welcome to your Dashboard
         </Typography>
       </Box>
+      <Box
+          width="60%"
+          maxWidth="md"
+          border="1px solid black"
+          borderRadius="20px"
+          mt={4}
+          p={2}
+          sx={{ background: `linear-gradient(to left, #fff, ${green_light})` }}
+        >
+          <TextField
+            fullWidth
+            label="Search"
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            InputProps={{
+              endAdornment: (
+                <InputAdornment>
+                  <SearchIcon />
+                </InputAdornment>
+              ),
+            }}
+          />
+        </Box>
       <Box width="80%" maxWidth="lg" my={5}>
         <Grid container flexGrow={1} spacing={2}>
-          {groups.map((group, index) => (
+          {filteredGroups.map((group, index) => (
             <Grid item xs={12} sm={6} md={4}>
               <Box
                 height="100%"
