@@ -14,6 +14,13 @@ import {
   AccordionSummary,
   Chip,
   Tooltip,
+  FormControl,
+  FormControlLabel,
+  FormLabel,
+  RadioGroup,
+  Radio,
+  Select,
+  MenuItem
 } from "@mui/material";
 import TooltipIcon from "../../Components/tooltipicon";
 import SettingsIcon from "@mui/icons-material/Settings";
@@ -49,26 +56,6 @@ const green_light = "#D3F8CC";
 const green_dark = "#4E826B";
 const gray_dark = "#1C2025";
 
-function InventoryItem({ children, itemName, itemNumber }) {
-  return (
-    <Stack
-      direction="row"
-      justifyContent="space-between"
-      alignItems="center"
-      sx={{ border: `2px solid ${green_dark}` }}
-    >
-      <Stack direction="column">{children}</Stack>
-      <Typography>{itemName}</Typography>
-      <Typography>{itemNumber}</Typography>
-      <Box>
-        <RemoveIcon />
-        <AddIcon />
-        <DeleteOutlineIcon />
-      </Box>
-    </Stack>
-  );
-}
-
 export default function Inventory() {
   const [search, setSearch] = useState("");
   const { isLoaded, isSignedIn, user } = useUser();
@@ -83,6 +70,15 @@ export default function Inventory() {
   const [email, setEmail] = useState("");
   const [suggestedItems, setSuggestedItems] = useState({});
   const [isLeader, setIsLeader] = useState(false);
+
+  // Item Metadata
+  const [selectedInventory, setSelectedInventory] = useState("");
+  const [quantity, setQuantity] = useState(1);
+  const [unit, setUnit] = useState(null);
+  const [category, setCategory] = useState(null);
+  const [expiryDate, setExpiryDate] = useState(null);
+  const [isPerishable, setIsPerishable] = useState(false);
+  const [notes, setNotes] = useState("");
 
   //Modals
   const [openMemberModal, setOpenMemberModal] = useState(false);
@@ -265,7 +261,7 @@ export default function Inventory() {
     const groupRef = doc(collection(db, "groups"), groupName);
     const inventoryCollection = collection(groupRef, "inventories");
 
-    const inventoryRef = doc(inventoryCollection, "Bathroom"); //inventory should be dynamically selected
+    const inventoryRef = doc(inventoryCollection, selectedInventory); //inventory should be dynamically selected
 
     //const itemsCollection = collection(inventoryRef, "items");
 
@@ -283,17 +279,16 @@ export default function Inventory() {
 
       const newItem = {
         name: itemName, // require user to give name
-        quantity: 1, //allow user to adjust quantity (default to 1)
-        inventory: "Bathroom", // automatically selected based on the inventory selected
-        unit: null, // allow user to adjust unit (default to null)
-        Category: null, // allow user to adjust category (default to null)
-        addedBy: user.firstName + " " + user.lastName, // automatically set to user's full name
-        expiryDate: null, // allow  user to adjust expiry date (default to null)
-        dateAdded: new Date(), // default to time now
-        lastUpdated: new Date(), // default to date added
-        isPerishable: false, // allow user to adjust (default to false)
+        quantity: quantity, //allow user to adjust quantity (default to 1)
+        inventory: selectedInventory, // automatically selected based on the inventory selected
+        unit: unit, // allow user to adjust unit (default to null)
+        Category: category, // allow user to adjust category (default to null)
+        expiryDate: expiryDate, // allow  user to adjust expiry date (default to null)
+        dateAdded: Date.now(), // default to time now
+        lastUpdated: Date.now(), // default to date added
+        isPerishable: isPerishable, // allow user to adjust (default to false)
         minimumQuantity: 0, // allow user to specify (default to 0)
-        notes: "", // allow user to add notes (default to empty string)
+        notes: notes, // allow user to add notes (default to empty string)
       };
 
       const newItems = [...items, newItem];
@@ -302,7 +297,13 @@ export default function Inventory() {
       });
     }
     setItemName("");
-    console.log(isLeader)
+    setQuantity(1);
+    setSelectedInventory("");
+    setUnit(null);
+    setCategory(null);
+    setExpiryDate(null);
+    setIsPerishable(false);
+    setNotes("");
   };
 
   const addNeededItem = async () => {
@@ -635,6 +636,155 @@ export default function Inventory() {
           </Box>
         </Modal>
 
+        {/* Modal for adding new items */}
+        <Modal open={openAddItemModal} onOpen={handleOpenItemModal}>
+          <Box
+            position="absolute"
+            top="50%"
+            left="50%"
+            width={500}
+            bgcolor={green_light}
+            border="2px solid #000"
+            p={2}
+            display="flex"
+            flexDirection="column"
+            justifyContent="center"
+            alignItems="center"
+            gap={3}
+            sx={{
+              transform: "translate(-50%,-50%)",
+            }}
+          >
+            <Typography variant="h5" textAlign="center">
+              Add Item
+            </Typography>
+            <Stack direction="row" spacing={2}>
+              <Box bgcolor="white" border="1px solid black" borderRadius="5px">
+                <TextField
+                  placeholder="Item Name"
+                  border="1px solid black"
+                  value={itemName}
+                  onChange={(e) => setItemName(e.target.value)}
+                />
+              </Box>
+              <Button
+                variant="contained"
+                sx={{
+                  color: "white",
+                  bgcolor: `${green_dark}`,
+                  borderRadius: "10px",
+                  transition: "200ms",
+                  "&:hover": {
+                    bgcolor: `${green_dark}`,
+                    transform: "scale(1.1)",
+                  },
+                }}
+                onClick={addItem}
+              >
+                Add
+              </Button>
+            </Stack>
+            <Stack direction="row" spacing={2}>
+              <Box width="75px" bgcolor="white" border="1px solid black" borderRadius="5px">
+                <TextField
+                  size="small"
+                  placeholder="Qty."
+                  border="1px solid black"
+                  inputMode="numeric"
+                  value={quantity}
+                  onChange={(e) => setQuantity(e.target.value)}
+                />
+              </Box>
+              <Box width="75px" bgcolor="white" border="1px solid black" borderRadius="5px">
+                <TextField
+                  size="small"
+                  placeholder="Unit"
+                  border="1px solid black"
+                  inputMode="numeric"
+                  value={unit}
+                  onChange={(e) => setUnit(e.target.value)}
+                />
+              </Box>
+              <Box width="100px" bgcolor="white" border="1px solid black" borderRadius="5px">
+                <TextField
+                  size="small"
+                  placeholder="Category"
+                  border="1px solid black"
+                  inputMode="numeric"
+                  value={category}
+                  onChange={(e) => setCategory(e.target.value)}
+                />
+              </Box>
+            </Stack>
+            <Stack direction="row" spacing={2} alignItems="center">
+              <FormControl>
+                <FormLabel textAlign="center">Perishable Item?</FormLabel>
+                <RadioGroup
+                  row
+                  defaultValue="No"
+                  value={isPerishable}
+                  onChange={(e) => setIsPerishable(e.target.value)}
+                >
+                  <FormControlLabel value={false} control={<Radio size="small"/>} label="No" />
+                  <FormControlLabel value={true} control={<Radio size="small"/>} label="Yes" />
+                </RadioGroup>
+              </FormControl>
+              <Box height="100%" width="100px" bgcolor="white" border="1px solid black" borderRadius="5px">
+                <TextField
+                  size="small"
+                  placeholder="Exp. Date"
+                  border="1px solid black"
+                  inputMode="numeric"
+                  value={expiryDate}
+                  onChange={(e) => setExpiryDate(e.target.value)}
+                />
+              </Box>
+            </Stack>
+            <Box bgcolor="white" color="black" width="150px">
+              <FormControl fullWidth>
+                <Select
+                  size="small"
+                  value={selectedInventory}
+                  label="Inventory"
+                  sx={{ color: "black" }}
+                  onChange={(e) => setSelectedInventory(e.target.value)}
+                >
+                  {inventories.map((inventory) => (
+                    <MenuItem value={inventory.name}>{inventory.name}</MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+            </Box>
+            <Box bgcolor="white" width="60%">
+              <TextField
+                multiline
+                fullWidth
+                placeholder="Add notes"
+                value={notes}
+                onChange={(e) => setNotes(e.target.value)}
+              />
+            </Box>
+            <Button
+              variant="contained"
+              sx={{
+                color: "white",
+                bgcolor: `${green_dark}`,
+                borderRadius: "10px",
+                transition: "200ms",
+                "&:hover": {
+                  bgcolor: `${green_dark}`,
+                  transform: "scale(1.1)",
+                },
+              }}
+              onClick={() => {
+                handleCloseItemModal();
+              }}
+            >
+              Close
+            </Button>
+          </Box>
+        </Modal>
+
         <Stack
           width="80%"
           direction="row"
@@ -669,7 +819,7 @@ export default function Inventory() {
                 }}
               />
             </Box>
-            <Stack width="100%" direction="row" spacing={2}>
+            <Stack width="100%" direction="row" spacing={2} justifyContent="center">
               <Button
                 variant="contained"
                 sx={{
@@ -687,6 +837,24 @@ export default function Inventory() {
                 }}
               >
                 Create New Inventory
+              </Button>
+              <Button
+                variant="contained"
+                sx={{
+                  color: "white",
+                  bgcolor: `${green_dark}`,
+                  borderRadius: "10px",
+                  transition: "200ms",
+                  "&:hover": {
+                    bgcolor: `${green_dark}`,
+                    transform: "scale(1.1)",
+                  },
+                }}
+                onClick={(e) => {
+                  handleOpenItemModal();
+                }}
+              >
+                Add Item
               </Button>
             </Stack>
           </Stack>

@@ -27,6 +27,8 @@ import {
   where,
 } from "firebase/firestore";
 import { useState, useEffect, useCallback } from "react";
+import Image from "next/image"; 
+import banner from "../../public/banner.png";
 
 // colors
 const green_white = "#F3F6F9";
@@ -295,20 +297,46 @@ export default function Dashboard() {
       alignItems="center"
       minHeight="100vh"
     >
-      <Box width="80%" maxWidth="lg">
-        <Typography
-          variant="h3"
-          textAlign="center"
-          color={green_light}
-          bgcolor={green_dark}
-          borderRadius="20px"
-          py={2}
-          px={4}
-          mt={5}
-          boxShadow="0 0 5px black"
-        >
-          Welcome to your Dashboard
-        </Typography>
+      <Box 
+        display="flex"
+        justifyContent="center"
+        alignItems="center"
+        width="80%" 
+        height="200px"
+        maxWidth="lg" 
+        position="relative" 
+        overflow="hidden"
+        borderRadius="20px"
+        mt={5}
+      >
+        <Image
+          src={banner}
+          alt="Roomventory banner"
+          placeholder="blur"
+          fill
+          priority
+          style={{
+            objectFit: "cover",
+            objectPosition: "center",
+            filter: "blur(2px)",
+          }}
+        />
+        <Box
+            width="80%"
+            maxWidth="lg"
+            borderRadius="20px"
+            position="absolute"
+            p={3}
+            bgcolor="rgba(78, 130, 107, 0.7)" // rgba for green_dark, needed opacity scale
+          >
+            <Typography
+              textAlign="center"
+              color={green_white}
+              sx={{ typography: { xs: "h5", sm: "h4" } }}
+            >
+              Welcome *Name* to your Dashboard
+            </Typography>
+        </Box>
       </Box>
       <Box
           width="60%"
@@ -480,7 +508,7 @@ export default function Dashboard() {
         width="80%"
         maxWidth="lg"
         display="flex"
-        sx={{ justifyContent: { xs: "center", sm: "center", md: "flex-end" } }}
+        justifyContent="flex-end"
       >
         <AddCircleOutlineIcon
           onClick={() => setAddInventoryModal(true)}
@@ -504,8 +532,8 @@ export default function Dashboard() {
           justifyContent="center"
           alignItems="center"
           bgcolor={green_white}
-          width="500px"
-          height="200px"
+          width="lg"
+          height="lg"
           border="2px solid black"
           borderRadius="15px"
           p={3}
@@ -516,18 +544,18 @@ export default function Dashboard() {
             transform: "translate(-50%, -50%)",
           }}
         >
-          <Typography variant="h4" textAlign="center" color={green_dark} mb={2}>
+          <Typography textAlign="center" color={green_dark} mb={2} sx={{ typography: { xs: "h6", sm: "h5" } }}>
             Create New Group
           </Typography>
-          <Stack flexDirection="row">
+          <Stack sx={{ direction: {xs: "column", sm: "row"} }}>
             <TextField
               fullWidth
               label="Group Name"
               value={groupName}
               onChange={(e) => setGroupName(e.target.value)}
-              sx={{ mr: 2 }}
+              sx={{ mr: 2, mb: {xs: 2} }}
             />
-            <Button variant="contained" color="success" onClick={createGroup}>
+            <Button variant="contained" color="success" onClick={createGroup} fullWidth>
               Create
             </Button>
           </Stack>
