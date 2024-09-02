@@ -20,7 +20,7 @@ import {
   RadioGroup,
   Radio,
   Select,
-  MenuItem
+  MenuItem,
 } from "@mui/material";
 import TooltipIcon from "../../Components/tooltipicon";
 import SettingsIcon from "@mui/icons-material/Settings";
@@ -57,19 +57,25 @@ const green_dark = "#4E826B";
 const gray_dark = "#1C2025";
 
 export default function Inventory() {
-  const [search, setSearch] = useState("");
+  /****************************************************** States ******************************************************/
+
   const { isLoaded, isSignedIn, user } = useUser();
+  const router = useRouter();
+
+  // Data to be fetched from Firebase
+  const [inventories, setInventories] = useState([]);
+  const [groupMembers, setGroupMembers] = useState([]);
+  const [isLeader, setIsLeader] = useState(false);
+
+  // States for handling functions
+  const [search, setSearch] = useState("");
   const [addInventoryModal, setAddInventoryModal] = useState(false);
   const [inventoryName, setInventoryName] = useState("");
-  const [inventories, setInventories] = useState([]);
   const [items, setItems] = useState([]);
   const [neededItems, setNeededItems] = useState([]);
   const [itemName, setItemName] = useState("");
-  const router = useRouter();
-  const [groupMembers, setGroupMembers] = useState([]);
   const [email, setEmail] = useState("");
   const [suggestedItems, setSuggestedItems] = useState({});
-  const [isLeader, setIsLeader] = useState(false);
 
   // Item Metadata
   const [selectedInventory, setSelectedInventory] = useState("");
@@ -85,11 +91,16 @@ export default function Inventory() {
   const [openNewInventoryModal, setOpenNewInventoryModal] = useState(false);
   const [openAddItemModal, setOpenAddItemModal] = useState(false);
 
+  // Get group name from URL
   const searchParams = useSearchParams();
   const groupName = searchParams.get("id");
 
   const textInput = useRef(null);
+
+  //get Username
   const userName = user ? user.firstName + " " + user.lastName : "";
+
+  /****************************************************** Use Effects ******************************************************/
 
   //fetching inventory data
   useEffect(() => {
@@ -103,11 +114,8 @@ export default function Inventory() {
           groupName,
           "inventories"
         );
-        console.log("inventoriesCol", inventoriesCol);
 
         const inventoriesSnap = await getDocs(inventoriesCol);
-        console.log("inventoriesSnap", inventoriesSnap);
-        console.log("inventoriesSnap.docs", inventoriesSnap.docs);
 
         const inventoriesList = [];
 
@@ -115,11 +123,9 @@ export default function Inventory() {
         const inventoriesPromises = inventoriesSnap.docs.map(
           async (inventory) => {
             const inventoryData = inventory.data();
-            console.log("inventory", inventoryData);
             inventoriesList.push(inventoryData);
 
             const itemsCol = inventoryData.items;
-            console.log("itemsCol", itemsCol);
           }
         );
 
@@ -152,7 +158,7 @@ export default function Inventory() {
   }, [user, groupName]);
   */
 
-  //fetching group data
+  // Fetching group data
   useEffect(() => {
     const getLeaderState = async () => {
       try {
@@ -161,7 +167,9 @@ export default function Inventory() {
 
         if (groupSnap.exists()) {
           const groupData = groupSnap.data();
-          const member = groupData.members.find(member => member.name === userName);
+          const member = groupData.members.find(
+            (member) => member.name === userName
+          );
           const leaderState = member ? member.leader : false;
           setIsLeader(leaderState);
           setGroupMembers(groupData.members);
@@ -173,11 +181,13 @@ export default function Inventory() {
       }
     };
     getLeaderState();
-  }, [user]); 
+  }, [user]);
 
+  /****************************************************** Handling Group Members ******************************************************/
 
+  // Function to invite a member to the group (only leader can invite members)
   const handleInvite = async (event) => {
-    if(!isLeader){
+    if (!isLeader) {
       alert("You must be the leader of the group to invite members");
     }
     if (!email) {
@@ -196,235 +206,11 @@ export default function Inventory() {
     }
 
     const data = await res.json();
-    // Handle response
-    console.log(data);
-  };
-  
-  //just for testing (change it to be dynamic later)
-  const exampleInventory = "Bathroom";
-
-  const handleSubmit = async () => {
-    setInventoryName("");
-    setAddInventoryModal(false);
   };
 
-  const getSuggestions = async () => {
-    const selectedInventory = inventories.find(
-      (inventory) => inventory.name === exampleInventory
-    );
-
-    console.log("selectedInventory", selectedInventory);
-
-    await fetch("/api/generate", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ selectedInventory }),
-    })
-      .then((response) => response.json())
-      .then((data) => {
-        console.log('data', data);
-        setSuggestedItems({ inventory: exampleInventory, items: data });
-      });
-  };
-
-  //function to add an room in a group to the database
-  const createInventory = async () => {
-    if (!inventoryName) {
-      alert("Please enter an inventory name");
-      return;
-    }
-
-    const batch = writeBatch(db);
-
-    const groupRef = doc(collection(db, "groups"), groupName);
-    const inventoryCollection = collection(groupRef, "inventories");
-
-    const inventoryRef = doc(inventoryCollection, inventoryName);
-    const inventorySnap = await getDoc(inventoryRef);
-
-    if (inventorySnap.exists()) {
-      alert("Inventory already exists");
-      return;
-    } else {
-      await setDoc(inventoryRef, {
-        name: inventoryName,
-        items: [],
-        neededItems: [],
-      });
-    }
-    setInventoryName("");
-  };
-
-  const addItem = async () => {
-    const groupRef = doc(collection(db, "groups"), groupName);
-    const inventoryCollection = collection(groupRef, "inventories");
-
-    const inventoryRef = doc(inventoryCollection, selectedInventory); //inventory should be dynamically selected
-
-    //const itemsCollection = collection(inventoryRef, "items");
-
-    //const itemRef = doc(itemsCollection, itemName);
-    // const itemSnap = await getDoc(itemRef);
-
-    //this can be adjusted later to add quantity to the item
-    const inventorySnap = await getDoc(inventoryRef);
-
-    if (!inventorySnap.exists()) {
-      alert("Inventory does not exist");
-      return;
-    } else {
-      const items = inventorySnap.data().items;
-
-      const newItem = {
-        name: itemName, // require user to give name
-        quantity: quantity, //allow user to adjust quantity (default to 1)
-        inventory: selectedInventory, // automatically selected based on the inventory selected
-        unit: unit, // allow user to adjust unit (default to null)
-        Category: category, // allow user to adjust category (default to null)
-        expiryDate: expiryDate, // allow  user to adjust expiry date (default to null)
-        dateAdded: Date.now(), // default to time now
-        lastUpdated: Date.now(), // default to date added
-        isPerishable: isPerishable, // allow user to adjust (default to false)
-        minimumQuantity: 0, // allow user to specify (default to 0)
-        notes: notes, // allow user to add notes (default to empty string)
-      };
-
-      const newItems = [...items, newItem];
-      await updateDoc(inventoryRef, {
-        items: newItems,
-      });
-    }
-    setItemName("");
-    setQuantity(1);
-    setSelectedInventory("");
-    setUnit(null);
-    setCategory(null);
-    setExpiryDate(null);
-    setIsPerishable(false);
-    setNotes("");
-  };
-
-  const addNeededItem = async () => {
-    const groupRef = doc(collection(db, "groups"), groupName);
-    console.log("groupRef", groupRef);
-    const inventoryCollection = collection(groupRef, "inventories");
-    console.log("inventoryCollection", inventoryCollection);
-
-    const inventoryRef = doc(inventoryCollection, exampleInventory); //inventory should be dynamically selected
-    console.log("inventoryRef", inventoryRef);
-
-    //const itemsCollection = collection(inventoryRef, "items");
-
-    //const itemRef = doc(itemsCollection, itemName);
-    // const itemSnap = await getDoc(itemRef);
-
-    //this can be adjusted later to add quantity to the item
-    const inventorySnap = await getDoc(inventoryRef);
-
-    if (!inventorySnap.exists()) {
-      alert("Inventory does not exist");
-      return;
-    } else {
-      const items = inventorySnap.data().neededItems;
-      console.log(" needed items", items);
-
-      const newNeededItem = {
-        name: itemName, // require user to give name
-        quantityNeeded: 1, // allow user to adjust quantity (default to 1)
-        unit: null, // allow user to adjust unit (default to null)
-        inventory: "Bathroom", // automatically selected based on the inventory selected
-        priority: "Low", // allow user to adjust priority (default to Low)
-        assignTo: [`${user.firstName} ${user.lastName}`], // require user to assign to a roommate
-        status: "Needed", // automatically set to Needed
-        dateAdded: new Date(), // default to time now
-        notes: "", // allow user to add notes (default to empty string)
-      };
-
-      const newItems = [...items, newNeededItem];
-      await updateDoc(inventoryRef, {
-        neededItems: newItems,
-      });
-    }
-    setItemName("");
-  };
-
-  const deleteItem = async () => {
-    const groupRef = doc(collection(db, "groups"), groupName);
-    const inventoryCollection = collection(groupRef, "inventories");
-
-    const inventoryRef = doc(inventoryCollection, exampleInventory); //inventory should be dynamically selected
-
-    //const itemsCollection = collection(inventoryRef, "items");
-
-    //const itemRef = doc(itemsCollection, itemName);
-    //const itemSnap = await getDoc(itemRef);
-
-    const inventorySnap = await getDoc(inventoryRef);
-
-    if (!inventorySnap.exists()) {
-      alert("Inventory does not exist");
-      return;
-    } else {
-      const items = inventorySnap.data().items;
-
-      const newItems = items.filter((item) => item.name !== itemName);
-      await updateDoc(inventoryRef, {
-        neededItems: newItems,
-      });    }
-    setItemName("");
-  };
-
-  const deleteInventory = async () => {
-    try {
-      const groupRef = doc(collection(db, "groups"), groupName);
-      const inventoryCollection = collection(groupRef, "inventories");
-
-      const inventoryRef = doc(inventoryCollection, exampleInventory); //inventory should be dynamically selected
-
-      //const itemsCollectionRef = collection(inventoryRef, "items");
-
-      // Fetch all documents in the subcollection
-      //const itemsSnap = await getDocs(itemsCollectionRef);
-
-      // Delete each document in the subcollection
-      //const deletePromises = itemsSnap.docs.map((doc) => deleteDoc(doc.ref));
-      //await Promise.all(deletePromises);
-
-      //console.log("All documents in the subcollection deleted successfully!");
-
-      const inventorySnap = await getDoc(inventoryRef);
-
-      if (inventorySnap.exists()) {
-        await deleteDoc(inventoryRef);
-      } else {
-        alert("Inventory does not exist");
-      }
-    } catch (error) {
-      console.error("Error deleting inventory:", error);
-    }
-    setInventoryName("");
-  };
-
-  // const handleAddNewMember = async() => {
-  //   if (!newMember) {
-  //     return;
-  //   }
-
-  //   try {
-  //     const groupRef = doc(collection(db, "groups"), groupName);
-  //     await setDoc(groupRef, {members: [...members, newMember]});
-  //     setGroupMembers([...groupMembers, newMember]);
-  //     setNewMember('');
-  //   } catch (err) {
-  //     console.error('Error adding member: ', err);
-  //   };
-  // }
-  
-
+  // Function to kick a member from the group (only leader can kick members)
   const kickMember = async (member) => {
-    if(!isLeader){
+    if (!isLeader) {
       alert("You must be the leader of the group to kick members");
     }
     const groupRef = doc(collection(db, "groups"), groupName);
@@ -455,9 +241,11 @@ export default function Inventory() {
         });
       }
     }
-  }
+  };
 
+  // Function to leave the group
   const leaveGroup = async () => {
+
     const userDocRef = doc(collection(db, "users"), user.id);
 
     const groupDocRef = doc(collection(db, "groups"), groupName);
@@ -507,9 +295,217 @@ export default function Inventory() {
     }
 
     await batch.commit();
-    console.log("Commit is DONE");
     setGroupName("");
   };
+
+
+  /****************************************************** AI Suggestions ******************************************************/
+  
+  //just for testing (change it to be dynamic later)
+  const exampleInventory = "Bathroom";
+
+  // Function to get suggestions from the AI
+  const getSuggestions = async () => {
+    const selectedInventory = inventories.find(
+      (inventory) => inventory.name === exampleInventory
+    );
+
+    await fetch("/api/generate", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ selectedInventory }),
+    })
+      .then((response) => response.json())
+      .then((data) => {
+        setSuggestedItems({ inventory: exampleInventory, items: data });
+      });
+  };
+
+  /****************************************************** Inventory Functions ******************************************************/
+
+  //function to add an inventory in a group to the database
+  const createInventory = async () => {
+    if (!inventoryName) {
+      alert("Please enter an inventory name");
+      return;
+    }
+
+    const batch = writeBatch(db);
+
+    const groupRef = doc(collection(db, "groups"), groupName);
+    const inventoryCollection = collection(groupRef, "inventories");
+
+    const inventoryRef = doc(inventoryCollection, inventoryName);
+    const inventorySnap = await getDoc(inventoryRef);
+
+    if (inventorySnap.exists()) {
+      alert("Inventory already exists");
+      return;
+    } else {
+      await setDoc(inventoryRef, {
+        name: inventoryName,
+        items: [],
+        neededItems: [],
+      });
+    }
+    setInventoryName("");
+  };
+
+  const deleteInventory = async () => {
+    try {
+      const groupRef = doc(collection(db, "groups"), groupName);
+      const inventoryCollection = collection(groupRef, "inventories");
+
+      const inventoryRef = doc(inventoryCollection, exampleInventory); //inventory should be dynamically selected
+
+      //const itemsCollectionRef = collection(inventoryRef, "items");
+
+      // Fetch all documents in the subcollection
+      //const itemsSnap = await getDocs(itemsCollectionRef);
+
+      // Delete each document in the subcollection
+      //const deletePromises = itemsSnap.docs.map((doc) => deleteDoc(doc.ref));
+      //await Promise.all(deletePromises);
+
+      //console.log("All documents in the subcollection deleted successfully!");
+
+      const inventorySnap = await getDoc(inventoryRef);
+
+      if (inventorySnap.exists()) {
+        await deleteDoc(inventoryRef);
+      } else {
+        alert("Inventory does not exist");
+      }
+    } catch (error) {
+      console.error("Error deleting inventory:", error);
+    }
+    setInventoryName("");
+  };
+
+  /****************************************************** Item Functions ******************************************************/
+
+  //function to add an item to the inventory
+  const addItem = async () => {
+    const groupRef = doc(collection(db, "groups"), groupName);
+    const inventoryCollection = collection(groupRef, "inventories");
+
+    const inventoryRef = doc(inventoryCollection, selectedInventory); //inventory should be dynamically selected
+
+    //const itemsCollection = collection(inventoryRef, "items");
+
+    //const itemRef = doc(itemsCollection, itemName);
+    // const itemSnap = await getDoc(itemRef);
+
+    //this can be adjusted later to add quantity to the item
+    const inventorySnap = await getDoc(inventoryRef);
+
+    if (!inventorySnap.exists()) {
+      alert("Inventory does not exist");
+      return;
+    } else {
+      const items = inventorySnap.data().items;
+
+      const newItem = {
+        name: itemName, // require user to give name
+        quantity: quantity, //allow user to adjust quantity (default to 1)
+        inventory: selectedInventory, // automatically selected based on the inventory selected
+        unit: unit, // allow user to adjust unit (default to null)
+        Category: category, // allow user to adjust category (default to null)
+        expiryDate: expiryDate, // allow  user to adjust expiry date (default to null)
+        dateAdded: Date.now(), // default to time now
+        lastUpdated: Date.now(), // default to date added
+        isPerishable: isPerishable, // allow user to adjust (default to false)
+        minimumQuantity: 0, // allow user to specify (default to 0)
+        notes: notes, // allow user to add notes (default to empty string)
+      };
+
+      const newItems = [...items, newItem];
+      await updateDoc(inventoryRef, {
+        items: newItems,
+      });
+    }
+    setItemName("");
+    setQuantity(1);
+    setSelectedInventory("");
+    setUnit(null);
+    setCategory(null);
+    setExpiryDate(null);
+    setIsPerishable(false);
+    setNotes("");
+  };
+
+  const deleteItem = async () => {
+    const groupRef = doc(collection(db, "groups"), groupName);
+    const inventoryCollection = collection(groupRef, "inventories");
+
+    const inventoryRef = doc(inventoryCollection, exampleInventory); //inventory should be dynamically selected
+
+    //const itemsCollection = collection(inventoryRef, "items");
+
+    //const itemRef = doc(itemsCollection, itemName);
+    //const itemSnap = await getDoc(itemRef);
+
+    const inventorySnap = await getDoc(inventoryRef);
+
+    if (!inventorySnap.exists()) {
+      alert("Inventory does not exist");
+      return;
+    } else {
+      const items = inventorySnap.data().items;
+
+      const newItems = items.filter((item) => item.name !== itemName);
+      await updateDoc(inventoryRef, {
+        neededItems: newItems,
+      });
+    }
+    setItemName("");
+  };
+
+  /****************************************************** Needed Items Functions ******************************************************/
+
+  //function to add a needed item to the inventory
+  const addNeededItem = async () => {
+    const groupRef = doc(collection(db, "groups"), groupName);
+    const inventoryCollection = collection(groupRef, "inventories");
+
+    const inventoryRef = doc(inventoryCollection, exampleInventory); //inventory should be dynamically selected
+
+    //const itemsCollection = collection(inventoryRef, "items");
+
+    //const itemRef = doc(itemsCollection, itemName);
+    // const itemSnap = await getDoc(itemRef);
+
+    //this can be adjusted later to add quantity to the item
+    const inventorySnap = await getDoc(inventoryRef);
+
+    if (!inventorySnap.exists()) {
+      alert("Inventory does not exist");
+      return;
+    } else {
+      const items = inventorySnap.data().neededItems;
+
+      const newNeededItem = {
+        name: itemName, // require user to give name
+        quantityNeeded: 1, // allow user to adjust quantity (default to 1)
+        unit: null, // allow user to adjust unit (default to null)
+        inventory: "Bathroom", // automatically selected based on the inventory selected
+        priority: "Low", // allow user to adjust priority (default to Low)
+        assignTo: [`${user.firstName} ${user.lastName}`], // require user to assign to a roommate
+        status: "Needed", // automatically set to Needed
+        dateAdded: new Date(), // default to time now
+        notes: "", // allow user to add notes (default to empty string)
+      };
+
+      const newItems = [...items, newNeededItem];
+      await updateDoc(inventoryRef, {
+        neededItems: newItems,
+      });
+    }
+    setItemName("");
+  };
+
 
   //Modals open/close
   const handleOpenMemberModal = () => setOpenMemberModal(true);
@@ -518,8 +514,6 @@ export default function Inventory() {
   const handleCloseInventoryModal = () => setOpenNewInventoryModal(false);
   const handleOpenItemModal = () => setOpenAddItemModal(true);
   const handleCloseItemModal = () => setOpenAddItemModal(false);
-
-  // function to inc
 
   return (
     <Stack direction="column" alignItems="center" minHeight="100vh">
@@ -685,7 +679,12 @@ export default function Inventory() {
               </Button>
             </Stack>
             <Stack direction="row" spacing={2}>
-              <Box width="75px" bgcolor="white" border="1px solid black" borderRadius="5px">
+              <Box
+                width="75px"
+                bgcolor="white"
+                border="1px solid black"
+                borderRadius="5px"
+              >
                 <TextField
                   size="small"
                   placeholder="Qty."
@@ -695,7 +694,12 @@ export default function Inventory() {
                   onChange={(e) => setQuantity(e.target.value)}
                 />
               </Box>
-              <Box width="75px" bgcolor="white" border="1px solid black" borderRadius="5px">
+              <Box
+                width="75px"
+                bgcolor="white"
+                border="1px solid black"
+                borderRadius="5px"
+              >
                 <TextField
                   size="small"
                   placeholder="Unit"
@@ -705,7 +709,12 @@ export default function Inventory() {
                   onChange={(e) => setUnit(e.target.value)}
                 />
               </Box>
-              <Box width="100px" bgcolor="white" border="1px solid black" borderRadius="5px">
+              <Box
+                width="100px"
+                bgcolor="white"
+                border="1px solid black"
+                borderRadius="5px"
+              >
                 <TextField
                   size="small"
                   placeholder="Category"
@@ -725,11 +734,25 @@ export default function Inventory() {
                   value={isPerishable}
                   onChange={(e) => setIsPerishable(e.target.value)}
                 >
-                  <FormControlLabel value={false} control={<Radio size="small"/>} label="No" />
-                  <FormControlLabel value={true} control={<Radio size="small"/>} label="Yes" />
+                  <FormControlLabel
+                    value={false}
+                    control={<Radio size="small" />}
+                    label="No"
+                  />
+                  <FormControlLabel
+                    value={true}
+                    control={<Radio size="small" />}
+                    label="Yes"
+                  />
                 </RadioGroup>
               </FormControl>
-              <Box height="100%" width="100px" bgcolor="white" border="1px solid black" borderRadius="5px">
+              <Box
+                height="100%"
+                width="100px"
+                bgcolor="white"
+                border="1px solid black"
+                borderRadius="5px"
+              >
                 <TextField
                   size="small"
                   placeholder="Exp. Date"
@@ -785,16 +808,8 @@ export default function Inventory() {
           </Box>
         </Modal>
 
-        <Stack
-          width="80%"
-          direction="row"
-          spacing={2}
-        >
-          <Stack
-            width="100%"
-            direction="column"
-            spacing={2}
-          >
+        <Stack width="80%" direction="row" spacing={2}>
+          <Stack width="100%" direction="column" spacing={2}>
             {/* Search Bar */}
             <Box
               width="100%"
@@ -803,7 +818,9 @@ export default function Inventory() {
               border="1px solid black"
               borderRadius="20px"
               p={2}
-              sx={{ background: `linear-gradient(to left, #fff, ${green_light})` }}
+              sx={{
+                background: `linear-gradient(to left, #fff, ${green_light})`,
+              }}
             >
               <TextField
                 fullWidth
@@ -819,7 +836,12 @@ export default function Inventory() {
                 }}
               />
             </Box>
-            <Stack width="100%" direction="row" spacing={2} justifyContent="center">
+            <Stack
+              width="100%"
+              direction="row"
+              spacing={2}
+              justifyContent="center"
+            >
               <Button
                 variant="contained"
                 sx={{
@@ -872,7 +894,11 @@ export default function Inventory() {
           >
             {/* invisible icon to balance out justifyContent space-between */}
             <SettingsIcon
-              sx={{ ml: 2, fontSize: { xs: 40, sm: 50 }, color: `${green_dark}` }}
+              sx={{
+                ml: 2,
+                fontSize: { xs: 40, sm: 50 },
+                color: `${green_dark}`,
+              }}
             />
             <Box>
               <Typography
@@ -920,7 +946,6 @@ export default function Inventory() {
         alignItems="center"
         flexGrow={1}
       >
-
         {/* Modal for adding new members */}
         <Modal open={openMemberModal} onOpen={handleOpenMemberModal}>
           <Box

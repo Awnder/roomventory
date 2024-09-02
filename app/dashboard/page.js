@@ -37,45 +37,73 @@ const green_dark = "#4E826B";
 const gray_dark = "#1C2025";
 
 export default function Dashboard() {
+  /****************************************************** States ******************************************************/
   const { isLoaded, isSignedIn, user } = useUser();
-  const [addInventoryModal, setAddInventoryModal] = useState(false);
+  const router = useRouter();
+
+  // States for functions
   const [inventoryName, setInventoryName] = useState("");
   const [itemName, setItemName] = useState("");
   const [groupName, setGroupName] = useState("");
-  const [filteredGroups, setFilteredGroups] = useState([]);
-  const [groups, setGroups] = useState([]);
-  const router = useRouter();
   const [email, setEmail] = useState("");
+
+  // Real data from Firebase
+  const [groups, setGroups] = useState([]);
+  const [filteredGroups, setFilteredGroups] = useState([]);
+
+  const [addInventoryModal, setAddInventoryModal] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
+
+  /****************************************************** Use Effects ******************************************************/
+
+  // Function to fetch the user's groups from the database
+  useEffect(() => {
+    const getGroups = async () => {
+      if (!user) return;
+
+      const userRef = doc(collection(db, "users"), user.id);
+      const userSnap = await getDoc(userRef);
+
+      if (userSnap.exists()) {
+        const groupsCol = userSnap.data().groups || [];
+
+        const groupsRef = collection(db, "groups");
+        const q = query(groupsRef, where("name", "in", groupsCol));
+
+        const querySnapshot = await getDocs(q);
+
+        const groupObjects = querySnapshot.docs.map((doc) => doc.data());
+
+        setGroups(groupObjects);
+        setFilteredGroups(groupObjects);
+      } else {
+        console.log("User does not exist");
+      }
+    };
+
+    getGroups();
+  }, [user, createGroup]);
+
+  // Function to filter groups based on search term
+  useEffect(() => {
+    setFilteredGroups(groups.filter(group =>
+      group.name.toLowerCase().includes(searchTerm.toLowerCase())
+    ));
+  }, [searchTerm]);
+
+
+  /****************************************************** Routing ******************************************************/
 
   const handleGroupClick = (name) => {
     router.push(`/group?id=${name}`);
   };
 
-  const handleInvite = async (event) => {
-    event.preventDefault();
-    const res = await fetch("/api/invite", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json", // Specify the content type
-      },
-      body: JSON.stringify({ email: email, group: "home" }), // Stringify the email object
-    });
-
-    if (!res.ok) {
-      throw new Error(`HTTP error! status: ${res.status}`);
-    }
-
-    const data = await res.json();
-    // Handle response
-    console.log(data);
-  };
+  /****************************************************** Handling Groups ******************************************************/
 
   //function to add a group (that includes the user that created it) to the database
   const createGroup = useCallback(async () => {
     if (!groupName) {
       alert("Please enter a group name");
-      console.log("No group name", groupName);
       return;
     }
 
@@ -133,11 +161,10 @@ export default function Dashboard() {
     setAddInventoryModal(false);
   }, [groupName, user]);
 
-  //function to delete a group from the database
+
+  // Function to delete a group from the database
   const deleteGroup = async (group, batch) => {
-    console.log("group", group);
     const groupRef = doc(collection(db, "groups"), group);
-    console.log("test");
     const groupSnap = await getDoc(groupRef);
 
     // Get inventories collection
@@ -147,14 +174,11 @@ export default function Dashboard() {
       group,
       "inventories"
     );
-    console.log("inventories Collection", inventoriesCollection);
     const inventoriesSnap = await getDocs(inventoriesCollection);
-    console.log("inventories Snap", inventoriesSnap);
 
     if (groupSnap.exists() && inventoriesSnap.size > 0) {
       // Process inventories
       const inventoryPromises = inventoriesSnap.docs.map(async (inventory) => {
-        console.log("inventory", inventory);
         const inventoryName = inventory.data().name;
         const inventoryRef = doc(inventoriesCollection, inventoryName);
         const inventorySnap = await getDoc(inventoryRef);
@@ -186,7 +210,6 @@ export default function Dashboard() {
         */
 
         batch.delete(inventoryRef);
-        console.log("Inventory scheduled for deletion");
       });
 
       // Wait for all inventory deletions to be scheduled
@@ -195,14 +218,13 @@ export default function Dashboard() {
 
     // Finally, delete the group
     batch.delete(groupRef);
-    console.log("Group scheduled for deletion");
   };
 
-  //function to leave a group
-  const leaveGroup = async () => {
-    const userName = `${user.firstName} ${user.lastName}`;
+
+  // Function to leave a group
+ const leaveGroup = async () => {
+
     const userDocRef = doc(collection(db, "users"), user.id);
-    console.log("Group Name:", groupName);
 
     const groupDocRef = doc(collection(db, "groups"), groupName);
 
@@ -233,12 +255,13 @@ export default function Dashboard() {
       if (groupSnap.exists()) {
         const groupData = groupSnap.data();
         const newMembers = groupData.members.filter(
-          (member) => member !== userName
+          (member) => member.name !== userName
         );
 
         if (newMembers.length === 0) {
           await deleteGroup(groupName, batch);
         } else {
+          newMembers[0].leader = true;
           batch.update(groupDocRef, {
             members: newMembers,
           });
@@ -250,45 +273,9 @@ export default function Dashboard() {
     }
 
     await batch.commit();
-    console.log("Commit is DONE");
     setGroupName("");
   };
 
-  //function to fetch the user's groups from the database (will be executed on page load)
-  useEffect(() => {
-    const getGroups = async () => {
-      if (!user) return;
-
-      const userRef = doc(collection(db, "users"), user.id);
-      const userSnap = await getDoc(userRef);
-
-      if (userSnap.exists()) {
-        const groupsCol = userSnap.data().groups || [];
-
-        const groupsRef = collection(db, "groups");
-        const q = query(groupsRef, where("name", "in", groupsCol));
-
-        const querySnapshot = await getDocs(q);
-
-        const groupObjects = querySnapshot.docs.map((doc) => doc.data());
-
-        console.log("actual group objects", groupObjects);
-
-        setGroups(groupObjects);
-        setFilteredGroups(groupObjects);
-      } else {
-        console.log("User does not exist");
-      }
-    };
-
-    getGroups();
-  }, [user, createGroup]);
-
-  useEffect(() => {
-    setFilteredGroups(groups.filter(group =>
-      group.name.toLowerCase().includes(searchTerm.toLowerCase())
-    ));
-  }, [searchTerm]);
 
   return (
     <Box
