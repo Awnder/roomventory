@@ -82,6 +82,7 @@ export default function Inventory() {
   const [groupMembers, setGroupMembers] = useState([]);
   const [email, setEmail] = useState("");
   const [suggestedItems, setSuggestedItems] = useState({});
+  const [isLeader, setIsLeader] = useState(false);
 
   //Modals
   const [openMemberModal, setOpenMemberModal] = useState(false);
@@ -92,7 +93,53 @@ export default function Inventory() {
   const groupName = searchParams.get("id");
 
   const textInput = useRef(null);
+  const userName = user ? user.firstName + " " + user.lastName : "";
 
+  //fetching inventory data
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        if (!user) return;
+
+        const inventoriesCol = collection(
+          db,
+          "groups",
+          groupName,
+          "inventories"
+        );
+        console.log("inventoriesCol", inventoriesCol);
+
+        const inventoriesSnap = await getDocs(inventoriesCol);
+        console.log("inventoriesSnap", inventoriesSnap);
+        console.log("inventoriesSnap.docs", inventoriesSnap.docs);
+
+        const inventoriesList = [];
+
+        // Collect promises if there are async operations to perform on itemsCol
+        const inventoriesPromises = inventoriesSnap.docs.map(
+          async (inventory) => {
+            const inventoryData = inventory.data();
+            console.log("inventory", inventoryData);
+            inventoriesList.push(inventoryData);
+
+            const itemsCol = inventoryData.items;
+            console.log("itemsCol", itemsCol);
+          }
+        );
+
+        // Wait for all inventory promises to resolve
+        await Promise.all(inventoriesPromises);
+
+        setInventories(inventoriesList);
+      } catch (error) {
+        console.error("Error fetching data:", error);
+      }
+    };
+
+    fetchData();
+  }, [user, groupName]);
+
+  /*
   useEffect(() => {
     const getMembers = async () => {
       const groupRef = doc(collection(db, "groups"), groupName);
@@ -107,7 +154,56 @@ export default function Inventory() {
 
     getMembers();
   }, [user, groupName]);
+  */
 
+  //fetching group data
+  useEffect(() => {
+    const getLeaderState = async () => {
+      try {
+        const groupRef = doc(db, "groups", groupName);
+        const groupSnap = await getDoc(groupRef);
+
+        if (groupSnap.exists()) {
+          const groupData = groupSnap.data();
+          const member = groupData.members.find(member => member.name === userName);
+          const leaderState = member ? member.leader : false;
+          setIsLeader(leaderState);
+          setGroupMembers(groupData.members);
+        } else {
+          console.log("No such document!");
+        }
+      } catch (error) {
+        console.error("Error fetching data:", error);
+      }
+    };
+    getLeaderState();
+  }, [user]); 
+
+
+  const handleInvite = async (event) => {
+    if(!isLeader){
+      alert("You must be the leader of the group to invite members");
+    }
+    if (!email) {
+      return;
+    }
+    const res = await fetch("/api/invite", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json", // Specify the content type
+      },
+      body: JSON.stringify({ email: email, group: groupName }), // Stringify the email object
+    });
+
+    if (!res.ok) {
+      throw new Error(`HTTP error! status: ${res.status}`);
+    }
+
+    const data = await res.json();
+    // Handle response
+    console.log(data);
+  };
+  
   //just for testing (change it to be dynamic later)
   const exampleInventory = "Bathroom";
 
@@ -206,6 +302,7 @@ export default function Inventory() {
       });
     }
     setItemName("");
+    console.log(isLeader)
   };
 
   const addNeededItem = async () => {
@@ -309,49 +406,6 @@ export default function Inventory() {
     setInventoryName("");
   };
 
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        if (!user) return;
-
-        const inventoriesCol = collection(
-          db,
-          "groups",
-          groupName,
-          "inventories"
-        );
-        console.log("inventoriesCol", inventoriesCol);
-
-        const inventoriesSnap = await getDocs(inventoriesCol);
-        console.log("inventoriesSnap", inventoriesSnap);
-        console.log("inventoriesSnap.docs", inventoriesSnap.docs);
-
-        const inventoriesList = [];
-
-        // Collect promises if there are async operations to perform on itemsCol
-        const inventoriesPromises = inventoriesSnap.docs.map(
-          async (inventory) => {
-            const inventoryData = inventory.data();
-            console.log("inventory", inventoryData);
-            inventoriesList.push(inventoryData);
-
-            const itemsCol = inventoryData.items;
-            console.log("itemsCol", itemsCol);
-          }
-        );
-
-        // Wait for all inventory promises to resolve
-        await Promise.all(inventoriesPromises);
-
-        setInventories(inventoriesList);
-      } catch (error) {
-        console.error("Error fetching data:", error);
-      }
-    };
-
-    fetchData();
-  }, [user, groupName]);
-
   // const handleAddNewMember = async() => {
   //   if (!newMember) {
   //     return;
@@ -366,31 +420,95 @@ export default function Inventory() {
   //     console.error('Error adding member: ', err);
   //   };
   // }
-  const handleInvite = async (event) => {
-    if (!email) {
-      return;
-    }
-    const res = await fetch("/api/invite", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json", // Specify the content type
-      },
-      body: JSON.stringify({ email: email, group: groupName }), // Stringify the email object
-    });
+  
 
-    if (!res.ok) {
-      throw new Error(`HTTP error! status: ${res.status}`);
+  const kickMember = async (member) => {
+    if(!isLeader){
+      alert("You must be the leader of the group to kick members");
+    }
+    const groupRef = doc(collection(db, "groups"), groupName);
+    const groupSnap = await getDoc(groupRef);
+
+    if (groupSnap.exists()) {
+      const groupData = groupSnap.data();
+      const newMembers = groupData.members.filter(
+        (groupMember) => groupMember.name !== member
+      );
+
+      await updateDoc(groupRef, {
+        members: newMembers,
+      });
+      setGroupMembers(newMembers);
+
+      const userRef = doc(collection(db, "users"), user.id);
+      const userSnap = await getDoc(userRef);
+
+      if (userSnap.exists()) {
+        const userData = userSnap.data();
+        const newGroups = userData.groups.filter(
+          (group) => group !== groupName
+        );
+
+        await updateDoc(userRef, {
+          groups: newGroups,
+        });
+      }
+    }
+  }
+
+  const leaveGroup = async () => {
+    const userDocRef = doc(collection(db, "users"), user.id);
+
+    const groupDocRef = doc(collection(db, "groups"), groupName);
+
+    const batch = writeBatch(db);
+
+    //adjust user's groups
+    try {
+      const userSnap = await getDoc(userDocRef);
+
+      if (userSnap.exists()) {
+        const userData = userSnap.data();
+        const newGroups = userData.groups.filter(
+          (group) => group !== groupName
+        );
+
+        batch.update(userDocRef, {
+          groups: newGroups,
+        });
+      }
+    } catch (error) {
+      console.error("Error adjusting user's groups:", error);
+      alert("An error occurred while leaving the group. Please try again.");
     }
 
-    const data = await res.json();
-    // Handle response
-    console.log(data);
+    //adjust group's members
+    try {
+      const groupSnap = await getDoc(groupDocRef);
+      if (groupSnap.exists()) {
+        const groupData = groupSnap.data();
+        const newMembers = groupData.members.filter(
+          (member) => member.name !== userName
+        );
+
+        if (newMembers.length === 0) {
+          await deleteGroup(groupName, batch);
+        } else {
+          newMembers[0].leader = true;
+          batch.update(groupDocRef, {
+            members: newMembers,
+          });
+        }
+      }
+    } catch (error) {
+      console.error("Error adjusting group's members:", error);
+      alert("An error occurred while leaving the group. Please try again.");
+    }
+
+    await batch.commit();
+    console.log("Commit is DONE");
+    setGroupName("");
   };
-
-  // Optionally, log the inventories state in a separate useEffect
-  useEffect(() => {
-    console.log("final inventories", inventories);
-  }, [inventories]);
 
   //Modals open/close
   const handleOpenMemberModal = () => setOpenMemberModal(true);
@@ -602,7 +720,7 @@ export default function Inventory() {
               <Stack direction="column" spacing={2}>
                 {groupMembers.map((member) => (
                   <Typography textAlign="center" color="white">
-                    {member}
+                    {member.name}
                   </Typography>
                 ))}
               </Stack>
@@ -839,7 +957,7 @@ export default function Inventory() {
             value={itemName}
             onChange={(e) => setItemName(e.target.value)}
           />
-          <Button onClick={getSuggestions}>Add</Button>
+          <Button onClick={addItem}>Add</Button>
         </Box>
       </Box>
     </Stack>

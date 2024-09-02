@@ -81,7 +81,7 @@ export default function Dashboard() {
 
     const newGroup = {
       name: groupName,
-      members: [userName],
+      members: [{name: `${userName}`, leader: true}],
     };
 
     const batch = writeBatch(db);
@@ -262,7 +262,6 @@ export default function Dashboard() {
 
       if (userSnap.exists()) {
         const groupsCol = userSnap.data().groups || [];
-        console.log("collection", groupsCol);
 
         const groupsRef = collection(db, "groups");
         const q = query(groupsRef, where("name", "in", groupsCol));
@@ -282,11 +281,6 @@ export default function Dashboard() {
 
     getGroups();
   }, [user, createGroup]);
-
-  // Log the updated `groups` whenever it changes
-  useEffect(() => {
-    console.log("Updated Groups", groups);
-  }, [groups]);
 
   useEffect(() => {
     setFilteredGroups(groups.filter(group =>

@@ -115,7 +115,7 @@ export default function Page() {
         const groupData = groupSnap.data();
         if (!groupData.members.includes(userName)) {
           batch.update(groupDocRef, {
-            members: [...groupData.members, userName],
+            members: [...groupData.members, { name: userName, leader: false }],
           });
         } else {
           alert("User already exists in this group");
