@@ -514,7 +514,7 @@ export default function Dashboard() {
         width="80%"
         maxWidth="lg"
         display="flex"
-        sx={{ justifyContent: { xs: "center", sm: "center", md: "flex-end" } }}
+        justifyContent="flex-end"
       >
         <AddCircleOutlineIcon
           onClick={() => setAddInventoryModal(true)}
@@ -538,8 +538,8 @@ export default function Dashboard() {
           justifyContent="center"
           alignItems="center"
           bgcolor={green_white}
-          width="500px"
-          height="200px"
+          width="lg"
+          height="lg"
           border="2px solid black"
           borderRadius="15px"
           p={3}
@@ -550,18 +550,18 @@ export default function Dashboard() {
             transform: "translate(-50%, -50%)",
           }}
         >
-          <Typography variant="h4" textAlign="center" color={green_dark} mb={2}>
+          <Typography textAlign="center" color={green_dark} mb={2} sx={{ typography: { xs: "h6", sm: "h5" } }}>
             Create New Group
           </Typography>
-          <Stack flexDirection="row">
+          <Stack sx={{ direction: {xs: "column", sm: "row"} }}>
             <TextField
               fullWidth
               label="Group Name"
               value={groupName}
               onChange={(e) => setGroupName(e.target.value)}
-              sx={{ mr: 2 }}
+              sx={{ mr: 2, mb: {xs: 2} }}
             />
-            <Button variant="contained" color="success" onClick={createGroup}>
+            <Button variant="contained" color="success" onClick={createGroup} fullWidth>
               Create
             </Button>
           </Stack>
