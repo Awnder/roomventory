@@ -1041,7 +1041,7 @@ export default function Inventory() {
               <Stack direction="column" spacing={2}>
                 {groupMembers.map((member) => (
                   <Typography textAlign="center" color="white">
-                    {member}
+                    {member.name}
                   </Typography>
                 ))}
               </Stack>
