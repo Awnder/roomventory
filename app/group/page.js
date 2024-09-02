@@ -80,10 +80,13 @@ export default function Inventory() {
   const [itemName, setItemName] = useState("");
   const router = useRouter();
   const [groupMembers, setGroupMembers] = useState([]);
-  const [openMemberModal, setOpenMemberModal] = useState(false);
-  const [newMember, setNewMember] = useState("");
   const [email, setEmail] = useState("");
   const [suggestedItems, setSuggestedItems] = useState({});
+
+  //Modals
+  const [openMemberModal, setOpenMemberModal] = useState(false);
+  const [openNewInventoryModal, setOpenNewInventoryModal] = useState(false);
+  const [openAddItemModal, setOpenAddItemModal] = useState(false);
 
   const searchParams = useSearchParams();
   const groupName = searchParams.get("id");
@@ -388,8 +391,13 @@ export default function Inventory() {
     console.log("final inventories", inventories);
   }, [inventories]);
 
+  //Modals open/close
   const handleOpenMemberModal = () => setOpenMemberModal(true);
   const handleCloseMemberModal = () => setOpenMemberModal(false);
+  const handleOpenInventoryModal = () => setOpenNewInventoryModal(true);
+  const handleCloseInventoryModal = () => setOpenNewInventoryModal(false);
+  const handleOpenItemModal = () => setOpenAddItemModal(true);
+  const handleCloseItemModal = () => setOpenAddItemModal(false);
 
   // function to inc
 
@@ -438,80 +446,182 @@ export default function Inventory() {
             </Typography>
           </Box>
         </Box>
-        {/* Roommate Banner and Add Container Button */}
-        <Stack
-          direction="row"
-          justifyContent="space-between"
-          alignItems="center"
-          width="80%"
-          maxWidth="lg"
-          bgcolor={green_dark}
-          borderRadius="20px"
-          py={3}
-          mb={2}
-        >
-          {/* invisible icon to balance out justifyContent space-between */}
-          <SettingsIcon
-            sx={{ ml: 2, fontSize: { xs: 40, sm: 50 }, color: `${green_dark}` }}
-          />
-          <Box>
-            <Typography
-              flexGrow={1}
-              textAlign="center"
-              color={green_light}
-              px={2}
-              mb={2}
-              sx={{ typography: { xs: "h5", sm: "h4" } }}
-            >
-              Roommates
-            </Typography>
-            <Stack direction="column" spacing={2}>
-              {groupMembers.map((member) => (
-                <Typography textAlign="center" color="white">
-                  {member}
-                </Typography>
-              ))}
-            </Stack>
-          </Box>
-          <SettingsIcon
-            sx={{
-              mr: 2,
-              fontSize: { xs: 40, sm: 50 },
-              color: `${green_light}`,
-              transition: "200ms",
-              "&:hover": {
-                transform: "rotate(180deg) scale(1.05)",
-              },
-            }}
-            onClick={(e) => {
-              handleOpenMemberModal();
-            }}
-          />
-        </Stack>
 
-        {/* Search Bar */}
-        <Box
-          width="60%"
-          maxWidth="md"
-          border="1px solid black"
-          borderRadius="20px"
-          p={2}
-          sx={{ background: `linear-gradient(to left, #fff, ${green_light})` }}
-        >
-          <TextField
-            fullWidth
-            label="Search"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            InputProps={{
-              endAdornment: (
-                <InputAdornment>
-                  <SearchIcon />
-                </InputAdornment>
-              ),
+        {/* Modal for creating new inventories */}
+        <Modal open={openNewInventoryModal} onOpen={handleOpenInventoryModal}>
+          <Box
+            position="absolute"
+            top="50%"
+            left="50%"
+            width={500}
+            bgcolor={green_light}
+            border="2px solid #000"
+            p={2}
+            display="flex"
+            flexDirection="column"
+            justifyContent="center"
+            alignItems="center"
+            gap={3}
+            sx={{
+              transform: "translate(-50%,-50%)",
             }}
-          />
-        </Box>
+          >
+            <Typography variant="h5" textAlign="center">
+              Create New Inventory
+            </Typography>
+            <Stack direction="row" spacing={2}>
+              <Box bgcolor="white" border="1px solid black" borderRadius="5px">
+                <TextField
+                  placeholder="Ex. Bathroom, Kitchen"
+                  border="1px solid black"
+                  value={inventoryName}
+                  onChange={(e) => setInventoryName(e.target.value)}
+                />
+              </Box>
+              <Button
+                variant="contained"
+                sx={{
+                  color: "white",
+                  bgcolor: `${green_dark}`,
+                  borderRadius: "10px",
+                  transition: "200ms",
+                  "&:hover": {
+                    bgcolor: `${green_dark}`,
+                    transform: "scale(1.1)",
+                  },
+                }}
+                onClick={createInventory}
+              >
+                Create
+              </Button>
+            </Stack>
+            <Button
+              variant="contained"
+              sx={{
+                color: "white",
+                bgcolor: `${green_dark}`,
+                borderRadius: "10px",
+                transition: "200ms",
+                "&:hover": {
+                  bgcolor: `${green_dark}`,
+                  transform: "scale(1.1)",
+                },
+              }}
+              onClick={() => {
+                handleCloseInventoryModal();
+              }}
+            >
+              Close
+            </Button>
+          </Box>
+        </Modal>
+
+        <Stack
+          width="80%"
+          direction="row"
+          spacing={2}
+        >
+          <Stack
+            width="100%"
+            direction="column"
+            spacing={2}
+          >
+            {/* Search Bar */}
+            <Box
+              width="100%"
+              maxWidth="md"
+              maxHeight="90px"
+              border="1px solid black"
+              borderRadius="20px"
+              p={2}
+              sx={{ background: `linear-gradient(to left, #fff, ${green_light})` }}
+            >
+              <TextField
+                fullWidth
+                label="Search"
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                InputProps={{
+                  endAdornment: (
+                    <InputAdornment>
+                      <SearchIcon />
+                    </InputAdornment>
+                  ),
+                }}
+              />
+            </Box>
+            <Stack width="100%" direction="row" spacing={2}>
+              <Button
+                variant="contained"
+                sx={{
+                  color: "white",
+                  bgcolor: `${green_dark}`,
+                  borderRadius: "10px",
+                  transition: "200ms",
+                  "&:hover": {
+                    bgcolor: `${green_dark}`,
+                    transform: "scale(1.1)",
+                  },
+                }}
+                onClick={(e) => {
+                  handleOpenInventoryModal();
+                }}
+              >
+                Create New Inventory
+              </Button>
+            </Stack>
+          </Stack>
+          {/* Roommate Banner and Add Container Button */}
+          <Stack
+            direction="row"
+            justifyContent="space-between"
+            alignItems="center"
+            width="40%"
+            maxWidth="lg"
+            bgcolor={green_dark}
+            borderRadius="20px"
+            py={3}
+            mb={2}
+          >
+            {/* invisible icon to balance out justifyContent space-between */}
+            <SettingsIcon
+              sx={{ ml: 2, fontSize: { xs: 40, sm: 50 }, color: `${green_dark}` }}
+            />
+            <Box>
+              <Typography
+                flexGrow={1}
+                textAlign="center"
+                color={green_light}
+                px={2}
+                mb={2}
+                sx={{ typography: { xs: "h5", sm: "h4" } }}
+              >
+                Roommates
+              </Typography>
+              <Stack direction="column" spacing={2}>
+                {groupMembers.map((member) => (
+                  <Typography textAlign="center" color="white">
+                    {member}
+                  </Typography>
+                ))}
+              </Stack>
+            </Box>
+            <SettingsIcon
+              sx={{
+                mr: 2,
+                fontSize: { xs: 40, sm: 50 },
+                color: `${green_light}`,
+                transition: "200ms",
+                "&:hover": {
+                  transform: "rotate(180deg) scale(1.05)",
+                },
+              }}
+              onClick={(e) => {
+                handleOpenMemberModal();
+              }}
+            />
+          </Stack>
+        </Stack>
       </Stack>
       {/* Inventory Area */}
       <Box
@@ -523,6 +633,8 @@ export default function Inventory() {
         alignItems="center"
         flexGrow={1}
       >
+
+        {/* Modal for adding new members */}
         <Modal open={openMemberModal} onOpen={handleOpenMemberModal}>
           <Box
             position="absolute"
@@ -541,7 +653,7 @@ export default function Inventory() {
               transform: "translate(-50%,-50%)",
             }}
           >
-            <Typography variant="h5" textAlign="center" mt={1}>
+            <Typography variant="h5" textAlign="center">
               Edit Group
             </Typography>
             <Stack direction="column" spacing={1}>
@@ -596,29 +708,7 @@ export default function Inventory() {
             </Button>
           </Box>
         </Modal>
-        <Stack direction="row" spacing={2} mb={4}>
-          <TextField
-            label="Item Name"
-            value={itemName}
-            onChange={(e) => setItemName(e.target.value)}
-          />
-          <Button
-            variant="contained"
-            sx={{
-              color: "white",
-              bgcolor: `${green_dark}`,
-              borderRadius: "10px",
-              transition: "200ms",
-              "&:hover": {
-                bgcolor: `${green_dark}`,
-                transform: "scale(1.1)",
-              },
-            }}
-            onClick={createInventory}
-          >
-            Add
-          </Button>
-        </Stack>
+
         <Grid
           container
           spacing={2}
