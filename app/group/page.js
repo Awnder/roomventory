@@ -34,13 +34,14 @@ import {
   deleteDoc,
   getDocs,
   setDoc,
+  updateDoc,
 } from "firebase/firestore";
 import { useSearchParams } from "next/navigation";
 
 import banner from "../../public/banner.png";
 
 import { useState, useEffect, useRef } from "react";
-import Image from "next/image"; 
+import Image from "next/image";
 
 // colors
 const green_white = "#F3F6F9";
@@ -80,15 +81,14 @@ export default function Inventory() {
   const router = useRouter();
   const [groupMembers, setGroupMembers] = useState([]);
   const [openMemberModal, setOpenMemberModal] = useState(false);
-  const [newMember, setNewMember] = useState('');
+  const [newMember, setNewMember] = useState("");
   const [email, setEmail] = useState("");
-
+  const [suggestedItems, setSuggestedItems] = useState({});
 
   const searchParams = useSearchParams();
   const groupName = searchParams.get("id");
 
   const textInput = useRef(null);
-
 
   useEffect(() => {
     const getMembers = async () => {
@@ -100,18 +100,38 @@ export default function Inventory() {
         console.log("groupData", groupData);
         setGroupMembers(groupData.members);
       }
-    }
+    };
 
     getMembers();
   }, [user, groupName]);
 
-
   //just for testing (change it to be dynamic later)
-  const inventory = "Kithcen";
+  const exampleInventory = "Bathroom";
 
   const handleSubmit = async () => {
     setInventoryName("");
     setAddInventoryModal(false);
+  };
+
+  const getSuggestions = async () => {
+    const selectedInventory = inventories.find(
+      (inventory) => inventory.name === exampleInventory
+    );
+
+    console.log("selectedInventory", selectedInventory);
+
+    await fetch("/api/generate", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ selectedInventory }),
+    })
+      .then((response) => response.json())
+      .then((data) => {
+        console.log('data', data);
+        setSuggestedItems({ inventory: exampleInventory, items: data });
+      });
   };
 
   //function to add an room in a group to the database
@@ -133,7 +153,11 @@ export default function Inventory() {
       alert("Inventory already exists");
       return;
     } else {
-      await setDoc(inventoryRef, { name: inventoryName, items: [], neededItems: [] });
+      await setDoc(inventoryRef, {
+        name: inventoryName,
+        items: [],
+        neededItems: [],
+      });
     }
     setInventoryName("");
   };
@@ -169,20 +193,25 @@ export default function Inventory() {
         lastUpdated: Date.now(), // default to date added
         isPerishable: false, // allow user to adjust (default to false)
         minimumQuantity: 0, // allow user to specify (default to 0)
-        notes: "" // allow user to add notes (default to empty string)
+        notes: "", // allow user to add notes (default to empty string)
       };
 
       const newItems = [...items, newItem];
-      await setDoc(inventoryRef, { items: newItems });
+      await updateDoc(inventoryRef, {
+        items: newItems,
+      });
     }
     setItemName("");
   };
 
   const addNeededItem = async () => {
     const groupRef = doc(collection(db, "groups"), groupName);
+    console.log("groupRef", groupRef);
     const inventoryCollection = collection(groupRef, "inventories");
+    console.log("inventoryCollection", inventoryCollection);
 
-    const inventoryRef = doc(inventoryCollection, "Bathroom"); //inventory should be dynamically selected
+    const inventoryRef = doc(inventoryCollection, exampleInventory); //inventory should be dynamically selected
+    console.log("inventoryRef", inventoryRef);
 
     //const itemsCollection = collection(inventoryRef, "items");
 
@@ -197,6 +226,7 @@ export default function Inventory() {
       return;
     } else {
       const items = inventorySnap.data().neededItems;
+      console.log(" needed items", items);
 
       const newNeededItem = {
         name: itemName, // require user to give name
@@ -207,11 +237,13 @@ export default function Inventory() {
         addedBy: user.firstName + " " + user.lastName, // automatically selected based on the user
         status: "Needed", // automatically set to Needed
         dateAdded: Date.now(), // default to time now
-        notes: "" // allow user to add notes (default to empty string)
+        notes: "", // allow user to add notes (default to empty string)
       };
 
       const newItems = [...items, newNeededItem];
-      await setDoc(inventoryRef, { neededItems: newItems });
+      await updateDoc(inventoryRef, {
+        neededItems: newItems,
+      });
     }
     setItemName("");
   };
@@ -220,7 +252,7 @@ export default function Inventory() {
     const groupRef = doc(collection(db, "groups"), groupName);
     const inventoryCollection = collection(groupRef, "inventories");
 
-    const inventoryRef = doc(inventoryCollection, "Bathroom"); //inventory should be dynamically selected
+    const inventoryRef = doc(inventoryCollection, exampleInventory); //inventory should be dynamically selected
 
     //const itemsCollection = collection(inventoryRef, "items");
 
@@ -233,11 +265,12 @@ export default function Inventory() {
       alert("Inventory does not exist");
       return;
     } else {
-        const items = inventorySnap.data().items;
+      const items = inventorySnap.data().items;
 
-        const newItems = items.filter((item) => item.name !== itemName);
-        await setDoc(inventoryRef, { items: newItems });
-    }
+      const newItems = items.filter((item) => item.name !== itemName);
+      await updateDoc(inventoryRef, {
+        neededItems: newItems,
+      });    }
     setItemName("");
   };
 
@@ -246,7 +279,7 @@ export default function Inventory() {
       const groupRef = doc(collection(db, "groups"), groupName);
       const inventoryCollection = collection(groupRef, "inventories");
 
-      const inventoryRef = doc(inventoryCollection, inventoryName);
+      const inventoryRef = doc(inventoryCollection, exampleInventory); //inventory should be dynamically selected
 
       //const itemsCollectionRef = collection(inventoryRef, "items");
 
@@ -331,7 +364,7 @@ export default function Inventory() {
   // }
   const handleInvite = async (event) => {
     if (!email) {
-      return;   
+      return;
     }
     const res = await fetch("/api/invite", {
       method: "POST",
@@ -374,16 +407,16 @@ export default function Inventory() {
           borderRadius="20px"
           mb={3}
         >
-          <Image 
-            src={banner} 
-            alt="Roomventory banner" 
-            placeholder="blur" 
-            fill 
+          <Image
+            src={banner}
+            alt="Roomventory banner"
+            placeholder="blur"
+            fill
             priority
             style={{
               objectFit: "cover",
               objectPosition: "center",
-              filter: "blur(3px)"
+              filter: "blur(3px)",
             }}
           />
           <Box
@@ -432,7 +465,9 @@ export default function Inventory() {
             </Typography>
             <Stack direction="column" spacing={2}>
               {groupMembers.map((member) => (
-                <Typography textAlign="center" color="white">{member}</Typography>
+                <Typography textAlign="center" color="white">
+                  {member}
+                </Typography>
               ))}
             </Stack>
           </Box>
@@ -451,7 +486,7 @@ export default function Inventory() {
             }}
           />
         </Stack>
-        
+
         {/* Search Bar */}
         <Box
           width="60%"
@@ -486,14 +521,11 @@ export default function Inventory() {
         alignItems="center"
         flexGrow={1}
       >
-        <Modal
-          open={openMemberModal}
-          onOpen={handleOpenMemberModal}
-        >
+        <Modal open={openMemberModal} onOpen={handleOpenMemberModal}>
           <Box
             position="absolute"
             top="50%"
-            left = "50%"
+            left="50%"
             width={500}
             bgcolor={green_light}
             border="2px solid #000"
@@ -504,7 +536,7 @@ export default function Inventory() {
             alignItems="center"
             gap={3}
             sx={{
-              transform: "translate(-50%,-50%)"
+              transform: "translate(-50%,-50%)",
             }}
           >
             <Typography variant="h5" textAlign="center" mt={1}>
@@ -512,7 +544,7 @@ export default function Inventory() {
             </Typography>
             <Stack direction="column" spacing={1}>
               {groupMembers.map((member) => (
-                <Chip key={member} label={member} variant="filled"/>
+                <Chip key={member} label={member} variant="filled" />
               ))}
             </Stack>
             <Stack direction="row" spacing={2}>
@@ -555,7 +587,7 @@ export default function Inventory() {
                 },
               }}
               onClick={() => {
-                handleCloseMemberModal()
+                handleCloseMemberModal();
               }}
             >
               Close
@@ -565,8 +597,8 @@ export default function Inventory() {
         <Stack direction="row" spacing={2} mb={4}>
           <TextField
             label="Item Name"
-            value={inventoryName}
-            onChange={(e) => setInventoryName(e.target.value)}
+            value={itemName}
+            onChange={(e) => setItemName(e.target.value)}
           />
           <Button
             variant="contained"
@@ -585,7 +617,13 @@ export default function Inventory() {
             Add
           </Button>
         </Stack>
-        <Grid container spacing={2} mb={8} justifyContent={"center"} alignItems="center">
+        <Grid
+          container
+          spacing={2}
+          mb={8}
+          justifyContent={"center"}
+          alignItems="center"
+        >
           <Grid item xs={12} sm={12} md={12} lg={6} xl={6}>
             <Accordion>
               <AccordionSummary
@@ -702,6 +740,14 @@ export default function Inventory() {
             </Accordion>
           </Grid>
         </Grid>
+        <Box>
+          <TextField
+            label="input"
+            value={itemName}
+            onChange={(e) => setItemName(e.target.value)}
+          />
+          <Button onClick={getSuggestions}>Add</Button>
+        </Box>
       </Box>
     </Stack>
   );
