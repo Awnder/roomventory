@@ -15,12 +15,6 @@ const green_dark = "#4E826B";
 const green_darkest = "#1D3417";
 const green_black = "#1C2025";
 
-const appbartheme = createTheme({
-  appBar: {
-    bgcolor: "white",
-  },
-})
-
 export default function NavBar() {
   return (
     <AppBar position="sticky" color="default"> 

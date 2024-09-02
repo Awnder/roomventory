@@ -12,6 +12,7 @@ import {
 } from "@mui/material";
 import AddCircleOutlineIcon from "@mui/icons-material/AddCircleOutline";
 import SearchIcon from "@mui/icons-material/Search";
+import { DarkButton } from "../../Components/styledbuttons"
 import { useRouter } from "next/navigation";
 import { useUser } from "@clerk/nextjs";
 import { db } from "/firebase";
@@ -531,9 +532,9 @@ export default function Dashboard() {
               onChange={(e) => setGroupName(e.target.value)}
               sx={{ mr: 2, mb: {xs: 2} }}
             />
-            <Button variant="contained" color="success" onClick={createGroup} fullWidth>
-              Create
-            </Button>
+            <Box onClick={createGroup}>
+              <DarkButton fullWidth>Create</DarkButton>
+            </Box>
           </Stack>
         </Box>
       </Modal>

@@ -29,6 +29,7 @@ import ArrowDropDownIcon from "@mui/icons-material/ArrowDropDown";
 import AddIcon from "@mui/icons-material/Add";
 import RemoveIcon from "@mui/icons-material/Remove";
 import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
+import { DarkButton, LightButton } from "../../Components/styledbuttons";
 import { Category, Opacity, Search } from "@mui/icons-material";
 import { useRouter } from "next/navigation";
 import { useUser } from "@clerk/nextjs";
@@ -696,41 +697,13 @@ export default function Inventory() {
                   onChange={(e) => setInventoryName(e.target.value)}
                 />
               </Box>
-              <Button
-                variant="contained"
-                sx={{
-                  color: "white",
-                  bgcolor: `${green_dark}`,
-                  borderRadius: "10px",
-                  transition: "200ms",
-                  "&:hover": {
-                    bgcolor: `${green_dark}`,
-                    transform: "scale(1.1)",
-                  },
-                }}
-                onClick={createInventory}
-              >
-                Create
-              </Button>
+              <Box onClick={createInventory}>
+                <DarkButton>Create</DarkButton>
+              </Box>
             </Stack>
-            <Button
-              variant="contained"
-              sx={{
-                color: "white",
-                bgcolor: `${green_dark}`,
-                borderRadius: "10px",
-                transition: "200ms",
-                "&:hover": {
-                  bgcolor: `${green_dark}`,
-                  transform: "scale(1.1)",
-                },
-              }}
-              onClick={() => {
-                handleCloseInventoryModal();
-              }}
-            >
-              Close
-            </Button>
+            <Box onClick={() => {handleCloseInventoryModal();}}>
+              <DarkButton>Close</DarkButton>
+            </Box>
           </Box>
         </Modal>
 
@@ -765,22 +738,9 @@ export default function Inventory() {
                   onChange={(e) => setItemName(e.target.value)}
                 />
               </Box>
-              <Button
-                variant="contained"
-                sx={{
-                  color: "white",
-                  bgcolor: `${green_dark}`,
-                  borderRadius: "10px",
-                  transition: "200ms",
-                  "&:hover": {
-                    bgcolor: `${green_dark}`,
-                    transform: "scale(1.1)",
-                  },
-                }}
-                onClick={addItem}
-              >
-                Add
-              </Button>
+              <Box onClick={addItem} display="flex" justifyContent="center">
+                <DarkButton>Add</DarkButton>
+              </Box>
             </Stack>
             <Stack direction="row" spacing={2} justifyContent="center" alignItems="center">
               <Box
@@ -914,24 +874,10 @@ export default function Inventory() {
                 onChange={(e) => setNotes(e.target.value)}
               />
             </Box>
-            <Button
-              variant="contained"
-              sx={{
-                color: "white",
-                bgcolor: `${green_dark}`,
-                borderRadius: "10px",
-                transition: "200ms",
-                "&:hover": {
-                  bgcolor: `${green_dark}`,
-                  transform: "scale(1.1)",
-                },
-              }}
-              onClick={() => {
-                handleCloseItemModal();
-              }}
-            >
-              Close
-            </Button>
+
+            <Box onClick={() => {handleCloseItemModal();}}>
+              <DarkButton>Close</DarkButton>
+            </Box>
           </Box>
         </Modal>
 
@@ -969,42 +915,12 @@ export default function Inventory() {
               spacing={2}
               justifyContent="center"
             >
-              <Button
-                variant="contained"
-                sx={{
-                  color: "white",
-                  bgcolor: `${green_dark}`,
-                  borderRadius: "10px",
-                  transition: "200ms",
-                  "&:hover": {
-                    bgcolor: `${green_dark}`,
-                    transform: "scale(1.1)",
-                  },
-                }}
-                onClick={(e) => {
-                  handleOpenInventoryModal();
-                }}
-              >
-                Create New Inventory
-              </Button>
-              <Button
-                variant="contained"
-                sx={{
-                  color: "white",
-                  bgcolor: `${green_dark}`,
-                  borderRadius: "10px",
-                  transition: "200ms",
-                  "&:hover": {
-                    bgcolor: `${green_dark}`,
-                    transform: "scale(1.1)",
-                  },
-                }}
-                onClick={(e) => {
-                  handleOpenItemModal();
-                }}
-              >
-                Add Item
-              </Button>
+              <Box onClick={(e) => {handleOpenInventoryModal();}}>
+                <DarkButton>Create New Inventory</DarkButton>
+              </Box>
+              <Box onClick={(e) => {handleOpenItemModal();}}>
+                <DarkButton>Add Item</DarkButton>
+              </Box>
             </Stack>
           </Stack>
           {/* Roommate Banner and Add Container Button */}
@@ -1108,44 +1024,21 @@ export default function Inventory() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
               />
-              <Button
-                variant="contained"
-                sx={{
-                  color: "white",
-                  bgcolor: `${green_dark}`,
-                  borderRadius: "10px",
-                  transition: "200ms",
-                  "&:hover": {
-                    bgcolor: `${green_dark}`,
-                    transform: "scale(1.1)",
-                  },
-                }}
+              <Box 
                 onClick={(e) => {
                   textInput.current.value = "";
                   handleInvite();
                 }}
+                display="flex"
+                justifyContent="center"
               >
-                Invite
-              </Button>
+                <DarkButton>Invite</DarkButton>
+              </Box>
             </Stack>
-            <Button
-              variant="contained"
-              sx={{
-                color: "white",
-                bgcolor: `${green_dark}`,
-                borderRadius: "10px",
-                transition: "200ms",
-                "&:hover": {
-                  bgcolor: `${green_dark}`,
-                  transform: "scale(1.1)",
-                },
-              }}
-              onClick={() => {
-                handleCloseMemberModal();
-              }}
-            >
-              Close
-            </Button>
+            <Box onClick={() => {handleCloseMemberModal();}}>
+              <DarkButton>Close</DarkButton>
+            </Box>
+        
           </Box>
         </Modal>
 

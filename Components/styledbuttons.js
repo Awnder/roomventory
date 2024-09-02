@@ -3,14 +3,11 @@
 import { Button } from "@mui/material";
 
 //colors
-const green_white = "#F3F6F9";
 const green_light = "#D3F8CC";
-const green_main = "#7EB09B";
 const green_dark = "#4E826B";
-const green_darkest = "#1D3417";
 const green_black = "#1C2025";
 
-export function DarkButton({children, href, m, mt, mb, ml, mr}) {
+export function LightButton({children, href, fullWidth, m, mt, mb, ml, mr}) {
   return (
     <Button
       variant="contained"
@@ -22,7 +19,7 @@ export function DarkButton({children, href, m, mt, mb, ml, mr}) {
         "&:hover": {
           color: `${green_light}`,
           bgcolor: `${green_dark}`,
-          transform: "scale(1.1)",
+          transform: "scale(1.05)",
         },
         m: m,
         mt: mt,
@@ -31,13 +28,14 @@ export function DarkButton({children, href, m, mt, mb, ml, mr}) {
         mr: mr
       }}
       href={href}
+      fullWidth={fullWidth}
     >
       {children}
     </Button>
   )
 }
 
-export function LightButton({children, href, m, mt, mb, ml, mr}) {
+export function DarkButton({children, href, fullWidth, m, mt, mb, ml, mr}) {
   return (
     <Button
       variant="contained"
@@ -49,7 +47,7 @@ export function LightButton({children, href, m, mt, mb, ml, mr}) {
         "&:hover": {
           color: `${green_black}`,
           bgcolor: `${green_light}`,
-          transform: "scale(1.1)",
+          transform: "scale(1.05)",
         },
         m: m,
         mt: mt,
@@ -58,6 +56,7 @@ export function LightButton({children, href, m, mt, mb, ml, mr}) {
         mr: mr
       }}
       href={href}
+      fullWidth={fullWidth}
     >
       {children}
     </Button>
