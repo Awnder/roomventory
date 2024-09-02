@@ -245,7 +245,6 @@ export default function Inventory() {
 
   // Function to leave the group
   const leaveGroup = async () => {
-
     const userDocRef = doc(collection(db, "users"), user.id);
 
     const groupDocRef = doc(collection(db, "groups"), groupName);
@@ -298,9 +297,8 @@ export default function Inventory() {
     setGroupName("");
   };
 
-
   /****************************************************** AI Suggestions ******************************************************/
-  
+
   //just for testing (change it to be dynamic later)
   const exampleInventory = "Bathroom";
 
@@ -384,6 +382,53 @@ export default function Inventory() {
     setInventoryName("");
   };
 
+  /****************************************************** Expense Tracking ******************************************************/
+
+  // Function to add an expense to the group
+  const addExpense = async (price) => {
+    /*If person bought it:
+	      Owe = price/#members - price
+      If not:
+	      Owe = price/#members
+   */
+
+    const examplePrice = 10;
+    const groupRef = doc(collection(db, "groups"), groupName);
+    const groupSnap = await getDoc(groupRef);
+    const members = groupSnap.data().members;
+    const newMembers = members.map((member) => {
+      return {
+        ...member,
+        owe:
+          owe +
+          (member.leader
+            ? examplePrice / members.length - examplePrice
+            : examplePrice / members.length),
+      };
+    });
+
+    await updateDoc(groupRef, {members: newMembers});
+
+    setGroupMembers(newMembers);
+  };
+
+  // Function to clear expenses for the group
+  const clearExpenses = async () => {
+    const groupRef = doc(collection(db, "groups"), groupName);
+    const groupSnap = await getDoc(groupRef);
+    const members = groupSnap.data().members;
+    const newMembers = members.map((member) => {
+      return {
+        ...member,
+        owe: 0,
+      };
+    });
+
+    await updateDoc(groupRef, {members: newMembers});
+
+    setGroupMembers(newMembers);
+  }
+
   /****************************************************** Item Functions ******************************************************/
 
   //function to add an item to the inventory
@@ -412,6 +457,8 @@ export default function Inventory() {
         quantity: quantity, //allow user to adjust quantity (default to 1)
         inventory: selectedInventory, // automatically selected based on the inventory selected
         unit: unit, // allow user to adjust unit (default to null)
+        price: 0, // allow user to adjust price (default to 0)
+        addedBy: userName, // automatically set to the user's full name
         Category: category, // allow user to adjust category (default to null)
         expiryDate: expiryDate, // allow  user to adjust expiry date (default to null)
         dateAdded: Date.now(), // default to time now
@@ -434,6 +481,8 @@ export default function Inventory() {
     setExpiryDate(null);
     setIsPerishable(false);
     setNotes("");
+
+    addExpense(newItem.price);
   };
 
   const deleteItem = async () => {
@@ -490,7 +539,7 @@ export default function Inventory() {
         name: itemName, // require user to give name
         quantityNeeded: 1, // allow user to adjust quantity (default to 1)
         unit: null, // allow user to adjust unit (default to null)
-        inventory: "Bathroom", // automatically selected based on the inventory selected
+        inventory: exampleInventory, // automatically selected based on the inventory selected
         priority: "Low", // allow user to adjust priority (default to Low)
         assignTo: [`${user.firstName} ${user.lastName}`], // require user to assign to a roommate
         status: "Needed", // automatically set to Needed
@@ -505,7 +554,6 @@ export default function Inventory() {
     }
     setItemName("");
   };
-
 
   //Modals open/close
   const handleOpenMemberModal = () => setOpenMemberModal(true);
