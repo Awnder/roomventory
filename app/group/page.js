@@ -203,7 +203,6 @@ export default function Inventory() {
 
       const newItem = {
         name: itemName, // require user to give name
-<<<<<<< HEAD
         quantity: quantity, //allow user to adjust quantity (default to 1)
         inventory: selectedInventory, // automatically selected based on the inventory selected
         unit: unit, // allow user to adjust unit (default to null)
@@ -212,17 +211,6 @@ export default function Inventory() {
         dateAdded: Date.now(), // default to time now
         lastUpdated: Date.now(), // default to date added
         isPerishable: isPerishable, // allow user to adjust (default to false)
-=======
-        quantity: 1, //allow user to adjust quantity (default to 1)
-        inventory: "Bathroom", // automatically selected based on the inventory selected
-        unit: null, // allow user to adjust unit (default to null)
-        Category: null, // allow user to adjust category (default to null)
-        addedBy: user.firstName + " " + user.lastName, // automatically set to user's full name
-        expiryDate: null, // allow  user to adjust expiry date (default to null)
-        dateAdded: new Date(), // default to time now
-        lastUpdated: new Date(), // default to date added
-        isPerishable: false, // allow user to adjust (default to false)
->>>>>>> 38d935c2a51d62e462a755074b3de1d6630078de
         minimumQuantity: 0, // allow user to specify (default to 0)
         notes: notes, // allow user to add notes (default to empty string)
       };
