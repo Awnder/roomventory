@@ -56,26 +56,6 @@ const green_light = "#D3F8CC";
 const green_dark = "#4E826B";
 const gray_dark = "#1C2025";
 
-function InventoryItem({ children, itemName, itemNumber }) {
-  return (
-    <Stack
-      direction="row"
-      justifyContent="space-between"
-      alignItems="center"
-      sx={{ border: `2px solid ${green_dark}` }}
-    >
-      <Stack direction="column">{children}</Stack>
-      <Typography>{itemName}</Typography>
-      <Typography>{itemNumber}</Typography>
-      <Box>
-        <RemoveIcon />
-        <AddIcon />
-        <DeleteOutlineIcon />
-      </Box>
-    </Stack>
-  );
-}
-
 export default function Inventory() {
   const [search, setSearch] = useState("");
   const { isLoaded, isSignedIn, user } = useUser();

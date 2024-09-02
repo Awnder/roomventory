@@ -27,6 +27,8 @@ import {
   where,
 } from "firebase/firestore";
 import { useState, useEffect, useCallback } from "react";
+import Image from "next/image"; 
+import banner from "../../public/banner.png";
 
 // colors
 const green_white = "#F3F6F9";
@@ -301,20 +303,46 @@ export default function Dashboard() {
       alignItems="center"
       minHeight="100vh"
     >
-      <Box width="80%" maxWidth="lg">
-        <Typography
-          variant="h3"
-          textAlign="center"
-          color={green_light}
-          bgcolor={green_dark}
-          borderRadius="20px"
-          py={2}
-          px={4}
-          mt={5}
-          boxShadow="0 0 5px black"
-        >
-          Welcome to your Dashboard
-        </Typography>
+      <Box 
+        display="flex"
+        justifyContent="center"
+        alignItems="center"
+        width="80%" 
+        height="200px"
+        maxWidth="lg" 
+        position="relative" 
+        overflow="hidden"
+        borderRadius="20px"
+        mt={5}
+      >
+        <Image
+          src={banner}
+          alt="Roomventory banner"
+          placeholder="blur"
+          fill
+          priority
+          style={{
+            objectFit: "cover",
+            objectPosition: "center",
+            filter: "blur(2px)",
+          }}
+        />
+        <Box
+            width="80%"
+            maxWidth="lg"
+            borderRadius="20px"
+            position="absolute"
+            p={3}
+            bgcolor="rgba(78, 130, 107, 0.7)" // rgba for green_dark, needed opacity scale
+          >
+            <Typography
+              textAlign="center"
+              color={green_white}
+              sx={{ typography: { xs: "h5", sm: "h4" } }}
+            >
+              Welcome *Name* to your Dashboard
+            </Typography>
+        </Box>
       </Box>
       <Box
           width="60%"
