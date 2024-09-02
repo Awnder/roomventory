@@ -881,104 +881,98 @@ export default function Inventory() {
           </Box>
         </Modal>
 
-        <Stack width="80%" direction="row" spacing={2}>
-          <Stack width="100%" direction="column" spacing={2}>
-            {/* Search Bar */}
-            <Box
-              width="100%"
-              maxWidth="md"
-              maxHeight="90px"
-              border="1px solid black"
-              borderRadius="20px"
-              p={2}
-              sx={{
-                background: `linear-gradient(to left, #fff, ${green_light})`,
-              }}
-            >
-              <TextField
-                fullWidth
-                label="Search"
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                InputProps={{
-                  endAdornment: (
-                    <InputAdornment>
-                      <SearchIcon />
-                    </InputAdornment>
-                  ),
-                }}
-              />
-            </Box>
-            <Stack
-              width="100%"
-              direction="row"
-              spacing={2}
-              justifyContent="center"
-            >
-              <Box onClick={(e) => {handleOpenInventoryModal();}}>
-                <DarkButton>Create New Inventory</DarkButton>
-              </Box>
-              <Box onClick={(e) => {handleOpenItemModal();}}>
-                <DarkButton>Add Item</DarkButton>
-              </Box>
-            </Stack>
-          </Stack>
-          {/* Roommate Banner and Add Container Button */}
-          <Stack
-            direction="row"
-            justifyContent="space-between"
-            alignItems="center"
-            width="40%"
-            maxWidth="lg"
-            bgcolor={green_dark}
-            borderRadius="20px"
-            py={3}
-            mb={2}
-          >
-            {/* invisible icon to balance out justifyContent space-between */}
-            <SettingsIcon
-              sx={{
-                ml: 2,
-                fontSize: { xs: 40, sm: 50 },
-                color: `${green_dark}`,
-              }}
-            />
-            <Box>
-              <Typography
-                flexGrow={1}
-                textAlign="center"
-                color={green_light}
-                px={2}
-                mb={2}
-                sx={{ typography: { xs: "h5", sm: "h4" } }}
+        {/* Roommate Banner and Search & Add Functionality */}
+        <Box width="80%" maxWidth="lg" my={3}>
+          <Grid container flexGrow={1} spacing={2}>
+            <Grid item xs={12} md={6}>
+              <Stack
+                direction="column"
+                justifyContent="space-between"
+                alignItems="center"
+                height="100%"
+                bgcolor={green_dark}
+                borderRadius="20px"
+                position="relative"
+                py={3}
               >
-                Roommates
-              </Typography>
-              <Stack direction="column" spacing={2}>
-                {groupMembers.map((member) => (
-                  <Typography textAlign="center" color="white">
-                    {member.name}
-                  </Typography>
-                ))}
+                <Typography
+                  variant="h4"
+                  textAlign="center"
+                  color={green_light}
+                  mb={2}
+                >
+                  Roommates
+                </Typography>
+                <Stack direction="column" spacing={2}>
+                  {groupMembers.map((member) => (
+                    <Typography textAlign="center" color="white">
+                      {member.name}
+                    </Typography>
+                  ))}
+                </Stack>
+                <SettingsIcon
+                  sx={{
+                    position: "absolute",
+                    top: 5,
+                    right: 5,
+                    fontSize: 40,
+                    color: `${green_light}`,
+                    transition: "200ms",
+                    "&:hover": {
+                      cursor: "pointer",
+                      transform: "rotate(180deg) scale(1.05)",
+                    },
+                  }}
+                  onClick={(e) => {
+                    handleOpenMemberModal();
+                  }}
+                />
               </Stack>
-            </Box>
-            <SettingsIcon
-              sx={{
-                mr: 2,
-                fontSize: { xs: 40, sm: 50 },
-                color: `${green_light}`,
-                transition: "200ms",
-                "&:hover": {
-                  cursor: "pointer",
-                  transform: "rotate(180deg) scale(1.05)",
-                },
-              }}
-              onClick={(e) => {
-                handleOpenMemberModal();
-              }}
-            />
-          </Stack>
-        </Stack>
+            </Grid>
+            <Grid item xs={12} md={6}>
+              <Box height="100%">
+                <Box
+                  maxWidth="md"
+                  maxHeight="90px"
+                  border="1px solid black"
+                  borderRadius="20px"
+                  p={2}
+                  mb={2}
+                  sx={{
+                    background: `linear-gradient(to left, #fff, ${green_light})`,
+                  }}
+                >
+                  <TextField
+                    fullWidth
+                    label="Search"
+                    value={search}
+                    onChange={(e) => setSearch(e.target.value)}
+                    InputProps={{
+                      endAdornment: (
+                        <InputAdornment>
+                          <SearchIcon />
+                        </InputAdornment>
+                      ),
+                    }}
+                  />
+                </Box>
+                <Stack
+                  width="100%"
+                  direction="row"
+                  spacing={2}
+                  justifyContent="center"
+                >
+                  <Box onClick={(e) => {handleOpenInventoryModal();}}>
+                    <DarkButton>Create New Inventory</DarkButton>
+                  </Box>
+                  <Box onClick={(e) => {handleOpenItemModal();}}>
+                    <DarkButton>Add Item</DarkButton>
+                  </Box>
+                </Stack>
+              </Box>
+            </Grid>
+          </Grid>
+        </Box>
       </Stack>
       {/* Inventory Area */}
       <Box
