@@ -54,43 +54,6 @@ export default function Dashboard() {
   const [addInventoryModal, setAddInventoryModal] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
 
-  /****************************************************** Use Effects ******************************************************/
-
-  // Function to fetch the user's groups from the database
-  useEffect(() => {
-    const getGroups = async () => {
-      if (!user) return;
-
-      const userRef = doc(collection(db, "users"), user.id);
-      const userSnap = await getDoc(userRef);
-
-      if (userSnap.exists()) {
-        const groupsCol = userSnap.data().groups || [];
-
-        const groupsRef = collection(db, "groups");
-        const q = query(groupsRef, where("name", "in", groupsCol));
-
-        const querySnapshot = await getDocs(q);
-
-        const groupObjects = querySnapshot.docs.map((doc) => doc.data());
-
-        setGroups(groupObjects);
-        setFilteredGroups(groupObjects);
-      } else {
-        console.log("User does not exist");
-      }
-    };
-
-    getGroups();
-  }, [user, createGroup]);
-
-  // Function to filter groups based on search term
-  useEffect(() => {
-    setFilteredGroups(groups.filter(group =>
-      group.name.toLowerCase().includes(searchTerm.toLowerCase())
-    ));
-  }, [searchTerm]);
-
 
   /****************************************************** Routing ******************************************************/
 
@@ -100,7 +63,7 @@ export default function Dashboard() {
 
   /****************************************************** Handling Groups ******************************************************/
 
-  //function to add a group (that includes the user that created it) to the database
+  //function to add a group (that includes the user that created it) to the database (1 READ, 1 WRITE)
   const createGroup = useCallback(async () => {
     if (!groupName) {
       alert("Please enter a group name");
@@ -120,6 +83,7 @@ export default function Dashboard() {
 
     try {
       // Check if user exists
+      //READ
       const userSnap = await getDoc(userDocRef);
 
       if (!userSnap.exists()) {
@@ -141,6 +105,7 @@ export default function Dashboard() {
       }
 
       // Create group if it does not exist
+      //READ
       const groupSnap = await getDoc(groupDocRef);
       if (!groupSnap.exists()) {
         batch.set(groupDocRef, newGroup);
@@ -162,9 +127,10 @@ export default function Dashboard() {
   }, [groupName, user]);
 
 
-  // Function to delete a group from the database
+  // Function to delete a group from the database (n READ, n WRITE)
   const deleteGroup = async (group, batch) => {
     const groupRef = doc(collection(db, "groups"), group);
+    //READ
     const groupSnap = await getDoc(groupRef);
 
     // Get inventories collection
@@ -174,6 +140,7 @@ export default function Dashboard() {
       group,
       "inventories"
     );
+    //READ
     const inventoriesSnap = await getDocs(inventoriesCollection);
 
     if (groupSnap.exists() && inventoriesSnap.size > 0) {
@@ -181,34 +148,10 @@ export default function Dashboard() {
       const inventoryPromises = inventoriesSnap.docs.map(async (inventory) => {
         const inventoryName = inventory.data().name;
         const inventoryRef = doc(inventoriesCollection, inventoryName);
+        //READ
         const inventorySnap = await getDoc(inventoryRef);
-
-        /*
-        const itemsCollection = collection(
-          db,
-          "groups",
-          group,
-          "inventories",
-          inventoryName,
-          "items"
-        );
-        const itemsSnap = await getDocs(itemsCollection);
-
-        if (inventorySnap.exists() && itemsSnap.size > 0) {
-          // Process items
-          const itemPromises = itemsSnap.docs.map(async (item) => {
-            const itemName = item.data().name;
-            const itemRef = doc(itemsCollection, itemName);
-
-            batch.delete(itemRef);
-            console.log("Item scheduled for deletion");
-          });
-
-          // Wait for all item deletions to be scheduled
-          await Promise.all(itemPromises);
-        }
-        */
-
+        
+        //DELETE
         batch.delete(inventoryRef);
       });
 
@@ -221,7 +164,7 @@ export default function Dashboard() {
   };
 
 
-  // Function to leave a group
+  // Function to leave a group (1 READ, 2 WRITE)
  const leaveGroup = async () => {
 
     const userDocRef = doc(collection(db, "users"), user.id);
@@ -232,6 +175,7 @@ export default function Dashboard() {
 
     //adjust user's groups
     try {
+      //READ
       const userSnap = await getDoc(userDocRef);
 
       if (userSnap.exists()) {
@@ -251,6 +195,7 @@ export default function Dashboard() {
 
     //adjust group's members
     try {
+      //READ
       const groupSnap = await getDoc(groupDocRef);
       if (groupSnap.exists()) {
         const groupData = groupSnap.data();
@@ -259,6 +204,7 @@ export default function Dashboard() {
         );
 
         if (newMembers.length === 0) {
+          //DELETE
           await deleteGroup(groupName, batch);
         } else {
           newMembers[0].leader = true;
@@ -276,6 +222,44 @@ export default function Dashboard() {
     setGroupName("");
   };
 
+  /****************************************************** Use Effects ******************************************************/
+
+  // Function to fetch the user's groups from the database (2 READS)
+  useEffect(() => {
+    const getGroups = async () => {
+      if (!user) return;
+
+      const userRef = doc(collection(db, "users"), user.id);
+      //READ
+      const userSnap = await getDoc(userRef);
+
+      if (userSnap.exists()) {
+        const groupsCol = userSnap.data().groups || [];
+
+        const groupsRef = collection(db, "groups");
+        const q = query(groupsRef, where("name", "in", groupsCol));
+
+        //READ
+        const querySnapshot = await getDocs(q);
+
+        const groupObjects = querySnapshot.docs.map((doc) => doc.data());
+
+        setGroups(groupObjects);
+        setFilteredGroups(groupObjects);
+      } else {
+        console.log("User does not exist");
+      }
+    };
+
+    getGroups();
+  }, [user, createGroup]);
+
+  // Function to filter groups based on search term
+  useEffect(() => {
+    setFilteredGroups(groups.filter(group =>
+      group.name.toLowerCase().includes(searchTerm.toLowerCase())
+    ));
+  }, [searchTerm]);
 
   return (
     <Box

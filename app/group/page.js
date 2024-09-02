@@ -102,7 +102,7 @@ export default function Inventory() {
 
   /****************************************************** Use Effects ******************************************************/
 
-  //fetching inventory data
+  //fetching inventory data (1 READ operation)
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -115,6 +115,7 @@ export default function Inventory() {
           "inventories"
         );
 
+        //READ
         const inventoriesSnap = await getDocs(inventoriesCol);
 
         const inventoriesList = [];
@@ -158,11 +159,12 @@ export default function Inventory() {
   }, [user, groupName]);
   */
 
-  // Fetching group data
+  // Fetching group data (1 READ operation)
   useEffect(() => {
     const getLeaderState = async () => {
       try {
         const groupRef = doc(db, "groups", groupName);
+        //READ
         const groupSnap = await getDoc(groupRef);
 
         if (groupSnap.exists()) {
@@ -208,12 +210,13 @@ export default function Inventory() {
     const data = await res.json();
   };
 
-  // Function to kick a member from the group (only leader can kick members)
+  // Function to kick a member from the group (only leader can kick members) (2 READ, 2 WRITE operations)
   const kickMember = async (member) => {
     if (!isLeader) {
       alert("You must be the leader of the group to kick members");
     }
     const groupRef = doc(collection(db, "groups"), groupName);
+    //READ
     const groupSnap = await getDoc(groupRef);
 
     if (groupSnap.exists()) {
@@ -222,12 +225,14 @@ export default function Inventory() {
         (groupMember) => groupMember.name !== member
       );
 
+      //WRITE
       await updateDoc(groupRef, {
         members: newMembers,
       });
       setGroupMembers(newMembers);
 
       const userRef = doc(collection(db, "users"), user.id);
+      //READ
       const userSnap = await getDoc(userRef);
 
       if (userSnap.exists()) {
@@ -236,6 +241,7 @@ export default function Inventory() {
           (group) => group !== groupName
         );
 
+        //WRITE
         await updateDoc(userRef, {
           groups: newGroups,
         });
@@ -243,7 +249,7 @@ export default function Inventory() {
     }
   };
 
-  // Function to leave the group
+  // Function to leave the group (1 READ, 1 WRITE, 1 DELETE operation)
   const leaveGroup = async () => {
     const userDocRef = doc(collection(db, "users"), user.id);
 
@@ -253,6 +259,7 @@ export default function Inventory() {
 
     //adjust user's groups
     try {
+      //READ
       const userSnap = await getDoc(userDocRef);
 
       if (userSnap.exists()) {
@@ -272,6 +279,7 @@ export default function Inventory() {
 
     //adjust group's members
     try {
+      //READ
       const groupSnap = await getDoc(groupDocRef);
       if (groupSnap.exists()) {
         const groupData = groupSnap.data();
@@ -280,6 +288,7 @@ export default function Inventory() {
         );
 
         if (newMembers.length === 0) {
+          //DELETE
           await deleteGroup(groupName, batch);
         } else {
           newMembers[0].leader = true;
@@ -323,7 +332,7 @@ export default function Inventory() {
 
   /****************************************************** Inventory Functions ******************************************************/
 
-  //function to add an inventory in a group to the database
+  //function to add an inventory in a group to the database (1 READ, WRITE operation)
   const createInventory = async () => {
     if (!inventoryName) {
       alert("Please enter an inventory name");
@@ -336,12 +345,14 @@ export default function Inventory() {
     const inventoryCollection = collection(groupRef, "inventories");
 
     const inventoryRef = doc(inventoryCollection, inventoryName);
+    //READ
     const inventorySnap = await getDoc(inventoryRef);
 
     if (inventorySnap.exists()) {
       alert("Inventory already exists");
       return;
     } else {
+      //WRITE
       await setDoc(inventoryRef, {
         name: inventoryName,
         items: [],
@@ -351,6 +362,7 @@ export default function Inventory() {
     setInventoryName("");
   };
 
+  //function to delete an inventory in a group from the database (1 READ, 1 DELETE operation)
   const deleteInventory = async () => {
     try {
       const groupRef = doc(collection(db, "groups"), groupName);
@@ -358,20 +370,11 @@ export default function Inventory() {
 
       const inventoryRef = doc(inventoryCollection, exampleInventory); //inventory should be dynamically selected
 
-      //const itemsCollectionRef = collection(inventoryRef, "items");
-
-      // Fetch all documents in the subcollection
-      //const itemsSnap = await getDocs(itemsCollectionRef);
-
-      // Delete each document in the subcollection
-      //const deletePromises = itemsSnap.docs.map((doc) => deleteDoc(doc.ref));
-      //await Promise.all(deletePromises);
-
-      //console.log("All documents in the subcollection deleted successfully!");
-
+      //READ
       const inventorySnap = await getDoc(inventoryRef);
 
       if (inventorySnap.exists()) {
+        //DELETE
         await deleteDoc(inventoryRef);
       } else {
         alert("Inventory does not exist");
@@ -384,7 +387,7 @@ export default function Inventory() {
 
   /****************************************************** Expense Tracking ******************************************************/
 
-  // Function to add an expense to the group
+  // Function to add an expense to the group (1 READ, 1 WRITE operation)
   const addExpense = async (price) => {
     /*If person bought it:
 	      Owe = price/#members - price
@@ -394,27 +397,30 @@ export default function Inventory() {
 
     const examplePrice = 10;
     const groupRef = doc(collection(db, "groups"), groupName);
+    //READ
     const groupSnap = await getDoc(groupRef);
     const members = groupSnap.data().members;
     const newMembers = members.map((member) => {
       return {
         ...member,
         owe:
-          owe +
+          member.owe +
           (member.leader
             ? examplePrice / members.length - examplePrice
             : examplePrice / members.length),
       };
     });
 
-    await updateDoc(groupRef, {members: newMembers});
+    //WRITE
+    await updateDoc(groupRef, { members: newMembers });
 
     setGroupMembers(newMembers);
   };
 
-  // Function to clear expenses for the group
+  // Function to clear expenses for the group (1 READ, 1 WRITE operation)
   const clearExpenses = async () => {
     const groupRef = doc(collection(db, "groups"), groupName);
+    //READ
     const groupSnap = await getDoc(groupRef);
     const members = groupSnap.data().members;
     const newMembers = members.map((member) => {
@@ -424,26 +430,23 @@ export default function Inventory() {
       };
     });
 
-    await updateDoc(groupRef, {members: newMembers});
+    //WRITE
+    await updateDoc(groupRef, { members: newMembers });
 
     setGroupMembers(newMembers);
-  }
+  };
 
   /****************************************************** Item Functions ******************************************************/
 
-  //function to add an item to the inventory
+  //function to add an item to the inventory (1 READ, 1 WRITE operation)
   const addItem = async () => {
     const groupRef = doc(collection(db, "groups"), groupName);
+
     const inventoryCollection = collection(groupRef, "inventories");
 
-    const inventoryRef = doc(inventoryCollection, selectedInventory); //inventory should be dynamically selected
+    const inventoryRef = doc(inventoryCollection, exampleInventory); //inventory should be dynamically selected
 
-    //const itemsCollection = collection(inventoryRef, "items");
-
-    //const itemRef = doc(itemsCollection, itemName);
-    // const itemSnap = await getDoc(itemRef);
-
-    //this can be adjusted later to add quantity to the item
+    //READ
     const inventorySnap = await getDoc(inventoryRef);
 
     if (!inventorySnap.exists()) {
@@ -469,9 +472,12 @@ export default function Inventory() {
       };
 
       const newItems = [...items, newItem];
+      //WRITE
       await updateDoc(inventoryRef, {
         items: newItems,
       });
+
+      addExpense(newItem.price);
     }
     setItemName("");
     setQuantity(1);
@@ -481,21 +487,16 @@ export default function Inventory() {
     setExpiryDate(null);
     setIsPerishable(false);
     setNotes("");
-
-    addExpense(newItem.price);
   };
 
+  //function to delete an item from the inventory (1 READ, 1 WRITE operation)
   const deleteItem = async () => {
     const groupRef = doc(collection(db, "groups"), groupName);
     const inventoryCollection = collection(groupRef, "inventories");
 
     const inventoryRef = doc(inventoryCollection, exampleInventory); //inventory should be dynamically selected
 
-    //const itemsCollection = collection(inventoryRef, "items");
-
-    //const itemRef = doc(itemsCollection, itemName);
-    //const itemSnap = await getDoc(itemRef);
-
+    //READ
     const inventorySnap = await getDoc(inventoryRef);
 
     if (!inventorySnap.exists()) {
@@ -505,6 +506,7 @@ export default function Inventory() {
       const items = inventorySnap.data().items;
 
       const newItems = items.filter((item) => item.name !== itemName);
+      //WRITE
       await updateDoc(inventoryRef, {
         neededItems: newItems,
       });
@@ -514,19 +516,14 @@ export default function Inventory() {
 
   /****************************************************** Needed Items Functions ******************************************************/
 
-  //function to add a needed item to the inventory
+  //function to add a needed item to the inventory (1 READ, 1 WRITE operation)
   const addNeededItem = async () => {
     const groupRef = doc(collection(db, "groups"), groupName);
     const inventoryCollection = collection(groupRef, "inventories");
 
     const inventoryRef = doc(inventoryCollection, exampleInventory); //inventory should be dynamically selected
 
-    //const itemsCollection = collection(inventoryRef, "items");
-
-    //const itemRef = doc(itemsCollection, itemName);
-    // const itemSnap = await getDoc(itemRef);
-
-    //this can be adjusted later to add quantity to the item
+    //READ
     const inventorySnap = await getDoc(inventoryRef);
 
     if (!inventorySnap.exists()) {
@@ -548,6 +545,7 @@ export default function Inventory() {
       };
 
       const newItems = [...items, newNeededItem];
+      //WRITE
       await updateDoc(inventoryRef, {
         neededItems: newItems,
       });
