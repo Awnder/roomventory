@@ -189,8 +189,8 @@ export default function Inventory() {
         unit: null, // allow user to adjust unit (default to null)
         Category: null, // allow user to adjust category (default to null)
         expiryDate: null, // allow  user to adjust expiry date (default to null)
-        dateAdded: Date.now(), // default to time now
-        lastUpdated: Date.now(), // default to date added
+        dateAdded: new Date(), // default to time now
+        lastUpdated: new Date(), // default to date added
         isPerishable: false, // allow user to adjust (default to false)
         minimumQuantity: 0, // allow user to specify (default to 0)
         notes: "", // allow user to add notes (default to empty string)
@@ -236,7 +236,7 @@ export default function Inventory() {
         priority: "Low", // allow user to adjust priority (default to Low)
         addedBy: user.firstName + " " + user.lastName, // automatically selected based on the user
         status: "Needed", // automatically set to Needed
-        dateAdded: Date.now(), // default to time now
+        dateAdded: new Date(), // default to time now
         notes: "", // allow user to add notes (default to empty string)
       };
 
@@ -390,6 +390,8 @@ export default function Inventory() {
 
   const handleOpenMemberModal = () => setOpenMemberModal(true);
   const handleCloseMemberModal = () => setOpenMemberModal(false);
+
+  // function to inc
 
   return (
     <Stack direction="column" alignItems="center" minHeight="100vh">
