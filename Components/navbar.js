@@ -32,12 +32,12 @@ export default function NavBar() {
           <SignedOut>
             <DarkButton href="/signin" mr={2}>Sign In</DarkButton>
             <LightButton href="/signup">Sign Up</LightButton>
-        </SignedOut>
-        <SignedIn>
-          <LightButton href="/dashboard" mr={3}>Dashboard</LightButton>
-          <UserButton />
-        </SignedIn>
-      </Toolbar>
+          </SignedOut>
+          <SignedIn>
+            <LightButton href="/dashboard" mr={3}>Dashboard</LightButton>
+            <UserButton />
+          </SignedIn>
+        </Toolbar>
       </Container>
     </AppBar>
   )
