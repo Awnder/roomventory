@@ -85,6 +85,7 @@ export default function Inventory() {
   const [expiryDate, setExpiryDate] = useState(null);
   const [isPerishable, setIsPerishable] = useState(false);
   const [notes, setNotes] = useState("");
+  const [price, setPrice] = useState(0.0);
 
   //Modals
   const [openMemberModal, setOpenMemberModal] = useState(false);
@@ -460,7 +461,7 @@ export default function Inventory() {
         quantity: quantity, //allow user to adjust quantity (default to 1)
         inventory: selectedInventory, // automatically selected based on the inventory selected
         unit: unit, // allow user to adjust unit (default to null)
-        price: 0, // allow user to adjust price (default to 0)
+        price: price, // allow user to adjust price (default to 0)
         addedBy: userName, // automatically set to the user's full name
         Category: category, // allow user to adjust category (default to null)
         expiryDate: expiryDate, // allow  user to adjust expiry date (default to null)
@@ -724,7 +725,7 @@ export default function Inventory() {
                 Add
               </Button>
             </Stack>
-            <Stack direction="row" spacing={2}>
+            <Stack direction="row" spacing={2} justifyContent="center" alignItems="center">
               <Box
                 width="75px"
                 bgcolor="white"
@@ -740,6 +741,7 @@ export default function Inventory() {
                   onChange={(e) => setQuantity(e.target.value)}
                 />
               </Box>
+              <Typography color="black" textAlign="center">X</Typography>
               <Box
                 width="75px"
                 bgcolor="white"
@@ -755,6 +757,26 @@ export default function Inventory() {
                   onChange={(e) => setUnit(e.target.value)}
                 />
               </Box>
+              <Stack direction="row" alignItems="center">
+                <Typography color="black" textAlign="center">Total Cost:</Typography>
+                <Typography color="black" textAlign="center" mx={1}>$</Typography>
+                <Box
+                  width="75px"
+                  bgcolor="white"
+                  border="1px solid black"
+                  borderRadius="5px"
+                >
+                  <TextField
+                    size="small"
+                    border="1px solid black"
+                    inputMode="decimal"
+                    value={price}
+                    onChange={(e) => setPrice(e.target.value)}
+                  />
+                </Box>
+              </Stack>
+            </Stack>
+            <Stack direction="row" spacing={2} alignItems="center">
               <Box
                 width="100px"
                 bgcolor="white"
@@ -765,7 +787,6 @@ export default function Inventory() {
                   size="small"
                   placeholder="Category"
                   border="1px solid black"
-                  inputMode="numeric"
                   value={category}
                   onChange={(e) => setCategory(e.target.value)}
                 />
@@ -809,21 +830,24 @@ export default function Inventory() {
                 />
               </Box>
             </Stack>
-            <Box bgcolor="white" color="black" width="150px">
-              <FormControl fullWidth>
-                <Select
-                  size="small"
-                  value={selectedInventory}
-                  label="Inventory"
-                  sx={{ color: "black" }}
-                  onChange={(e) => setSelectedInventory(e.target.value)}
-                >
-                  {inventories.map((inventory) => (
-                    <MenuItem value={inventory.name}>{inventory.name}</MenuItem>
-                  ))}
-                </Select>
-              </FormControl>
-            </Box>
+            <Stack direction="row" spacing={2} alignItems="center" justifyContent="center">
+              <Typography color="black">Select Inventory:</Typography>
+              <Box bgcolor="white" color="black" width="150px">
+                <FormControl fullWidth>
+                  <Select
+                    size="small"
+                    value={selectedInventory}
+                    label="Inventory"
+                    sx={{ color: "black" }}
+                    onChange={(e) => setSelectedInventory(e.target.value)}
+                  >
+                    {inventories.map((inventory) => (
+                      <MenuItem value={inventory.name}>{inventory.name}</MenuItem>
+                    ))}
+                  </Select>
+                </FormControl>
+              </Box>
+            </Stack>
             <Box bgcolor="white" width="60%">
               <TextField
                 multiline
@@ -960,7 +984,7 @@ export default function Inventory() {
               <Stack direction="column" spacing={2}>
                 {groupMembers.map((member) => (
                   <Typography textAlign="center" color="white">
-                    {member.name}
+                    {member}
                   </Typography>
                 ))}
               </Stack>
@@ -972,6 +996,7 @@ export default function Inventory() {
                 color: `${green_light}`,
                 transition: "200ms",
                 "&:hover": {
+                  cursor: "pointer",
                   transform: "rotate(180deg) scale(1.05)",
                 },
               }}
