@@ -368,7 +368,7 @@ export default function Dashboard() {
                   width="90%"
                   overflow="auto"
                   textAlign="center"
-                  sx={{ overflowWrap: "break-word" }}
+                  sx={{ overflowWrap: "break-word", '&:hover': { cursor: "pointer" }}}
                 >
                   {group.name}
                 </Typography>
