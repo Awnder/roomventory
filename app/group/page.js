@@ -514,6 +514,62 @@ export default function Inventory() {
     setItemName("");
   };
 
+   // This function moves the item from the neededItems array to the items array (1 WRITE operation)
+   const buyItem = async (purchasedItemName) => {
+    console.log("Buying item");
+
+    const groupRef = doc(collection(db, "groups"), groupName);
+    const inventoryCollection = collection(groupRef, "inventories");
+
+    const inventoryRef = doc(inventoryCollection, exampleInventory); //inventory should be dynamically selected
+
+    const localInventory = inventories.find(inventory => inventory.name === exampleInventory);
+  
+
+    if (!localInventory) {
+      alert("Inventory does not exist");
+      return;
+    } else {
+      let newItem = localInventory.neededItems.find(item => item.name === purchasedItemName);
+
+      if (!newItem) {
+        alert("Item not found in shopping list");
+        return;
+      }
+
+      const items = localInventory.items;
+
+      newItem = {   
+        name: newItem.name, // require user to give name
+        quantity: newItem.quantityNeeded, //allow user to adjust quantity (default to 1)
+        inventory: newItem.inventory, // automatically selected based on the inventory selected
+        unit: newItem.unit, // allow user to adjust unit (default to null)
+        price: 0, // allow user to input price (default to 0)
+        addedBy: userName, // automatically set to the user's full name
+        Category: category, // allow user to adjust category (default to null)
+        expiryDate: expiryDate, // allow  user to adjust expiry date (default to null)
+        dateAdded: new Date(), // default to time now
+        lastUpdated: new Date(), // default to date added
+        isPerishable: isPerishable, // allow user to adjust (default to false)
+        minimumQuantity: 0, // allow user to specify (default to 0)
+        notes: notes, // allow user to add notes (default to empty string)
+      }
+      const newItems = [...items, newItem];
+      const newNeededItems = neededItems.filter(
+        (neededItem) => neededItem.name !== purchasedItemName
+      );
+
+      addExpense(newItem.price);
+
+      //WRITE
+      await updateDoc(inventoryRef, {
+        items: newItems,
+        neededItems: newNeededItems,
+      });
+    }
+  };
+
+
   /****************************************************** Needed Items Functions ******************************************************/
 
   //function to add a needed item to the inventory (1 READ, 1 WRITE operation)
@@ -539,6 +595,7 @@ export default function Inventory() {
         inventory: exampleInventory, // automatically selected based on the inventory selected
         priority: "Low", // allow user to adjust priority (default to Low)
         assignTo: [`${user.firstName} ${user.lastName}`], // require user to assign to a roommate
+        linksOnline: [], // allow user to add links (default to empty array)
         status: "Needed", // automatically set to Needed
         dateAdded: new Date(), // default to time now
         notes: "", // allow user to add notes (default to empty string)
@@ -1016,7 +1073,7 @@ export default function Inventory() {
             </Typography>
             <Stack direction="column" spacing={1}>
               {groupMembers.map((member) => (
-                <Chip key={member} label={member} variant="filled" />
+                <Chip key={member.name} label={member.name} variant="filled" />
               ))}
             </Stack>
             <Stack direction="row" spacing={2}>
@@ -1196,7 +1253,7 @@ export default function Inventory() {
             value={itemName}
             onChange={(e) => setItemName(e.target.value)}
           />
-          <Button onClick={addItem}>Add</Button>
+          <Button onClick={() => {addItem}}>Test Function</Button>
         </Box>
       </Box>
     </Stack>

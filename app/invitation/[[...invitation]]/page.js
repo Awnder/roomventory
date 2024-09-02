@@ -55,6 +55,7 @@ export default function Page() {
   }, []);
 
   const fetchInvitation = async () => {
+    console.log('fetching invitation');
     const res = await fetch("/api/getInvitation", {
       method: "POST",
       headers: {
@@ -115,7 +116,7 @@ export default function Page() {
         const groupData = groupSnap.data();
         if (!groupData.members.includes(userName)) {
           batch.update(groupDocRef, {
-            members: [...groupData.members, { name: userName, leader: false }],
+            members: [...groupData.members, { name: userName, leader: false, owe: 0}],
           });
         } else {
           alert("User already exists in this group");

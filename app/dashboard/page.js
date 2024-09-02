@@ -65,6 +65,7 @@ export default function Dashboard() {
 
   //function to add a group (that includes the user that created it) to the database (1 READ, 1 WRITE)
   const createGroup = useCallback(async () => {
+    console.log("Creating group");
     if (!groupName) {
       alert("Please enter a group name");
       return;
@@ -74,7 +75,7 @@ export default function Dashboard() {
 
     const newGroup = {
       name: groupName,
-      members: [{name: `${userName}`, leader: true}],
+      members: [{name: `${userName}`, leader: true, owe: 0}],
     };
 
     const batch = writeBatch(db);
@@ -129,6 +130,7 @@ export default function Dashboard() {
 
   // Function to delete a group from the database (n READ, n WRITE)
   const deleteGroup = async (group, batch) => {
+    console.log("Deleting group");
     const groupRef = doc(collection(db, "groups"), group);
     //READ
     const groupSnap = await getDoc(groupRef);
@@ -166,6 +168,7 @@ export default function Dashboard() {
 
   // Function to leave a group (1 READ, 2 WRITE)
  const leaveGroup = async () => {
+  console.log("Leaving group");
 
     const userDocRef = doc(collection(db, "users"), user.id);
 
@@ -227,6 +230,7 @@ export default function Dashboard() {
   // Function to fetch the user's groups from the database (2 READS)
   useEffect(() => {
     const getGroups = async () => {
+      console.log("Fetching groups");
       if (!user) return;
 
       const userRef = doc(collection(db, "users"), user.id);
@@ -256,10 +260,11 @@ export default function Dashboard() {
 
   // Function to filter groups based on search term
   useEffect(() => {
+    console.log("Filtering groups");
     setFilteredGroups(groups.filter(group =>
       group.name.toLowerCase().includes(searchTerm.toLowerCase())
     ));
-  }, [searchTerm]);
+  }, [searchTerm, groups]);
 
   return (
     <Box
