@@ -191,6 +191,7 @@ export default function Inventory() {
         inventory: "Bathroom", // automatically selected based on the inventory selected
         unit: null, // allow user to adjust unit (default to null)
         Category: null, // allow user to adjust category (default to null)
+        addedBy: user.firstName + " " + user.lastName, // automatically set to user's full name
         expiryDate: null, // allow  user to adjust expiry date (default to null)
         dateAdded: new Date(), // default to time now
         lastUpdated: new Date(), // default to date added
@@ -237,7 +238,7 @@ export default function Inventory() {
         unit: null, // allow user to adjust unit (default to null)
         inventory: "Bathroom", // automatically selected based on the inventory selected
         priority: "Low", // allow user to adjust priority (default to Low)
-        addedBy: user.firstName + " " + user.lastName, // automatically selected based on the user
+        assignTo: [`${user.firstName} ${user.lastName}`], // require user to assign to a roommate
         status: "Needed", // automatically set to Needed
         dateAdded: new Date(), // default to time now
         notes: "", // allow user to add notes (default to empty string)
