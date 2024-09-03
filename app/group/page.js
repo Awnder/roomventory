@@ -1188,7 +1188,7 @@ export default function Inventory() {
             </Typography>
             <Stack direction="column" spacing={1}>
               {groupMembers.map((member) => (
-                <Chip key={member.name} label={member.name} variant="filled" />
+                <Chip key={member} label={member} variant="filled" />
               ))}
             </Stack>
             <Stack direction="row" spacing={2}>
