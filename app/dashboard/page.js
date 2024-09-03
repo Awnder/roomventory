@@ -312,7 +312,7 @@ export default function Dashboard() {
                 color={green_white}
                 sx={{ typography: { xs: "h5", sm: "h4" } }}
               >
-                Welcome {user.firstName} to Dashboard
+                Welcome, {user.firstName}, to Your Roomventory
               </Typography>
             ) : null}
         </Box>

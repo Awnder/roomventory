@@ -736,6 +736,7 @@ export default function Inventory() {
             </Typography>
             <Box bgcolor="white" border="1px solid black" borderRadius="5px">
               <TextField
+                size="small"
                 placeholder="Ex. Bathroom, Kitchen"
                 border="1px solid black"
                 value={inventoryName}
@@ -789,6 +790,7 @@ export default function Inventory() {
               Add New Item
             </Typography>
             <TextField
+            size="small"
               placeholder="Name"
               fullWidth
               value={itemName}
@@ -803,6 +805,7 @@ export default function Inventory() {
               width="80%"
             >
               <TextField
+                size="small"
                 placeholder="Quantity"
                 border="1px solid black"
                 inputMode="numeric"
@@ -814,6 +817,7 @@ export default function Inventory() {
                 X
               </Typography>
               <TextField
+                size="small"
                 placeholder="Unit"
                 border="1px solid black"
                 inputMode="numeric"
@@ -822,11 +826,12 @@ export default function Inventory() {
                 sx={{ bgcolor: "white", width: "50%" }}
               />
             </Stack>
-            <Stack direction="row" alignItems="center">
-              <Typography color="black" textAlign="center" mr={1}>
+            <Stack direction="row" justifyContent="center" alignItems="center" width="80%">
+              <Typography color="black" textAlign="center" mr={1} width="20%">
                 Total Cost:
               </Typography>
               <TextField
+                size="small"
                 border="1px solid black"
                 inputMode="decimal"
                 value={price}
@@ -836,7 +841,7 @@ export default function Inventory() {
                     <InputAdornment sx={{ mr: 1 }}>$</InputAdornment>
                   ),
                 }}
-                sx={{ bgcolor: "white" }}
+                sx={{ bgcolor: "white", width: "80%" }}
               />
             </Stack>
             <Stack direction="row" spacing={2} alignItems="center">
