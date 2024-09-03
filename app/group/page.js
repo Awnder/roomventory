@@ -29,6 +29,7 @@ import ArrowDropDownIcon from "@mui/icons-material/ArrowDropDown";
 import AddIcon from "@mui/icons-material/Add";
 import RemoveIcon from "@mui/icons-material/Remove";
 import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
+import CloseIcon from '@mui/icons-material/Close';
 import { DarkButton, LightButton } from "../../Components/styledbuttons";
 import { Category, Opacity, Search } from "@mui/icons-material";
 import { useRouter } from "next/navigation";
@@ -661,7 +662,8 @@ export default function Inventory() {
             position="absolute"
             top="50%"
             left="50%"
-            width={500}
+            width="80%"
+            maxWidth="sm"
             bgcolor={green_light}
             border="2px solid #000"
             p={2}
@@ -674,114 +676,118 @@ export default function Inventory() {
               transform: "translate(-50%,-50%)",
             }}
           >
-            <Typography variant="h5" textAlign="center">
+            <CloseIcon 
+              sx={{
+                position: "absolute",
+                top: 5,
+                left: 5,
+                fontSize: 40,
+                color: `${green_dark}`,
+                transition: "200ms",
+                "&:hover": {
+                  cursor: "pointer",
+                  transform: "rotate(180deg) scale(1.05)"
+                }
+              }}
+              onClick={(e) => {handleCloseInventoryModal(false);}}
+            />
+            <Typography variant="h5" textAlign="center" width="80%">
               Create New Inventory
             </Typography>
-            <Stack direction="row" spacing={2}>
-              <Box bgcolor="white" border="1px solid black" borderRadius="5px">
-                <TextField
-                  placeholder="Ex. Bathroom, Kitchen"
-                  border="1px solid black"
-                  value={inventoryName}
-                  onChange={(e) => setInventoryName(e.target.value)}
-                />
-              </Box>
-              <Box onClick={createInventory}>
-                <DarkButton>Create</DarkButton>
-              </Box>
-            </Stack>
-            <Box onClick={() => {handleCloseInventoryModal();}}>
-              <DarkButton>Close</DarkButton>
+            <Box bgcolor="white" border="1px solid black" borderRadius="5px">
+              <TextField
+                placeholder="Ex. Bathroom, Kitchen"
+                border="1px solid black"
+                value={inventoryName}
+                onChange={(e) => setInventoryName(e.target.value)}
+              />
+            </Box>
+            <Box onClick={createInventory}>
+              <DarkButton>Create</DarkButton>
             </Box>
           </Box>
         </Modal>
 
         {/* Modal for adding new items */}
         <Modal open={openAddItemModal} onOpen={handleOpenItemModal}>
-          <Box
+          <Stack
             position="absolute"
             top="50%"
             left="50%"
-            width="xs"
-            mx={2}
+            width="80%"
+            maxWidth="sm"
             bgcolor={green_light}
             border="2px solid #000"
+            borderRadius="20px"
             p={2}
-            display="flex"
-            flexDirection="column"
+            gap={2}
+            direction="column"
             justifyContent="center"
             alignItems="center"
-            gap={3}
             sx={{
               transform: "translate(-50%,-50%)",
             }}
           >
+            <CloseIcon 
+              sx={{
+                position: "absolute",
+                top: 5,
+                left: 5,
+                fontSize: 40,
+                color: `${green_dark}`,
+                transition: "200ms",
+                "&:hover": {
+                  cursor: "pointer",
+                  transform: "rotate(180deg) scale(1.05)"
+                }
+              }}
+              onClick={(e) => {handleCloseItemModal();}}
+            />
             <Typography variant="h5" textAlign="center">
-              Add Item
+              Add New Item
             </Typography>
-            <Stack direction="row" spacing={2}>
-              <Box bgcolor="white" border="1px solid black" borderRadius="5px">
-                <TextField
-                  placeholder="Item Name"
-                  border="1px solid black"
-                  value={itemName}
-                  onChange={(e) => setItemName(e.target.value)}
-                />
-              </Box>
-              <Box onClick={addItem} display="flex" justifyContent="center">
-                <DarkButton>Add</DarkButton>
-              </Box>
-            </Stack>
-            <Stack direction="row" spacing={2} justifyContent="center" alignItems="center">
-              <Box
-                width="75px"
-                bgcolor="white"
+            <TextField
+              placeholder="Name"
+              fullWidth
+              value={itemName}
+              onChange={(e) => setItemName(e.target.value)}
+              sx={{ bgcolor: "white", width: "80%" }}
+            />
+            <Stack direction="row" spacing={2} justifyContent="center" alignItems="center" width="80%">
+              <TextField
+                placeholder="Quantity"
                 border="1px solid black"
-                borderRadius="5px"
-              >
-                <TextField
-                  size="small"
-                  placeholder="Qty."
-                  border="1px solid black"
-                  inputMode="numeric"
-                  value={quantity}
-                  onChange={(e) => setQuantity(e.target.value)}
-                />
-              </Box>
+                inputMode="numeric"
+                value={quantity}
+                onChange={(e) => setQuantity(e.target.value)}
+                sx={{ bgcolor: "white", width: "50%" }}
+              />
               <Typography color="black" textAlign="center">X</Typography>
-              <Box
-                width="75px"
-                bgcolor="white"
+              <TextField
+                placeholder="Unit"
                 border="1px solid black"
-                borderRadius="5px"
-              >
-                <TextField
-                  size="small"
-                  placeholder="Unit"
-                  border="1px solid black"
-                  inputMode="numeric"
-                  value={unit}
-                  onChange={(e) => setUnit(e.target.value)}
-                />
-              </Box>
-              <Stack direction="row" alignItems="center">
-                <Typography color="black" textAlign="center">Total Cost:</Typography>
-                <Typography color="black" textAlign="center" mx={1}>$</Typography>
-                <Box
-                  width="75px"
-                  bgcolor="white"
-                  border="1px solid black"
-                  borderRadius="5px"
-                >
-                  <TextField
-                    size="small"
-                    border="1px solid black"
-                    inputMode="decimal"
-                    value={price}
-                    onChange={(e) => setPrice(e.target.value)}
-                  />
-                </Box>
-              </Stack>
+                inputMode="numeric"
+                value={unit}
+                onChange={(e) => setUnit(e.target.value)}
+                sx={{ bgcolor: "white", width: "50%" }}
+              />            
+            </Stack>
+            <Stack direction="row" alignItems="center">
+              <Typography color="black" textAlign="center" mr={1}>Total Cost:</Typography>
+              <TextField
+                border="1px solid black"
+                inputMode="decimal"
+                value={price}
+                onChange={(e) => setPrice(e.target.value)}
+                InputProps={{
+                  startAdornment: (
+                    <InputAdornment sx={{ mr: 1 }}>
+                      $
+                    </InputAdornment>
+                  ),
+                }}
+                sx={{ bgcolor: "white" }}
+              />
             </Stack>
             <Stack direction="row" spacing={2} alignItems="center">
               <Box
@@ -865,10 +871,10 @@ export default function Inventory() {
               />
             </Box>
 
-            <Box onClick={() => {handleCloseItemModal();}}>
-              <DarkButton>Close</DarkButton>
+            <Box onClick={addItem} display="flex" justifyContent="center">
+              <DarkButton>Add</DarkButton>
             </Box>
-          </Box>
+          </Stack>
         </Modal>
 
         {/* Modal for adding needed items */}
