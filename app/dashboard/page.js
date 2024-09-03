@@ -306,13 +306,15 @@ export default function Dashboard() {
             p={3}
             bgcolor="rgba(78, 130, 107, 0.7)" // rgba for green_dark, needed opacity scale
           >
-            <Typography
-              textAlign="center"
-              color={green_white}
-              sx={{ typography: { xs: "h5", sm: "h4" } }}
-            >
-              Welcome *Name* to your Dashboard
-            </Typography>
+            {user ? (
+              <Typography
+                textAlign="center"
+                color={green_white}
+                sx={{ typography: { xs: "h5", sm: "h4" } }}
+              >
+                Welcome {user.firstName} to Dashboard
+              </Typography>
+            ) : null}
         </Box>
       </Box>
       <Box
