@@ -320,6 +320,7 @@ export default function Inventory() {
 
   //function to delete an inventory in a group from the database (1 READ, 1 DELETE operation)
   const deleteInventory = useCallback(async (inventoryName) => {
+    console.log(inventoryName)
     console.log("deleting inventory");
     try {
       const groupRef = doc(collection(db, "groups"), groupName);
@@ -1277,14 +1278,14 @@ export default function Inventory() {
       </Modal>
 
       {/* Inventory Area */}
-      <Box width="80%" maxWidth="xl" flexGrow={1}>
+      <Box width="80%" maxWidth="lg" flexGrow={1}>
         <Grid
           container
           spacing={2}
           mb={8}
         >
           {filteredInventories.map((inventory) => (
-            <Grid item key={inventory.name} xs={12} sm={12} md={12} lg={6} xl={6}>
+            <Grid item key={inventory.name} xs={12} sm={6} md={4}>
               <Box
                 position="relative"
                 height="100%"
@@ -1353,8 +1354,6 @@ export default function Inventory() {
           position="absolute"
           top="50%"
           left="50%"
-          width="50%"
-          maxWidth="sm"
           bgcolor={green_light}
           border="2px solid #000"
           borderRadius="20px"
@@ -1366,6 +1365,8 @@ export default function Inventory() {
           gap={3}
           sx={{
             transform: "translate(-50%,-50%)",
+            width: {xs: "80%", sm: "60%"},
+            maxWidth: "md"
           }}
         >
           <CloseIcon
@@ -1385,8 +1386,8 @@ export default function Inventory() {
               handleCloseDeleteInventoryModal(false);
             }}
           />
-          <Typography variant="h4">Inventory Deletion</Typography>
-          <Typography>Are you sure you want to delete {inventoryNameForDeletion} and all its contents?</Typography>
+          <Typography variant="h4" width="80%" textAlign="center">Inventory Deletion</Typography>
+          <Typography width="80%" textAlign="center">Are you sure you want to delete {inventoryNameForDeletion} and all its contents?</Typography>
           <Box onClick={() => handleCloseDeleteInventoryModal(inventoryNameForDeletion)}>
             <DarkButton>Delete</DarkButton>
           </Box>
