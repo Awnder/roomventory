@@ -87,11 +87,14 @@ export default function Inventory() {
   const [isPerishable, setIsPerishable] = useState(false);
   const [notes, setNotes] = useState("");
   const [price, setPrice] = useState(0.0);
+  const [priority, setPriority] = useState(null);
+  const [assignedRoommate, setAssignedRoommate] = useState("");
 
   //Modals
   const [openMemberModal, setOpenMemberModal] = useState(false);
   const [openNewInventoryModal, setOpenNewInventoryModal] = useState(false);
   const [openAddItemModal, setOpenAddItemModal] = useState(false);
+  const [openNeededItemModal, setOpenNeededItemModal] = useState(false);
 
   // Get group name from URL
   const searchParams = useSearchParams();
@@ -592,15 +595,15 @@ export default function Inventory() {
 
       const newNeededItem = {
         name: itemName, // require user to give name
-        quantityNeeded: 1, // allow user to adjust quantity (default to 1)
-        unit: null, // allow user to adjust unit (default to null)
-        inventory: exampleInventory, // automatically selected based on the inventory selected
-        priority: "Low", // allow user to adjust priority (default to Low)
-        assignTo: [`${user.firstName} ${user.lastName}`], // require user to assign to a roommate
+        quantityNeeded: quantity, // allow user to adjust quantity (default to 1)
+        unit: unit, // allow user to adjust unit (default to null)
+        inventory: selectedInventory, // automatically selected based on the inventory selected
+        priority: priority, // allow user to adjust priority (default to Low)
+        assignTo: assignedRoommate, // require user to assign to a roommate
         linksOnline: [], // allow user to add links (default to empty array)
         status: "Needed", // automatically set to Needed
         dateAdded: new Date(), // default to time now
-        notes: "", // allow user to add notes (default to empty string)
+        notes: notes, // allow user to add notes (default to empty string)
       };
 
       const newItems = [...items, newNeededItem];
@@ -619,6 +622,8 @@ export default function Inventory() {
   const handleCloseInventoryModal = () => setOpenNewInventoryModal(false);
   const handleOpenItemModal = () => setOpenAddItemModal(true);
   const handleCloseItemModal = () => setOpenAddItemModal(false);
+  const handleOpenNeededItemModal = () => setOpenNeededItemModal(true);
+  const handleCloseNeededItemModal = () => setOpenNeededItemModal(false);
 
   return (
     <Stack direction="column" alignItems="center" minHeight="100vh">
@@ -881,6 +886,178 @@ export default function Inventory() {
           </Box>
         </Modal>
 
+        {/* Modal for adding needed items */}
+        <Modal open={openNeededItemModal} onOpen={handleOpenNeededItemModal}>
+          <Box
+            position="absolute"
+            top="50%"
+            left="50%"
+            width={500}
+            bgcolor={green_light}
+            border="2px solid #000"
+            p={2}
+            display="flex"
+            flexDirection="column"
+            justifyContent="center"
+            alignItems="center"
+            gap={3}
+            sx={{
+              transform: "translate(-50%,-50%)",
+            }}
+          >
+            <Typography variant="h5" textAlign="center">
+              Add Needed Item
+            </Typography>
+            <Stack direction="row" spacing={2}>
+              <Box bgcolor="white" border="1px solid black" borderRadius="5px">
+                <TextField
+                  placeholder="Item Name"
+                  border="1px solid black"
+                  value={itemName}
+                  onChange={(e) => setItemName(e.target.value)}
+                />
+              </Box>
+              <Box onClick={addNeededItem} display="flex" justifyContent="center">
+                <DarkButton>Add</DarkButton>
+              </Box>
+            </Stack>
+            <Stack direction="row" spacing={2} justifyContent="center" alignItems="center">
+              <Typography color="black" textAlign="center">Quantity Needed:</Typography>
+              <Box
+                width="75px"
+                bgcolor="white"
+                border="1px solid black"
+                borderRadius="5px"
+              >
+                <TextField
+                  size="small"
+                  placeholder="Qty."
+                  border="1px solid black"
+                  inputMode="numeric"
+                  value={quantity}
+                  onChange={(e) => setQuantity(e.target.value)}
+                />
+              </Box>
+              <Typography color="black" textAlign="center">X</Typography>
+              <Box
+                width="75px"
+                bgcolor="white"
+                border="1px solid black"
+                borderRadius="5px"
+              >
+                <TextField
+                  size="small"
+                  placeholder="Unit"
+                  border="1px solid black"
+                  inputMode="numeric"
+                  value={unit}
+                  onChange={(e) => setUnit(e.target.value)}
+                />
+              </Box>
+            </Stack>
+            <Stack direction="row" spacing={2} justifyContent="center" alignItems="center">
+              <Stack direction="row" alignItems="center">
+                <Typography color="black" textAlign="center">Price:</Typography>
+                <Typography color="black" textAlign="center" mx={1}>$</Typography>
+                <Box
+                  width="75px"
+                  bgcolor="white"
+                  border="1px solid black"
+                  borderRadius="5px"
+                >
+                  <TextField
+                    size="small"
+                    border="1px solid black"
+                    inputMode="decimal"
+                    value={price}
+                    onChange={(e) => setPrice(e.target.value)}
+                  />
+                </Box>
+              </Stack>
+              <Stack direction="row" alignItems="center">
+                <Typography color="black" textAlign="center" mx={1}>Priority:</Typography>
+                <Box
+                  width="100px"
+                  bgcolor="white"
+                  border="1px solid black"
+                  borderRadius="5px"
+                >
+                  <TextField
+                    size="small"
+                    border="1px solid black"
+                    placeholder="Ex. Low"
+                    value={priority}
+                    onChange={(e) => setPriority(e.target.value)}
+                  />
+                </Box>
+              </Stack>
+            </Stack>
+            <Stack direction="row" spacing={2} alignItems="center" justifyContent="center">
+              <Typography color="black">Select Inventory:</Typography>
+              <Box bgcolor="white" color="black" width="150px">
+                <FormControl fullWidth>
+                  <Select
+                    size="small"
+                    value={selectedInventory}
+                    label="Inventory"
+                    sx={{ color: "black" }}
+                    onChange={(e) => setSelectedInventory(e.target.value)}
+                  >
+                    {inventories.map((inventory) => (
+                      <MenuItem value={inventory.name}>{inventory.name}</MenuItem>
+                    ))}
+                  </Select>
+                </FormControl>
+              </Box>
+              <Box
+                width="100px"
+                bgcolor="white"
+                border="1px solid black"
+                borderRadius="5px"
+              >
+                <TextField
+                  size="small"
+                  placeholder="Category"
+                  border="1px solid black"
+                  value={category}
+                  onChange={(e) => setCategory(e.target.value)}
+                />
+              </Box>
+            </Stack>
+            <Stack direction="row" spacing={2} alignItems="center" justifyContent="center">
+              <Typography color="black">Assign To:</Typography>
+              <Box bgcolor="white" color="black" width="200px">
+                <FormControl fullWidth>
+                  <Select
+                    size="small"
+                    value={assignedRoommate}
+                    label="Select Roommate"
+                    sx={{ color: "black" }}
+                    onChange={(e) => setAssignedRoommate(e.target.value)}
+                  >
+                    {groupMembers.map((member) => (
+                      <MenuItem value={member}>{member}</MenuItem>
+                    ))}
+                  </Select>
+                </FormControl>
+              </Box>
+            </Stack>
+            <Box bgcolor="white" width="60%">
+              <TextField
+                multiline
+                fullWidth
+                placeholder="Add notes"
+                value={notes}
+                onChange={(e) => setNotes(e.target.value)}
+              />
+            </Box>
+
+            <Box onClick={() => {handleCloseNeededItemModal();}}>
+              <DarkButton>Close</DarkButton>
+            </Box>
+          </Box>
+        </Modal>
+
         {/* Roommate Banner and Search & Add Functionality */}
         <Box width="80%" maxWidth="lg" my={3}>
           <Grid container flexGrow={1} spacing={2}>
@@ -906,7 +1083,7 @@ export default function Inventory() {
                 <Stack direction="column" spacing={2}>
                   {groupMembers.map((member) => (
                     <Typography textAlign="center" color="white">
-                      {member.name}
+                      {member}
                     </Typography>
                   ))}
                 </Stack>
@@ -963,10 +1140,13 @@ export default function Inventory() {
                   justifyContent="center"
                 >
                   <Box onClick={(e) => {handleOpenInventoryModal();}}>
-                    <DarkButton>Create New Inventory</DarkButton>
+                    <DarkButton>Create Inventory</DarkButton>
                   </Box>
                   <Box onClick={(e) => {handleOpenItemModal();}}>
                     <DarkButton>Add Item</DarkButton>
+                  </Box>
+                  <Box onClick={(e) => {handleOpenNeededItemModal();}}>
+                    <DarkButton>Add Needed Item</DarkButton>
                   </Box>
                 </Stack>
               </Box>
