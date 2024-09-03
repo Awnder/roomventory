@@ -106,6 +106,9 @@ export default function Inventory() {
   const handleOpenNeededItemModal = () => setOpenNeededItemModal(true);
   const handleCloseNeededItemModal = () => setOpenNeededItemModal(false);
 
+  //Filtered objects
+  const [filteredInventories, setFilteredInventories] = useState([]);
+
   // Get group name from URL
   const searchParams = useSearchParams();
   const groupName = searchParams.get("id");
@@ -634,6 +637,14 @@ export default function Inventory() {
     fetchGroups();
     console.log("groupMembers", groupMembers);
   }, [user, groupName]);
+
+  // Filtering inventories based on search term
+  useEffect(() => {
+    console.log("Filtering groups");
+    setFilteredInventories(inventories.filter(inventory =>
+      inventory.name.toLowerCase().includes(search.toLowerCase())
+    ));
+  }, [search, inventories]);
 
   return (
     <Stack direction="column" alignItems="center" minHeight="100vh">
@@ -1318,7 +1329,7 @@ export default function Inventory() {
           justifyContent={"center"}
           alignItems="center"
         >
-          {inventories.map((inventory, index) => (
+          {filteredInventories.map((inventory, index) => (
             <Grid item id={index} xs={12} sm={12} md={12} lg={6} xl={6}>
               <Accordion>
                 <AccordionSummary
