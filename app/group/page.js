@@ -102,6 +102,8 @@ export default function Inventory() {
   const handleCloseInventoryModal = () => setOpenNewInventoryModal(false);
   const handleOpenItemModal = () => setOpenAddItemModal(true);
   const handleCloseItemModal = () => setOpenAddItemModal(false);
+  const handleOpenNeededItemModal = () => setOpenNeededItemModal(true);
+  const handleCloseNeededItemModal = () => setOpenNeededItemModal(false);
 
   // Get group name from URL
   const searchParams = useSearchParams();
@@ -606,16 +608,6 @@ export default function Inventory() {
     }
     setItemName("");
   };
-
-  //Modals open/close
-  const handleOpenMemberModal = () => setOpenMemberModal(true);
-  const handleCloseMemberModal = () => setOpenMemberModal(false);
-  const handleOpenInventoryModal = () => setOpenNewInventoryModal(true);
-  const handleCloseInventoryModal = () => setOpenNewInventoryModal(false);
-  const handleOpenItemModal = () => setOpenAddItemModal(true);
-  const handleCloseItemModal = () => setOpenAddItemModal(false);
-  const handleOpenNeededItemModal = () => setOpenNeededItemModal(true);
-  const handleCloseNeededItemModal = () => setOpenNeededItemModal(false);
 
   return (
     <Stack direction="column" alignItems="center" minHeight="100vh">
