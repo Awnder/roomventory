@@ -915,7 +915,7 @@ export default function Inventory() {
                     onChange={(e) => setSelectedInventory(e.target.value)}
                   >
                     {inventories.map((inventory) => (
-                      <MenuItem value={inventory.name}>
+                      <MenuItem key={inventory.name} value={inventory.name}>
                         {inventory.name}
                       </MenuItem>
                     ))}
@@ -1103,7 +1103,7 @@ export default function Inventory() {
                     onChange={(e) => setSelectedInventory(e.target.value)}
                   >
                     {inventories.map((inventory) => (
-                      <MenuItem value={inventory.name}>
+                      <MenuItem key={inventory.name} value={inventory.name}>
                         {inventory.name}
                       </MenuItem>
                     ))}
@@ -1142,7 +1142,7 @@ export default function Inventory() {
                     onChange={(e) => setAssignedRoommate(e.target.value)}
                   >
                     {groupMembers.map((member) => (
-                      <MenuItem value={member.name}>{member.name}</MenuItem>
+                      <MenuItem key={member.name} value={member.name}>{member.name}</MenuItem>
                     ))}
                   </Select>
                 </FormControl>
@@ -1185,7 +1185,7 @@ export default function Inventory() {
                 </Typography>
                 <Stack direction="column" spacing={2}>
                   {groupMembers.map((member) => (
-                    <Typography textAlign="center" color="white">
+                    <Typography key={member.name} textAlign="center" color="white">
                       {member.name}
                     </Typography>
                   ))}
@@ -1334,8 +1334,8 @@ export default function Inventory() {
           justifyContent={"center"}
           alignItems="center"
         >
-          {filteredInventories.map((inventory, index) => (
-            <Grid item id={index} xs={12} sm={12} md={12} lg={6} xl={6}>
+          {filteredInventories.map((inventory) => (
+            <Grid item key={inventory.name} xs={12} sm={12} md={12} lg={6} xl={6}>
               <Accordion>
                 <AccordionSummary
                   expandIcon={<ArrowDropDownIcon />}
