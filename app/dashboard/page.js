@@ -343,7 +343,7 @@ export default function Dashboard() {
       <Box width="80%" maxWidth="lg" my={5}>
         <Grid container flexGrow={1} spacing={2}>
           {filteredGroups.map((group) => (
-            <Grid item id={group.key} xs={12} sm={6} md={4}>
+            <Grid item key={group.name} xs={12} sm={6} md={4}>
               <Box
                 height="100%"
                 display="flex"
