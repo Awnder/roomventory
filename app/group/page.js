@@ -6,19 +6,18 @@ import {
   Typography,
   Modal,
   Stack,
-  Button,
   TextField,
   InputAdornment,
   Accordion,
   AccordionDetails,
   AccordionSummary,
   Chip,
-  Tooltip,
   FormControl,
   FormControlLabel,
   FormLabel,
   RadioGroup,
   Radio,
+  Switch,
   Select,
   MenuItem,
 } from "@mui/material";
@@ -431,6 +430,7 @@ export default function Inventory() {
     setUnit(null);
     setCategory(null);
     setExpiryDate(null);
+    
     setIsPerishable(false);
     setNotes("");
     handleCloseItemModal(false);
@@ -827,7 +827,7 @@ export default function Inventory() {
               />
             </Stack>
             <Stack direction="row" justifyContent="center" alignItems="center" width="80%">
-              <Typography color="black" textAlign="center" mr={1} width="20%">
+              <Typography color="black" mr={1} width="20%">
                 Total Cost:
               </Typography>
               <TextField
@@ -844,68 +844,46 @@ export default function Inventory() {
                 sx={{ bgcolor: "white", width: "80%" }}
               />
             </Stack>
-            <Stack direction="row" spacing={2} alignItems="center">
-              <Box
-                width="100px"
-                bgcolor="white"
-                border="1px solid black"
-                borderRadius="5px"
-              >
-                <TextField
-                  size="small"
-                  placeholder="Category"
-                  border="1px solid black"
-                  value={category}
-                  onChange={(e) => setCategory(e.target.value)}
-                />
-              </Box>
-            </Stack>
-            <Stack direction="row" spacing={2} alignItems="center">
-              <FormControl>
-                <FormLabel textAlign="center">Perishable Item?</FormLabel>
+            <Stack direction="row" spacing={2} alignItems="center" width="80%">
+              <FormControl sx={{ display: "flex", flexDirection: "row", justifyContent: "center", alignItems: "center" }}>
+                <FormLabel sx={{ textAlign: "center" }}>Perishable Item?</FormLabel>
                 <RadioGroup
-                  row
                   defaultValue="No"
                   value={isPerishable}
                   onChange={(e) => setIsPerishable(e.target.value)}
+                  sx={{ ml: 2 }}
                 >
-                  <FormControlLabel
-                    value={false}
-                    control={<Radio size="small" />}
-                    label="No"
-                  />
                   <FormControlLabel
                     value={true}
                     control={<Radio size="small" />}
                     label="Yes"
                   />
+                  <FormControlLabel
+                    value={false}
+                    control={<Radio size="small" />}
+                    label="No"
+                  />
                 </RadioGroup>
               </FormControl>
-              <Box
-                height="100%"
-                width="100px"
-                bgcolor="white"
+              <TextField
+                size="small"
+                placeholder="Exp. Date"
                 border="1px solid black"
-                borderRadius="5px"
-              >
-                <TextField
-                  size="small"
-                  placeholder="Exp. Date"
-                  border="1px solid black"
-                  inputMode="numeric"
-                  value={expiryDate}
-                  onChange={(e) => setExpiryDate(e.target.value)}
-                />
-              </Box>
+                inputMode="numeric"
+                value={expiryDate}
+                onChange={(e) => setExpiryDate(e.target.value)}
+                sx={{ bgcolor: "white", width: "60%" }}
+              />
             </Stack>
             <Stack
               direction="row"
               spacing={2}
               alignItems="center"
               justifyContent="center"
+              width="80%"
             >
-              <Typography color="black">Select Inventory:</Typography>
-              <Box bgcolor="white" color="black" width="150px">
+              <Typography color="black" width="40%">Select Inventory:</Typography>
+              <Box bgcolor="white" color="black" width="60%">
                 <FormControl fullWidth>
                   <Select
                     size="small"
@@ -923,18 +901,16 @@ export default function Inventory() {
                 </FormControl>
               </Box>
             </Stack>
-            <Box bgcolor="white" width="60%">
-              <TextField
-                multiline
-                fullWidth
-                placeholder="Add notes"
-                value={notes}
-                onChange={(e) => setNotes(e.target.value)}
-              />
-            </Box>
+            <TextField
+              multiline
+              placeholder="Add notes"
+              value={notes}
+              onChange={(e) => setNotes(e.target.value)}
+              sx={{ bgcolor: "white", width: "80%" }}
+            />
 
-            <Box onClick={addItem} display="flex" justifyContent="center">
-              <DarkButton>Add</DarkButton>
+            <Box onClick={addItem} display="flex" justifyContent="center" width="30%">
+              <DarkButton fullWidth>Add</DarkButton>
             </Box>
           </Stack>
         </Modal>
