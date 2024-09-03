@@ -29,7 +29,7 @@ import ArrowDropDownIcon from "@mui/icons-material/ArrowDropDown";
 import AddIcon from "@mui/icons-material/Add";
 import RemoveIcon from "@mui/icons-material/Remove";
 import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
-import CloseIcon from '@mui/icons-material/Close';
+import CloseIcon from "@mui/icons-material/Close";
 import { DarkButton, LightButton } from "../../Components/styledbuttons";
 import { Category, Opacity, Search } from "@mui/icons-material";
 import { useRouter } from "next/navigation";
@@ -142,6 +142,7 @@ export default function Inventory() {
 
   // Function to kick a member from the group (only leader can kick members) (2 READ, 2 WRITE operations)
   const kickMember = async (member) => {
+    console.log("kicking member");
     if (!isLeader) {
       alert("You must be the leader of the group to kick members");
     }
@@ -175,6 +176,8 @@ export default function Inventory() {
         await updateDoc(userRef, {
           groups: newGroups,
         });
+
+        fetchGroups();
       }
     }
   };
@@ -233,7 +236,7 @@ export default function Inventory() {
     }
 
     await batch.commit();
-    setGroupName("");
+    router.push("/dashboard");
   };
 
   /****************************************************** AI Suggestions ******************************************************/
@@ -264,7 +267,7 @@ export default function Inventory() {
 
   //function to add an inventory in a group to the database (1 READ, WRITE operation)
   const createInventory = useCallback(async () => {
-    console.log('creating inventory')
+    console.log("creating inventory");
     if (!inventoryName) {
       alert("Please enter an inventory name");
       return;
@@ -293,11 +296,11 @@ export default function Inventory() {
     }
     setInventoryName("");
     handleCloseInventoryModal();
-  },[inventoryName]);
+  }, [inventoryName]);
 
   //function to delete an inventory in a group from the database (1 READ, 1 DELETE operation)
-  const deleteInventory = async () => {
-    console.log('deleting inventory')
+  const deleteInventory = useCallback(async () => {
+    console.log("deleting inventory");
     try {
       const groupRef = doc(collection(db, "groups"), groupName);
       const inventoryCollection = collection(groupRef, "inventories");
@@ -316,19 +319,21 @@ export default function Inventory() {
     } catch (error) {
       console.error("Error deleting inventory:", error);
     }
+    fetchInventories();
     setInventoryName("");
-  };
+  }, [exampleInventory]);
 
   /****************************************************** Expense Tracking ******************************************************/
 
   // Function to add an expense to the group (1 READ, 1 WRITE operation)
-  const addExpense = async (price) => {
+  const addExpense = useCallback(async (price) => {
     /*If person bought it:
 	      Owe = price/#members - price
       If not:
 	      Owe = price/#members
    */
 
+    console.log("adding expense");
     const examplePrice = 10;
     const groupRef = doc(collection(db, "groups"), groupName);
     //READ
@@ -348,8 +353,10 @@ export default function Inventory() {
     //WRITE
     await updateDoc(groupRef, { members: newMembers });
 
+    fetchGroups();
+
     setGroupMembers(newMembers);
-  };
+  }, []);
 
   // Function to clear expenses for the group (1 READ, 1 WRITE operation)
   const clearExpenses = async () => {
@@ -373,8 +380,8 @@ export default function Inventory() {
   /****************************************************** Item Functions ******************************************************/
 
   //function to add an item to the inventory (1 READ, 1 WRITE operation)
-  const addItem = async () => {
-    console.log('adding item')
+  const addItem = useCallback(async () => {
+    console.log("adding item");
     const groupRef = doc(collection(db, "groups"), groupName);
 
     const inventoryCollection = collection(groupRef, "inventories");
@@ -412,6 +419,7 @@ export default function Inventory() {
         items: newItems,
       });
 
+      fetchInventories();
       addExpense(newItem.price);
     }
     setItemName("");
@@ -423,11 +431,11 @@ export default function Inventory() {
     setIsPerishable(false);
     setNotes("");
     handleCloseItemModal(false);
-  };
+  }, []);
 
   //function to delete an item from the inventory (1 READ, 1 WRITE operation)
-  const deleteItem = async () => {
-    console.log('deleting item')
+  const deleteItem = useCallback(async () => {
+    console.log("deleting item");
     const groupRef = doc(collection(db, "groups"), groupName);
     const inventoryCollection = collection(groupRef, "inventories");
 
@@ -447,12 +455,14 @@ export default function Inventory() {
       await updateDoc(inventoryRef, {
         neededItems: newItems,
       });
+
+      fetchInventories();
     }
     setItemName("");
-  };
+  }, []);
 
-   // This function moves the item from the neededItems array to the items array (1 WRITE operation)
-   const buyItem = async (purchasedItemName) => {
+  // This function moves the item from the neededItems array to the items array (1 WRITE operation)
+  const buyItem = useCallback(async (purchasedItemName) => {
     console.log("Buying item");
 
     const groupRef = doc(collection(db, "groups"), groupName);
@@ -460,14 +470,17 @@ export default function Inventory() {
 
     const inventoryRef = doc(inventoryCollection, exampleInventory); //inventory should be dynamically selected
 
-    const localInventory = inventories.find(inventory => inventory.name === exampleInventory);
-  
+    const localInventory = inventories.find(
+      (inventory) => inventory.name === exampleInventory
+    );
 
     if (!localInventory) {
       alert("Inventory does not exist");
       return;
     } else {
-      let newItem = localInventory.neededItems.find(item => item.name === purchasedItemName);
+      let newItem = localInventory.neededItems.find(
+        (item) => item.name === purchasedItemName
+      );
 
       if (!newItem) {
         alert("Item not found in shopping list");
@@ -476,7 +489,7 @@ export default function Inventory() {
 
       const items = localInventory.items;
 
-      newItem = {   
+      newItem = {
         name: newItem.name, // require user to give name
         quantity: newItem.quantityNeeded, //allow user to adjust quantity (default to 1)
         inventory: newItem.inventory, // automatically selected based on the inventory selected
@@ -490,7 +503,7 @@ export default function Inventory() {
         isPerishable: isPerishable, // allow user to adjust (default to false)
         minimumQuantity: 0, // allow user to specify (default to 0)
         notes: notes, // allow user to add notes (default to empty string)
-      }
+      };
       const newItems = [...items, newItem];
       const newNeededItems = neededItems.filter(
         (neededItem) => neededItem.name !== purchasedItemName
@@ -503,15 +516,16 @@ export default function Inventory() {
         items: newItems,
         neededItems: newNeededItems,
       });
-    }
-  };
 
+      fetchInventories();
+    }
+  }, []);
 
   /****************************************************** Needed Items Functions ******************************************************/
 
   //function to add a needed item to the inventory (1 READ, 1 WRITE operation)
-  const addNeededItem = async () => {
-    console.log('adding needed item')
+  const addNeededItem = useCallback(async () => {
+    console.log("adding needed item");
     const groupRef = doc(collection(db, "groups"), groupName);
     const inventoryCollection = collection(groupRef, "inventories");
 
@@ -544,24 +558,21 @@ export default function Inventory() {
       await updateDoc(inventoryRef, {
         neededItems: newItems,
       });
+
+      fetchInventories();
     }
     setItemName("");
-  };
+  }, []);
 
   /****************************************************** Use Effects ******************************************************/
 
   //fetching inventory data (1 READ operation)
   const fetchInventories = useCallback(async () => {
-    console.log('fetching inventories from DB')
+    console.log("fetching inventories from DB");
     try {
       if (!user) return;
 
-      const inventoriesCol = collection(
-        db,
-        "groups",
-        groupName,
-        "inventories"
-      );
+      const inventoriesCol = collection(db, "groups", groupName, "inventories");
 
       //READ
       const inventoriesSnap = await getDocs(inventoriesCol);
@@ -588,37 +599,41 @@ export default function Inventory() {
   }, [user, groupName]);
 
   useEffect(() => {
-    console.log('fetching inventories from UseEffect')
+    console.log("fetching inventories from UseEffect");
     fetchInventories();
-    console.log('inventories', inventories)
+    console.log("inventories", inventories);
+  }, [user, groupName]);
+
+  // Fetching group data (1 READ operation)
+  const fetchGroups = useCallback(async () => {
+    console.log("fetching group & user from DB");
+    try {
+      const groupRef = doc(db, "groups", groupName);
+      //READ
+      const groupSnap = await getDoc(groupRef);
+
+      if (groupSnap.exists()) {
+        const groupData = groupSnap.data();
+        const member = groupData.members.find(
+          (member) => member.name === userName
+        );
+        const leaderState = member ? member.leader : false;
+        setIsLeader(leaderState);
+        setGroupMembers(groupData.members);
+      } else {
+        console.log("No such document!");
+      }
+    } catch (error) {
+      console.error("Error fetching data:", error);
+    }
   }, [user, groupName]);
 
   // Fetching group data (1 READ operation)
   useEffect(() => {
-    console.log('fetching group & user from DB')
-    const getLeaderState = async () => {
-      try {
-        const groupRef = doc(db, "groups", groupName);
-        //READ
-        const groupSnap = await getDoc(groupRef);
-
-        if (groupSnap.exists()) {
-          const groupData = groupSnap.data();
-          const member = groupData.members.find(
-            (member) => member.name === userName
-          );
-          const leaderState = member ? member.leader : false;
-          setIsLeader(leaderState);
-          setGroupMembers(groupData.members);
-        } else {
-          console.log("No such document!");
-        }
-      } catch (error) {
-        console.error("Error fetching data:", error);
-      }
-    };
-    getLeaderState();
-  }, [user]);
+    console.log("fetching groups from UseEffect");
+    fetchGroups();
+    console.log("groupMembers", groupMembers);
+  }, [user, groupName]);
 
   return (
     <Stack direction="column" alignItems="center" minHeight="100vh">
@@ -656,13 +671,15 @@ export default function Inventory() {
             p={3}
             bgcolor="rgba(78, 130, 107, 0.7)" // rgba for green_dark, needed opacity scale
           >
-            <Typography
-              textAlign="center"
-              color={green_white}
-              sx={{ typography: { xs: "h5", sm: "h4" } }}
-            >
-              Welcome *Name* to {groupName}
-            </Typography>
+            {user ? (
+              <Typography
+                textAlign="center"
+                color={green_white}
+                sx={{ typography: { xs: "h5", sm: "h4" } }}
+              >
+                Welcome {user.firstName} to {groupName}
+              </Typography>
+            ) : null}
           </Box>
         </Box>
 
@@ -686,7 +703,7 @@ export default function Inventory() {
               transform: "translate(-50%,-50%)",
             }}
           >
-            <CloseIcon 
+            <CloseIcon
               sx={{
                 position: "absolute",
                 top: 5,
@@ -696,10 +713,12 @@ export default function Inventory() {
                 transition: "200ms",
                 "&:hover": {
                   cursor: "pointer",
-                  transform: "rotate(180deg) scale(1.05)"
-                }
+                  transform: "rotate(180deg) scale(1.05)",
+                },
               }}
-              onClick={(e) => {handleCloseInventoryModal(false);}}
+              onClick={(e) => {
+                handleCloseInventoryModal(false);
+              }}
             />
             <Typography variant="h5" textAlign="center" width="80%">
               Create New Inventory
@@ -738,7 +757,7 @@ export default function Inventory() {
               transform: "translate(-50%,-50%)",
             }}
           >
-            <CloseIcon 
+            <CloseIcon
               sx={{
                 position: "absolute",
                 top: 5,
@@ -748,10 +767,12 @@ export default function Inventory() {
                 transition: "200ms",
                 "&:hover": {
                   cursor: "pointer",
-                  transform: "rotate(180deg) scale(1.05)"
-                }
+                  transform: "rotate(180deg) scale(1.05)",
+                },
               }}
-              onClick={(e) => {handleCloseItemModal();}}
+              onClick={(e) => {
+                handleCloseItemModal();
+              }}
             />
             <Typography variant="h5" textAlign="center">
               Add New Item
@@ -763,7 +784,13 @@ export default function Inventory() {
               onChange={(e) => setItemName(e.target.value)}
               sx={{ bgcolor: "white", width: "80%" }}
             />
-            <Stack direction="row" spacing={2} justifyContent="center" alignItems="center" width="80%">
+            <Stack
+              direction="row"
+              spacing={2}
+              justifyContent="center"
+              alignItems="center"
+              width="80%"
+            >
               <TextField
                 placeholder="Quantity"
                 border="1px solid black"
@@ -772,7 +799,9 @@ export default function Inventory() {
                 onChange={(e) => setQuantity(e.target.value)}
                 sx={{ bgcolor: "white", width: "50%" }}
               />
-              <Typography color="black" textAlign="center">X</Typography>
+              <Typography color="black" textAlign="center">
+                X
+              </Typography>
               <TextField
                 placeholder="Unit"
                 border="1px solid black"
@@ -780,10 +809,12 @@ export default function Inventory() {
                 value={unit}
                 onChange={(e) => setUnit(e.target.value)}
                 sx={{ bgcolor: "white", width: "50%" }}
-              />            
+              />
             </Stack>
             <Stack direction="row" alignItems="center">
-              <Typography color="black" textAlign="center" mr={1}>Total Cost:</Typography>
+              <Typography color="black" textAlign="center" mr={1}>
+                Total Cost:
+              </Typography>
               <TextField
                 border="1px solid black"
                 inputMode="decimal"
@@ -791,9 +822,7 @@ export default function Inventory() {
                 onChange={(e) => setPrice(e.target.value)}
                 InputProps={{
                   startAdornment: (
-                    <InputAdornment sx={{ mr: 1 }}>
-                      $
-                    </InputAdornment>
+                    <InputAdornment sx={{ mr: 1 }}>$</InputAdornment>
                   ),
                 }}
                 sx={{ bgcolor: "white" }}
@@ -853,7 +882,12 @@ export default function Inventory() {
                 />
               </Box>
             </Stack>
-            <Stack direction="row" spacing={2} alignItems="center" justifyContent="center">
+            <Stack
+              direction="row"
+              spacing={2}
+              alignItems="center"
+              justifyContent="center"
+            >
               <Typography color="black">Select Inventory:</Typography>
               <Box bgcolor="white" color="black" width="150px">
                 <FormControl fullWidth>
@@ -865,7 +899,9 @@ export default function Inventory() {
                     onChange={(e) => setSelectedInventory(e.target.value)}
                   >
                     {inventories.map((inventory) => (
-                      <MenuItem value={inventory.name}>{inventory.name}</MenuItem>
+                      <MenuItem value={inventory.name}>
+                        {inventory.name}
+                      </MenuItem>
                     ))}
                   </Select>
                 </FormControl>
@@ -918,12 +954,23 @@ export default function Inventory() {
                   onChange={(e) => setItemName(e.target.value)}
                 />
               </Box>
-              <Box onClick={addNeededItem} display="flex" justifyContent="center">
+              <Box
+                onClick={addNeededItem}
+                display="flex"
+                justifyContent="center"
+              >
                 <DarkButton>Add</DarkButton>
               </Box>
             </Stack>
-            <Stack direction="row" spacing={2} justifyContent="center" alignItems="center">
-              <Typography color="black" textAlign="center">Quantity Needed:</Typography>
+            <Stack
+              direction="row"
+              spacing={2}
+              justifyContent="center"
+              alignItems="center"
+            >
+              <Typography color="black" textAlign="center">
+                Quantity Needed:
+              </Typography>
               <Box
                 width="75px"
                 bgcolor="white"
@@ -939,7 +986,9 @@ export default function Inventory() {
                   onChange={(e) => setQuantity(e.target.value)}
                 />
               </Box>
-              <Typography color="black" textAlign="center">X</Typography>
+              <Typography color="black" textAlign="center">
+                X
+              </Typography>
               <Box
                 width="75px"
                 bgcolor="white"
@@ -956,10 +1005,19 @@ export default function Inventory() {
                 />
               </Box>
             </Stack>
-            <Stack direction="row" spacing={2} justifyContent="center" alignItems="center">
+            <Stack
+              direction="row"
+              spacing={2}
+              justifyContent="center"
+              alignItems="center"
+            >
               <Stack direction="row" alignItems="center">
-                <Typography color="black" textAlign="center">Price:</Typography>
-                <Typography color="black" textAlign="center" mx={1}>$</Typography>
+                <Typography color="black" textAlign="center">
+                  Price:
+                </Typography>
+                <Typography color="black" textAlign="center" mx={1}>
+                  $
+                </Typography>
                 <Box
                   width="75px"
                   bgcolor="white"
@@ -976,7 +1034,9 @@ export default function Inventory() {
                 </Box>
               </Stack>
               <Stack direction="row" alignItems="center">
-                <Typography color="black" textAlign="center" mx={1}>Priority:</Typography>
+                <Typography color="black" textAlign="center" mx={1}>
+                  Priority:
+                </Typography>
                 <Box
                   width="100px"
                   bgcolor="white"
@@ -993,7 +1053,12 @@ export default function Inventory() {
                 </Box>
               </Stack>
             </Stack>
-            <Stack direction="row" spacing={2} alignItems="center" justifyContent="center">
+            <Stack
+              direction="row"
+              spacing={2}
+              alignItems="center"
+              justifyContent="center"
+            >
               <Typography color="black">Select Inventory:</Typography>
               <Box bgcolor="white" color="black" width="150px">
                 <FormControl fullWidth>
@@ -1005,7 +1070,9 @@ export default function Inventory() {
                     onChange={(e) => setSelectedInventory(e.target.value)}
                   >
                     {inventories.map((inventory) => (
-                      <MenuItem value={inventory.name}>{inventory.name}</MenuItem>
+                      <MenuItem value={inventory.name}>
+                        {inventory.name}
+                      </MenuItem>
                     ))}
                   </Select>
                 </FormControl>
@@ -1025,7 +1092,12 @@ export default function Inventory() {
                 />
               </Box>
             </Stack>
-            <Stack direction="row" spacing={2} alignItems="center" justifyContent="center">
+            <Stack
+              direction="row"
+              spacing={2}
+              alignItems="center"
+              justifyContent="center"
+            >
               <Typography color="black">Assign To:</Typography>
               <Box bgcolor="white" color="black" width="200px">
                 <FormControl fullWidth>
@@ -1053,7 +1125,11 @@ export default function Inventory() {
               />
             </Box>
 
-            <Box onClick={() => {handleCloseNeededItemModal();}}>
+            <Box
+              onClick={() => {
+                handleCloseNeededItemModal();
+              }}
+            >
               <DarkButton>Close</DarkButton>
             </Box>
           </Box>
@@ -1140,13 +1216,25 @@ export default function Inventory() {
                   spacing={2}
                   justifyContent="center"
                 >
-                  <Box onClick={(e) => {handleOpenInventoryModal();}}>
+                  <Box
+                    onClick={(e) => {
+                      handleOpenInventoryModal();
+                    }}
+                  >
                     <DarkButton>Create Inventory</DarkButton>
                   </Box>
-                  <Box onClick={(e) => {handleOpenItemModal();}}>
+                  <Box
+                    onClick={(e) => {
+                      handleOpenItemModal();
+                    }}
+                  >
                     <DarkButton>Add Item</DarkButton>
                   </Box>
-                  <Box onClick={(e) => {handleOpenNeededItemModal();}}>
+                  <Box
+                    onClick={(e) => {
+                      handleOpenNeededItemModal();
+                    }}
+                  >
                     <DarkButton>Add Needed Item</DarkButton>
                   </Box>
                 </Stack>
@@ -1190,7 +1278,7 @@ export default function Inventory() {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
             />
-            <Box 
+            <Box
               onClick={(e) => {
                 textInput.current.value = "";
                 handleInvite();
@@ -1201,18 +1289,18 @@ export default function Inventory() {
               <DarkButton>Invite</DarkButton>
             </Box>
           </Stack>
-          <Box onClick={() => {handleCloseMemberModal();}}>
+          <Box
+            onClick={() => {
+              handleCloseMemberModal();
+            }}
+          >
             <DarkButton>Close</DarkButton>
           </Box>
         </Box>
       </Modal>
 
       {/* Inventory Area */}
-      <Box
-        width="80%"
-        maxWidth="xl"
-        flexGrow={1}
-      >
+      <Box width="80%" maxWidth="xl" flexGrow={1}>
         <Grid
           container
           spacing={2}
@@ -1334,7 +1422,7 @@ export default function Inventory() {
                 </AccordionDetails>
               </Accordion>
             </Grid>
-          ))}       
+          ))}
         </Grid>
         {/* <Box>
           <TextField
