@@ -8,6 +8,7 @@ import {
   Stack,
   TextField,
   InputAdornment,
+  InputLabel,
   Accordion,
   AccordionDetails,
   AccordionSummary,
@@ -86,7 +87,7 @@ export default function Inventory() {
   const [isPerishable, setIsPerishable] = useState(false);
   const [notes, setNotes] = useState("");
   const [price, setPrice] = useState(0.0);
-  const [priority, setPriority] = useState(null);
+  const [priority, setPriority] = useState("med");
   const [assignedRoommate, setAssignedRoommate] = useState("");
 
   //Modals
@@ -704,6 +705,7 @@ export default function Inventory() {
             maxWidth="sm"
             bgcolor={green_light}
             border="2px solid #000"
+            borderRadius="20px"
             p={2}
             display="flex"
             flexDirection="column"
@@ -786,7 +788,7 @@ export default function Inventory() {
               }}
             />
             <Typography variant="h5" textAlign="center">
-              Add New Item
+              Add To Shopping List
             </Typography>
             <TextField
             size="small"
@@ -803,6 +805,7 @@ export default function Inventory() {
               alignItems="center"
               width="80%"
             >
+              <Typography>Quantity:</Typography>
               <TextField
                 size="small"
                 placeholder="Quantity"
@@ -812,7 +815,7 @@ export default function Inventory() {
                 onChange={(e) => setQuantity(e.target.value)}
                 sx={{ bgcolor: "white", width: "50%" }}
               />
-              <Typography color="black" textAlign="center">
+              <Typography textAlign="center">
                 X
               </Typography>
               <TextField
@@ -826,9 +829,7 @@ export default function Inventory() {
               />
             </Stack>
             <Stack direction="row" justifyContent="center" alignItems="center" width="80%">
-              <Typography color="black" mr={1} width="20%">
-                Total Cost:
-              </Typography>
+              <Typography color="black" mr={1} width="20%">Price:</Typography>
               <TextField
                 size="small"
                 border="1px solid black"
@@ -845,7 +846,7 @@ export default function Inventory() {
             </Stack>
             <Stack direction="row" spacing={2} alignItems="center" width="80%">
               <FormControl sx={{ display: "flex", flexDirection: "row", justifyContent: "center", alignItems: "center" }}>
-                <FormLabel sx={{ textAlign: "center" }}>Perishable Item?</FormLabel>
+                <FormLabel sx={{ textAlign: "center" }}>Perishable?</FormLabel>
                 <RadioGroup
                   defaultValue="No"
                   value={isPerishable}
@@ -920,15 +921,17 @@ export default function Inventory() {
             position="absolute"
             top="50%"
             left="50%"
-            width={500}
+            width="80%"
+            maxWidth="sm"
             bgcolor={green_light}
             border="2px solid #000"
+            borderRadius="20px"
             p={2}
             display="flex"
             flexDirection="column"
             justifyContent="center"
             alignItems="center"
-            gap={3}
+            gap={2}
             sx={{
               transform: "translate(-50%,-50%)",
             }}
@@ -951,130 +954,98 @@ export default function Inventory() {
               }}
             />
             <Typography variant="h5" textAlign="center">
-              Add Needed Item
+              Add to Shopping List
             </Typography>
-            <Stack direction="row" spacing={2}>
-              <Box bgcolor="white" border="1px solid black" borderRadius="5px">
-                <TextField
-                  placeholder="Item Name"
-                  border="1px solid black"
-                  value={itemName}
-                  onChange={(e) => setItemName(e.target.value)}
-                />
-              </Box>
-              <Box
-                onClick={addNeededItem}
-                display="flex"
-                justifyContent="center"
-              >
-              </Box>
-            </Stack>
+            
+            <TextField
+              size="small"
+              placeholder="Name"
+              fullWidth
+              value={itemName}
+              onChange={(e) => setItemName(e.target.value)}
+              sx={{ bgcolor: "white", width: "80%" }}
+            />
             <Stack
               direction="row"
               spacing={2}
               justifyContent="center"
               alignItems="center"
+              width="80%"
             >
-              <Typography color="black" textAlign="center">
-                Quantity Needed:
-              </Typography>
-              <Box
-                width="75px"
-                bgcolor="white"
+              <Typography>Quantity:</Typography>
+              <TextField
+                size="small"
+                placeholder="Quantity"
                 border="1px solid black"
-                borderRadius="5px"
-              >
-                <TextField
-                  size="small"
-                  placeholder="Qty."
-                  border="1px solid black"
-                  inputMode="numeric"
-                  value={quantity}
-                  onChange={(e) => setQuantity(e.target.value)}
-                />
-              </Box>
+                inputMode="numeric"
+                value={quantity}
+                onChange={(e) => setQuantity(e.target.value)}
+                sx={{ bgcolor: "white", width: "50%" }}
+              />
               <Typography color="black" textAlign="center">
                 X
               </Typography>
-              <Box
-                width="75px"
-                bgcolor="white"
+              <TextField
+                size="small"
+                placeholder="Unit"
                 border="1px solid black"
-                borderRadius="5px"
-              >
-                <TextField
-                  size="small"
-                  placeholder="Unit"
-                  border="1px solid black"
-                  inputMode="numeric"
-                  value={unit}
-                  onChange={(e) => setUnit(e.target.value)}
-                />
-              </Box>
+                inputMode="numeric"
+                value={unit}
+                onChange={(e) => setUnit(e.target.value)}
+                sx={{ bgcolor: "white", width: "50%" }}
+              />
             </Stack>
             <Stack
               direction="row"
               spacing={2}
-              justifyContent="center"
               alignItems="center"
+              width="80%"
             >
-              <Stack direction="row" alignItems="center">
-                <Typography color="black" textAlign="center">
-                  Price:
-                </Typography>
-                <Typography color="black" textAlign="center" mx={1}>
-                  $
-                </Typography>
-                <Box
-                  width="75px"
-                  bgcolor="white"
-                  border="1px solid black"
-                  borderRadius="5px"
-                >
-                  <TextField
-                    size="small"
-                    border="1px solid black"
-                    inputMode="decimal"
-                    value={price}
-                    onChange={(e) => setPrice(e.target.value)}
-                  />
-                </Box>
-              </Stack>
+              <Typography color="black" mr={1}>Price:</Typography>
+              <TextField
+                size="small"
+                border="1px solid black"
+                inputMode="decimal"
+                value={price}
+                onChange={(e) => setPrice(e.target.value)}
+                InputProps={{
+                  startAdornment: (
+                    <InputAdornment sx={{ mr: 1 }}>$</InputAdornment>
+                  ),
+                }}
+                sx={{ bgcolor: "white", width: "60%" }}
+              />
+
               <Stack direction="row" alignItems="center">
                 <Typography color="black" textAlign="center" mx={1}>
                   Priority:
                 </Typography>
-                <Box
-                  width="100px"
-                  bgcolor="white"
-                  border="1px solid black"
-                  borderRadius="5px"
-                >
-                  <TextField
-                    size="small"
-                    border="1px solid black"
-                    placeholder="Ex. Low"
-                    value={priority}
-                    onChange={(e) => setPriority(e.target.value)}
-                  />
-
+                <Box bgcolor="white" width="60%">
+                  <FormControl fullWidth InputLabelProps={{shrink: false}}>
+                    <Select
+                      size="small"
+                      value={priority}
+                      onChange={(e) => setPriority(e.target.value)}
+                    >
+                      <MenuItem value={"high"}>High</MenuItem>
+                      <MenuItem value={"med"}>Med</MenuItem>
+                      <MenuItem value={"low"}>Low</MenuItem>
+                    </Select>
+                  </FormControl>
                 </Box>
               </Stack>
             </Stack>
             <Stack
               direction="row"
-              spacing={2}
               alignItems="center"
-              justifyContent="center"
+              width="80%"
             >
-              <Typography color="black">Select Inventory:</Typography>
-              <Box bgcolor="white" color="black" width="150px">
-                <FormControl fullWidth>
+              <Typography width="30%">Select Inventory:</Typography>
+              <Box bgcolor="white" color="black" width="70%">
+                <FormControl fullWidth InputLabelProps={{shrink: false}}>
                   <Select
                     size="small"
                     value={selectedInventory}
-                    label="Inventory"
-                    sx={{ color: "black" }}
                     onChange={(e) => setSelectedInventory(e.target.value)}
                   >
                     {inventories.map((inventory) => (
@@ -1085,34 +1056,18 @@ export default function Inventory() {
                   </Select>
                 </FormControl>
               </Box>
-              <Box
-                width="100px"
-                bgcolor="white"
-                border="1px solid black"
-                borderRadius="5px"
-              >
-                <TextField
-                  size="small"
-                  placeholder="Category"
-                  border="1px solid black"
-                  value={category}
-                  onChange={(e) => setCategory(e.target.value)}
-                />
-              </Box>
             </Stack>
             <Stack
               direction="row"
-              spacing={2}
               alignItems="center"
-              justifyContent="center"
+              width="80%"
             >
-              <Typography color="black">Assign To:</Typography>
-              <Box bgcolor="white" color="black" width="200px">
-                <FormControl fullWidth>
+              <Typography width="30%">Assign To:</Typography>
+              <Box bgcolor="white" color="black" width="70%">
+                <FormControl fullWidth InputLabelProps={{shrink: false}}>
                   <Select
                     size="small"
                     value={assignedRoommate}
-                    label="Select Roommate"
                     sx={{ color: "black" }}
                     onChange={(e) => setAssignedRoommate(e.target.value)}
                   >
@@ -1132,7 +1087,9 @@ export default function Inventory() {
                 onChange={(e) => setNotes(e.target.value)}
               />
             </Box>
-            <DarkButton>Add</DarkButton>
+            <Box onClick={addNeededItem} display="flex" justifyContent="center" width="30%">
+              <DarkButton>Add to List</DarkButton>
+            </Box>
           </Box>
         </Modal>
 
