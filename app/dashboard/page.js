@@ -360,6 +360,7 @@ export default function Dashboard() {
                     transform: "scale(1.02)",
                     bgcolor: `${green_dark}`,
                     color: `${green_white}`,
+                    cursor: "pointer"
                   },
                 }}
               >
