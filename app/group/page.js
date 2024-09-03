@@ -942,6 +942,23 @@ export default function Inventory() {
               transform: "translate(-50%,-50%)",
             }}
           >
+             <CloseIcon
+              sx={{
+                position: "absolute",
+                top: 5,
+                left: 5,
+                fontSize: 40,
+                color: `${green_dark}`,
+                transition: "200ms",
+                "&:hover": {
+                  cursor: "pointer",
+                  transform: "rotate(180deg) scale(1.05)",
+                },
+              }}
+              onClick={(e) => {
+                handleCloseNeededItemModal();
+              }}
+            />
             <Typography variant="h5" textAlign="center">
               Add Needed Item
             </Typography>
@@ -959,7 +976,6 @@ export default function Inventory() {
                 display="flex"
                 justifyContent="center"
               >
-                <DarkButton>Add</DarkButton>
               </Box>
             </Stack>
             <Stack
@@ -1050,6 +1066,7 @@ export default function Inventory() {
                     value={priority}
                     onChange={(e) => setPriority(e.target.value)}
                   />
+
                 </Box>
               </Stack>
             </Stack>
@@ -1124,14 +1141,7 @@ export default function Inventory() {
                 onChange={(e) => setNotes(e.target.value)}
               />
             </Box>
-
-            <Box
-              onClick={() => {
-                handleCloseNeededItemModal();
-              }}
-            >
-              <DarkButton>Close</DarkButton>
-            </Box>
+            <DarkButton>Add</DarkButton>
           </Box>
         </Modal>
 
