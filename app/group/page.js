@@ -70,7 +70,6 @@ export default function Inventory() {
 
   // States for handling functions
   const [search, setSearch] = useState("");
-  const [addInventoryModal, setAddInventoryModal] = useState(false);
   const [inventoryName, setInventoryName] = useState("");
   const [items, setItems] = useState([]);
   const [neededItems, setNeededItems] = useState([]);
@@ -92,6 +91,14 @@ export default function Inventory() {
   const [openMemberModal, setOpenMemberModal] = useState(false);
   const [openNewInventoryModal, setOpenNewInventoryModal] = useState(false);
   const [openAddItemModal, setOpenAddItemModal] = useState(false);
+
+  //Modals open/close
+  const handleOpenMemberModal = () => setOpenMemberModal(true);
+  const handleCloseMemberModal = () => setOpenMemberModal(false);
+  const handleOpenInventoryModal = () => setOpenNewInventoryModal(true);
+  const handleCloseInventoryModal = () => setOpenNewInventoryModal(false);
+  const handleOpenItemModal = () => setOpenAddItemModal(true);
+  const handleCloseItemModal = () => setOpenAddItemModal(false);
 
   // Get group name from URL
   const searchParams = useSearchParams();
@@ -143,23 +150,6 @@ export default function Inventory() {
 
     fetchData();
   }, [user, groupName]);
-
-  /*
-  useEffect(() => {
-    const getMembers = async () => {
-      const groupRef = doc(collection(db, "groups"), groupName);
-      const groupSnap = await getDoc(groupRef);
-
-      if (groupSnap.exists()) {
-        const groupData = groupSnap.data();
-        console.log("groupData", groupData);
-        setGroupMembers(groupData.members);
-      }
-    };
-
-    getMembers();
-  }, [user, groupName]);
-  */
 
   // Fetching group data (1 READ operation)
   useEffect(() => {
@@ -362,6 +352,7 @@ export default function Inventory() {
       });
     }
     setInventoryName("");
+    handleCloseInventoryModal();
   };
 
   //function to delete an inventory in a group from the database (1 READ, 1 DELETE operation)
@@ -489,6 +480,7 @@ export default function Inventory() {
     setExpiryDate(null);
     setIsPerishable(false);
     setNotes("");
+    handleCloseItemModal(false);
   };
 
   //function to delete an item from the inventory (1 READ, 1 WRITE operation)
@@ -612,14 +604,6 @@ export default function Inventory() {
     setItemName("");
   };
 
-  //Modals open/close
-  const handleOpenMemberModal = () => setOpenMemberModal(true);
-  const handleCloseMemberModal = () => setOpenMemberModal(false);
-  const handleOpenInventoryModal = () => setOpenNewInventoryModal(true);
-  const handleCloseInventoryModal = () => setOpenNewInventoryModal(false);
-  const handleOpenItemModal = () => setOpenAddItemModal(true);
-  const handleCloseItemModal = () => setOpenAddItemModal(false);
-
   return (
     <Stack direction="column" alignItems="center" minHeight="100vh">
       {/* Welcome Statement */}
@@ -713,7 +697,8 @@ export default function Inventory() {
             position="absolute"
             top="50%"
             left="50%"
-            width={500}
+            width="xs"
+            mx={2}
             bgcolor={green_light}
             border="2px solid #000"
             p={2}
@@ -974,68 +959,64 @@ export default function Inventory() {
           </Grid>
         </Box>
       </Stack>
+
+      {/* Modal for adding new members */}
+      <Modal open={openMemberModal} onOpen={handleOpenMemberModal}>
+        <Box
+          position="absolute"
+          top="50%"
+          left="50%"
+          width={500}
+          bgcolor={green_light}
+          border="2px solid #000"
+          p={2}
+          display="flex"
+          flexDirection="column"
+          justifyContent="center"
+          alignItems="center"
+          gap={3}
+          sx={{
+            transform: "translate(-50%,-50%)",
+          }}
+        >
+          <Typography variant="h5" textAlign="center">
+            Edit Group
+          </Typography>
+          <Stack direction="column" spacing={1}>
+            {groupMembers.map((member) => (
+              <Chip key={member.name} label={member.name} variant="filled" />
+            ))}
+          </Stack>
+          <Stack direction="row" spacing={2}>
+            <TextField
+              placeholder="New Member Email"
+              inputRef={textInput}
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+            />
+            <Box 
+              onClick={(e) => {
+                textInput.current.value = "";
+                handleInvite();
+              }}
+              display="flex"
+              justifyContent="center"
+            >
+              <DarkButton>Invite</DarkButton>
+            </Box>
+          </Stack>
+          <Box onClick={() => {handleCloseMemberModal();}}>
+            <DarkButton>Close</DarkButton>
+          </Box>
+        </Box>
+      </Modal>
+
       {/* Inventory Area */}
       <Box
         width="80%"
         maxWidth="xl"
-        display="flex"
-        flexDirection="column"
-        justifyContent="center"
-        alignItems="center"
         flexGrow={1}
       >
-        {/* Modal for adding new members */}
-        <Modal open={openMemberModal} onOpen={handleOpenMemberModal}>
-          <Box
-            position="absolute"
-            top="50%"
-            left="50%"
-            width={500}
-            bgcolor={green_light}
-            border="2px solid #000"
-            p={2}
-            display="flex"
-            flexDirection="column"
-            justifyContent="center"
-            alignItems="center"
-            gap={3}
-            sx={{
-              transform: "translate(-50%,-50%)",
-            }}
-          >
-            <Typography variant="h5" textAlign="center">
-              Edit Group
-            </Typography>
-            <Stack direction="column" spacing={1}>
-              {groupMembers.map((member) => (
-                <Chip key={member.name} label={member.name} variant="filled" />
-              ))}
-            </Stack>
-            <Stack direction="row" spacing={2}>
-              <TextField
-                placeholder="New Member Email"
-                inputRef={textInput}
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-              />
-              <Box 
-                onClick={(e) => {
-                  textInput.current.value = "";
-                  handleInvite();
-                }}
-                display="flex"
-                justifyContent="center"
-              >
-                <DarkButton>Invite</DarkButton>
-              </Box>
-            </Stack>
-            <Box onClick={() => {handleCloseMemberModal();}}>
-              <DarkButton>Close</DarkButton>
-            </Box>
-        
-          </Box>
-        </Modal>
-
         <Grid
           container
           spacing={2}
@@ -1043,130 +1024,130 @@ export default function Inventory() {
           justifyContent={"center"}
           alignItems="center"
         >
-          <Grid item xs={12} sm={12} md={12} lg={6} xl={6}>
-            <Accordion>
-              <AccordionSummary
-                expandIcon={<ArrowDropDownIcon />}
-                aria-controls="index number"
-                id="index number"
-                sx={{
-                  border: "2px solid red",
-                  width: "100%",
-                  maxWidth: "100%",
-                  textOverflow: "ellipsis",
-                }}
-              >
-                {/* You can use inventory.name*/}
-                <Typography
-                  color="black"
-                  textAlign="center"
-                  border={"2px solid blue"}
-                  width="100%"
-                  sx={{ typography: { xs: "h6", sm: "h5" } }}
+          {inventories.map((inventory, index) => (
+            <Grid item id={index} xs={12} sm={12} md={12} lg={6} xl={6}>
+              <Accordion>
+                <AccordionSummary
+                  expandIcon={<ArrowDropDownIcon />}
+                  aria-controls="index number"
+                  id="index number"
+                  sx={{
+                    width: "100%",
+                    maxWidth: "100%",
+                    textOverflow: "ellipsis",
+                  }}
                 >
-                  Item List - {groupName}
-                </Typography>
-              </AccordionSummary>
-              <AccordionDetails>
-                <Stack direction="column">
-                  {/* below is an inventory item */}
-                  <Stack
-                    direction="row"
-                    justifyContent="space-between"
-                    alignItems="center"
-                    borderRadius="15px"
-                    position="relative"
-                    mb={2}
-                    sx={{
-                      background: `linear-gradient(to bottom, ${green_light}, #fff)`,
-                      "&::before": {
-                        position: "absolute",
-                        content: "''",
-                        top: 0,
-                        right: 0,
-                        bottom: 0,
-                        left: 0,
-                        background: `linear-gradient(to bottom, #fff, ${green_light})`,
-                        transition: "opacity 200ms linear",
-                        opacity: 0,
-                        borderRadius: "15px",
-                      },
-                      "&:hover::before": {
-                        opacity: 1,
-                        zIndex: 1,
-                        borderRadius: "15px",
-                      },
-                    }}
+                  {/* You can use inventory.name*/}
+                  <Typography
+                    color="black"
+                    textAlign="center"
+                    width="100%"
+                    sx={{ typography: { xs: "h6", sm: "h5" } }}
                   >
-                    {/* You can use groupMembers here*/}
-                    <Stack direction="column" zIndex={2}>
-                      <Chip
-                        label="Andrew"
-                        variant="outlined"
-                        size="small"
-                        sx={{
-                          ml: 1,
-                          my: 1,
-                          background: `linear-gradient(to bottom, lightblue, white)`,
-                        }}
-                      />
-                      <Chip
-                        label="Rafik"
-                        variant="outlined"
-                        size="small"
-                        sx={{
-                          ml: 1,
-                          mb: 1,
-                          background: `linear-gradient(to bottom, yellow, white)`,
-                        }}
-                      />
+                    {inventory.name}
+                  </Typography>
+                </AccordionSummary>
+                <AccordionDetails>
+                  <Stack direction="column">
+                    {/* below is an inventory item */}
+                    <Stack
+                      direction="row"
+                      justifyContent="space-between"
+                      alignItems="center"
+                      borderRadius="15px"
+                      position="relative"
+                      mb={2}
+                      sx={{
+                        background: `linear-gradient(to bottom, ${green_light}, #fff)`,
+                        "&::before": {
+                          position: "absolute",
+                          content: "''",
+                          top: 0,
+                          right: 0,
+                          bottom: 0,
+                          left: 0,
+                          background: `linear-gradient(to bottom, #fff, ${green_light})`,
+                          transition: "opacity 200ms linear",
+                          opacity: 0,
+                          borderRadius: "15px",
+                        },
+                        "&:hover::before": {
+                          opacity: 1,
+                          zIndex: 1,
+                          borderRadius: "15px",
+                        },
+                      }}
+                    >
+                      {/* You can use groupMembers here*/}
+                      <Stack direction="column" zIndex={2}>
+                        <Chip
+                          label="Andrew"
+                          variant="outlined"
+                          size="small"
+                          sx={{
+                            ml: 1,
+                            my: 1,
+                            background: `linear-gradient(to bottom, lightblue, white)`,
+                          }}
+                        />
+                        <Chip
+                          label="Rafik"
+                          variant="outlined"
+                          size="small"
+                          sx={{
+                            ml: 1,
+                            mb: 1,
+                            background: `linear-gradient(to bottom, yellow, white)`,
+                          }}
+                        />
+                      </Stack>
+                      <Box zIndex={2}>
+                        {/* You can use inventory.items.name here*/}
+                        <Typography
+                          sx={{
+                            display: { xs: "block", sm: "inline" },
+                            pr: { xs: 0, sm: 2, md: 3, lg: 3, xl: 4 },
+                          }}
+                        >
+                          Name of item
+                        </Typography>
+                        {/* You can use inventory.items.quantity here*/}
+                        <Typography
+                          sx={{
+                            display: { xs: "block", sm: "inline" },
+                            pl: { xs: 0, sm: 2, md: 3, lg: 3, xl: 4 },
+                          }}
+                        >
+                          # of item
+                        </Typography>
+                      </Box>
+                      <Box zIndex={2}>
+                        <TooltipIcon title="Delete" placement="top">
+                          {/* You can use deleteItem here (probably pass item.name as parameter)*/}
+                          <DeleteOutlineIcon />
+                        </TooltipIcon>
+                        <TooltipIcon title="-1" placement="top">
+                          <RemoveIcon sx={{ mx: { xs: 1 } }} />
+                        </TooltipIcon>
+                        <TooltipIcon title="+1" placement="top">
+                          <AddIcon sx={{ mr: 1 }} />
+                        </TooltipIcon>
+                      </Box>
                     </Stack>
-                    <Box zIndex={2}>
-                      {/* You can use inventory.items.name here*/}
-                      <Typography
-                        sx={{
-                          display: { xs: "block", sm: "inline" },
-                          pr: { xs: 0, sm: 2, md: 3, lg: 3, xl: 4 },
-                        }}
-                      >
-                        Name of item
-                      </Typography>
-                      {/* You can use inventory.items.quantity here*/}
-                      <Typography
-                        sx={{
-                          display: { xs: "block", sm: "inline" },
-                          pl: { xs: 0, sm: 2, md: 3, lg: 3, xl: 4 },
-                        }}
-                      >
-                        # of item
-                      </Typography>
-                    </Box>
-                    <Box zIndex={2}>
-                      <TooltipIcon title="Delete" placement="top">
-                        {/* You can use deleteItem here (probably pass item.name as parameter)*/}
-                        <DeleteOutlineIcon />
-                      </TooltipIcon>
-                      <TooltipIcon title="-1" placement="top">
-                        <RemoveIcon sx={{ mx: { xs: 1 } }} />
-                      </TooltipIcon>
-                      <TooltipIcon title="+1" placement="top">
-                        <AddIcon sx={{ mr: 1 }} />
-                      </TooltipIcon>
-                    </Box>
                   </Stack>
-                </Stack>
-              </AccordionDetails>
-            </Accordion>
-          </Grid>
+                </AccordionDetails>
+              </Accordion>
+            </Grid>
+          ))}       
         </Grid>
-        <Box>
+        {/* <Box>
           <TextField
             label="input"
             value={itemName}
             onChange={(e) => setItemName(e.target.value)}
           />
           <Button onClick={() => {addItem}}>Test Function</Button>
-        </Box>
+        </Box> */}
       </Box>
     </Stack>
   );
