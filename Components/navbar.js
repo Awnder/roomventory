@@ -8,7 +8,7 @@ import Link from "next/link";
 import rv_logo from "/public/rv_logo.png";
 
 //colors
-const green_white = "#F3F6F9"
+const green_white = "#F3F6F9";
 const green_light = "#D3F8CC";
 const green_main = "#7EB09B";
 const green_dark = "#4E826B";
