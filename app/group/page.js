@@ -49,7 +49,7 @@ import { useSearchParams } from "next/navigation";
 
 import banner from "../../public/banner.png";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import Image from "next/image";
 
 // colors
@@ -114,74 +114,6 @@ export default function Inventory() {
 
   //get Username
   const userName = user ? user.firstName + " " + user.lastName : "";
-
-  /****************************************************** Use Effects ******************************************************/
-
-  //fetching inventory data (1 READ operation)
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        if (!user) return;
-
-        const inventoriesCol = collection(
-          db,
-          "groups",
-          groupName,
-          "inventories"
-        );
-
-        //READ
-        const inventoriesSnap = await getDocs(inventoriesCol);
-
-        const inventoriesList = [];
-
-        // Collect promises if there are async operations to perform on itemsCol
-        const inventoriesPromises = inventoriesSnap.docs.map(
-          async (inventory) => {
-            const inventoryData = inventory.data();
-            inventoriesList.push(inventoryData);
-
-            const itemsCol = inventoryData.items;
-          }
-        );
-
-        // Wait for all inventory promises to resolve
-        await Promise.all(inventoriesPromises);
-
-        setInventories(inventoriesList);
-      } catch (error) {
-        console.error("Error fetching data:", error);
-      }
-    };
-
-    fetchData();
-  }, [user, groupName]);
-
-  // Fetching group data (1 READ operation)
-  useEffect(() => {
-    const getLeaderState = async () => {
-      try {
-        const groupRef = doc(db, "groups", groupName);
-        //READ
-        const groupSnap = await getDoc(groupRef);
-
-        if (groupSnap.exists()) {
-          const groupData = groupSnap.data();
-          const member = groupData.members.find(
-            (member) => member.name === userName
-          );
-          const leaderState = member ? member.leader : false;
-          setIsLeader(leaderState);
-          setGroupMembers(groupData.members);
-        } else {
-          console.log("No such document!");
-        }
-      } catch (error) {
-        console.error("Error fetching data:", error);
-      }
-    };
-    getLeaderState();
-  }, [user]);
 
   /****************************************************** Handling Group Members ******************************************************/
 
@@ -331,7 +263,8 @@ export default function Inventory() {
   /****************************************************** Inventory Functions ******************************************************/
 
   //function to add an inventory in a group to the database (1 READ, WRITE operation)
-  const createInventory = async () => {
+  const createInventory = useCallback(async () => {
+    console.log('creating inventory')
     if (!inventoryName) {
       alert("Please enter an inventory name");
       return;
@@ -356,13 +289,15 @@ export default function Inventory() {
         items: [],
         neededItems: [],
       });
+      fetchInventories();
     }
     setInventoryName("");
     handleCloseInventoryModal();
-  };
+  },[inventoryName]);
 
   //function to delete an inventory in a group from the database (1 READ, 1 DELETE operation)
   const deleteInventory = async () => {
+    console.log('deleting inventory')
     try {
       const groupRef = doc(collection(db, "groups"), groupName);
       const inventoryCollection = collection(groupRef, "inventories");
@@ -439,6 +374,7 @@ export default function Inventory() {
 
   //function to add an item to the inventory (1 READ, 1 WRITE operation)
   const addItem = async () => {
+    console.log('adding item')
     const groupRef = doc(collection(db, "groups"), groupName);
 
     const inventoryCollection = collection(groupRef, "inventories");
@@ -491,6 +427,7 @@ export default function Inventory() {
 
   //function to delete an item from the inventory (1 READ, 1 WRITE operation)
   const deleteItem = async () => {
+    console.log('deleting item')
     const groupRef = doc(collection(db, "groups"), groupName);
     const inventoryCollection = collection(groupRef, "inventories");
 
@@ -574,6 +511,7 @@ export default function Inventory() {
 
   //function to add a needed item to the inventory (1 READ, 1 WRITE operation)
   const addNeededItem = async () => {
+    console.log('adding needed item')
     const groupRef = doc(collection(db, "groups"), groupName);
     const inventoryCollection = collection(groupRef, "inventories");
 
@@ -609,6 +547,78 @@ export default function Inventory() {
     }
     setItemName("");
   };
+
+  /****************************************************** Use Effects ******************************************************/
+
+  //fetching inventory data (1 READ operation)
+  const fetchInventories = useCallback(async () => {
+    console.log('fetching inventories from DB')
+    try {
+      if (!user) return;
+
+      const inventoriesCol = collection(
+        db,
+        "groups",
+        groupName,
+        "inventories"
+      );
+
+      //READ
+      const inventoriesSnap = await getDocs(inventoriesCol);
+
+      const inventoriesList = [];
+
+      // Collect promises if there are async operations to perform on itemsCol
+      const inventoriesPromises = inventoriesSnap.docs.map(
+        async (inventory) => {
+          const inventoryData = inventory.data();
+          inventoriesList.push(inventoryData);
+
+          const itemsCol = inventoryData.items;
+        }
+      );
+
+      // Wait for all inventory promises to resolve
+      await Promise.all(inventoriesPromises);
+
+      setInventories(inventoriesList);
+    } catch (error) {
+      console.error("Error fetching data:", error);
+    }
+  }, [user, groupName]);
+
+  useEffect(() => {
+    console.log('fetching inventories from UseEffect')
+    fetchInventories();
+    console.log('inventories', inventories)
+  }, [user, groupName]);
+
+  // Fetching group data (1 READ operation)
+  useEffect(() => {
+    console.log('fetching group & user from DB')
+    const getLeaderState = async () => {
+      try {
+        const groupRef = doc(db, "groups", groupName);
+        //READ
+        const groupSnap = await getDoc(groupRef);
+
+        if (groupSnap.exists()) {
+          const groupData = groupSnap.data();
+          const member = groupData.members.find(
+            (member) => member.name === userName
+          );
+          const leaderState = member ? member.leader : false;
+          setIsLeader(leaderState);
+          setGroupMembers(groupData.members);
+        } else {
+          console.log("No such document!");
+        }
+      } catch (error) {
+        console.error("Error fetching data:", error);
+      }
+    };
+    getLeaderState();
+  }, [user]);
 
   return (
     <Stack direction="column" alignItems="center" minHeight="100vh">
@@ -1027,7 +1037,7 @@ export default function Inventory() {
                     onChange={(e) => setAssignedRoommate(e.target.value)}
                   >
                     {groupMembers.map((member) => (
-                      <MenuItem value={member}>{member}</MenuItem>
+                      <MenuItem value={member.name}>{member.name}</MenuItem>
                     ))}
                   </Select>
                 </FormControl>
@@ -1074,7 +1084,7 @@ export default function Inventory() {
                 <Stack direction="column" spacing={2}>
                   {groupMembers.map((member) => (
                     <Typography textAlign="center" color="white">
-                      {member}
+                      {member.name}
                     </Typography>
                   ))}
                 </Stack>
@@ -1170,7 +1180,7 @@ export default function Inventory() {
           </Typography>
           <Stack direction="column" spacing={1}>
             {groupMembers.map((member) => (
-              <Chip key={member} label={member} variant="filled" />
+              <Chip key={member.name} label={member.name} variant="filled" />
             ))}
           </Stack>
           <Stack direction="row" spacing={2}>
