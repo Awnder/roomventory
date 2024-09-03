@@ -21,6 +21,7 @@ import {
   Switch,
   Select,
   MenuItem,
+  Alert,
 } from "@mui/material";
 import TooltipIcon from "../../Components/tooltipicon";
 import SettingsIcon from "@mui/icons-material/Settings";
@@ -77,6 +78,8 @@ export default function Inventory() {
   const [itemName, setItemName] = useState("");
   const [email, setEmail] = useState("");
   const [suggestedItems, setSuggestedItems] = useState({});
+  const [inventoryNameForDisplay, setInventoryNameForDisplay] = useState("");
+  const [inventoryNameForDeletion, setInventoryNameForDeletion] = useState("");
 
   // Item Metadata
   const [selectedInventory, setSelectedInventory] = useState("");
@@ -95,16 +98,30 @@ export default function Inventory() {
   const [openNewInventoryModal, setOpenNewInventoryModal] = useState(false);
   const [openAddItemModal, setOpenAddItemModal] = useState(false);
   const [openNeededItemModal, setOpenNeededItemModal] = useState(false);
+  const [openInventoryModal, setOpenInventoryModal] = useState(false);
+  const [openDeleteInventoryModal, setOpenDeleteInventoryModal] = useState(false);
 
   //Modals open/close
   const handleOpenMemberModal = () => setOpenMemberModal(true);
   const handleCloseMemberModal = () => setOpenMemberModal(false);
-  const handleOpenInventoryModal = () => setOpenNewInventoryModal(true);
-  const handleCloseInventoryModal = () => setOpenNewInventoryModal(false);
+  const handleOpenNewInventoryModal = () => setOpenNewInventoryModal(true);
+  const handleCloseNewInventoryModal = () => setOpenNewInventoryModal(false);
   const handleOpenItemModal = () => setOpenAddItemModal(true);
   const handleCloseItemModal = () => setOpenAddItemModal(false);
   const handleOpenNeededItemModal = () => setOpenNeededItemModal(true);
   const handleCloseNeededItemModal = () => setOpenNeededItemModal(false);
+  const handleOpenInventoryModal = (inventoryName) => {
+    setInventoryNameForDisplay(inventoryName);
+  };
+  const handleCloseInventoryModal = () => setOpenInventoryModal(false);
+  const handleOpenDeleteInventoryModal = (inventoryName) => {
+    setInventoryNameForDeletion(inventoryName);
+    setOpenDeleteInventoryModal(true);
+  };
+  const handleCloseDeleteInventoryModal = (inventoryName) => {
+    setOpenDeleteInventoryModal(false);
+    deleteInventory(inventoryName);
+  };
 
   //Filtered objects
   const [filteredInventories, setFilteredInventories] = useState([]);
@@ -298,17 +315,17 @@ export default function Inventory() {
       fetchInventories();
     }
     setInventoryName("");
-    handleCloseInventoryModal();
+    handleCloseNewInventoryModal();
   }, [inventoryName]);
 
   //function to delete an inventory in a group from the database (1 READ, 1 DELETE operation)
-  const deleteInventory = useCallback(async () => {
+  const deleteInventory = useCallback(async (inventoryName) => {
     console.log("deleting inventory");
     try {
       const groupRef = doc(collection(db, "groups"), groupName);
       const inventoryCollection = collection(groupRef, "inventories");
 
-      const inventoryRef = doc(inventoryCollection, exampleInventory); //inventory should be dynamically selected
+      const inventoryRef = doc(inventoryCollection, inventoryName); //inventory should be dynamically selected
 
       //READ
       const inventorySnap = await getDoc(inventoryRef);
@@ -431,7 +448,6 @@ export default function Inventory() {
     setUnit(null);
     setCategory(null);
     setExpiryDate(null);
-    
     setIsPerishable(false);
     setNotes("");
     handleCloseItemModal(false);
@@ -730,7 +746,7 @@ export default function Inventory() {
                 },
               }}
               onClick={(e) => {
-                handleCloseInventoryModal(false);
+                handleCloseNewInventoryModal(false);
               }}
             />
             <Typography variant="h5" textAlign="center" width="80%">
@@ -1173,7 +1189,7 @@ export default function Inventory() {
                   spacing={2}
                   justifyContent="center"
                 >
-                  <Box onClick={(e) => {handleOpenInventoryModal();}}>
+                  <Box onClick={(e) => {handleOpenNewInventoryModal();}}>
                     <DarkButton>Create Inventory</DarkButton>
                   </Box>
                   <Box onClick={(e) => {handleOpenItemModal();}}>
@@ -1266,13 +1282,11 @@ export default function Inventory() {
           container
           spacing={2}
           mb={8}
-          justifyContent={"center"}
-          alignItems="center"
         >
-          {neededItems}
           {filteredInventories.map((inventory) => (
             <Grid item key={inventory.name} xs={12} sm={12} md={12} lg={6} xl={6}>
               <Box
+                position="relative"
                 height="100%"
                 display="flex"
                 justifyContent="center"
@@ -1283,17 +1297,39 @@ export default function Inventory() {
                 color={green_dark}
                 boxShadow="0 0 5px black"
                 border={`2px solid ${green_dark}`}
-                // onClick={() => handleInventoryClick(inventory.name)}
+                onClick={() => handleOpenInventoryModal(inventory.name)}
                 sx={{
                   transition: "500ms",
                   "&:hover": {
                     transform: "scale(1.02)",
                     bgcolor: `${green_dark}`,
-                    color: `${green_white}`,
-                    cursor: "pointer"
+                    color: `${green_light}`,
+                    cursor: "pointer",
+                    "& .deleteIconInventory": {
+                      color: `${green_light}`,
+                    },
                   },
                 }}
               >
+                <CloseIcon
+                  className="deleteIconInventory"
+                  sx={{
+                    position: "absolute",
+                    top: 5,
+                    left: 5,
+                    fontSize: 40,
+                    color: `${green_dark}`,
+                    transition: "200ms",
+                    "&:hover": {
+                      cursor: "pointer",
+                      color: `${green_light}`,
+                      transform: "rotate(180deg) scale(1.05)",
+                    },
+                  }}
+                  onClick={() => {
+                    handleOpenDeleteInventoryModal(inventory.name);
+                  }}
+                />
                 <Typography
                   variant="h6"
                   maxHeight="100%"
@@ -1304,10 +1340,100 @@ export default function Inventory() {
                 >
                   {inventory.name}
                 </Typography>
+                
               </Box>
             </Grid>
           ))}
         </Grid>
+      </Box>
+      
+      {/* Modal for Inventory Deletion */}
+      <Modal open={openDeleteInventoryModal}>
+        <Box
+          position="absolute"
+          top="50%"
+          left="50%"
+          width="50%"
+          maxWidth="sm"
+          bgcolor={green_light}
+          border="2px solid #000"
+          borderRadius="20px"
+          p={2}
+          display="flex"
+          flexDirection="column"
+          justifyContent="center"
+          alignItems="center"
+          gap={3}
+          sx={{
+            transform: "translate(-50%,-50%)",
+          }}
+        >
+          <CloseIcon
+            sx={{
+              position: "absolute",
+              top: 5,
+              left: 5,
+              fontSize: 40,
+              color: `${green_dark}`,
+              transition: "200ms",
+              "&:hover": {
+                cursor: "pointer",
+                transform: "rotate(180deg) scale(1.05)",
+              },
+            }}
+            onClick={() => {
+              handleCloseDeleteInventoryModal(false);
+            }}
+          />
+          <Typography variant="h4">Inventory Deletion</Typography>
+          <Typography>Are you sure you want to delete {inventoryNameForDeletion} and all its contents?</Typography>
+          <Box onClick={() => handleCloseDeleteInventoryModal(inventoryNameForDeletion)}>
+            <DarkButton>Delete</DarkButton>
+          </Box>
+        </Box>
+      </Modal>
+
+
+      {/* Modal that display's inventory items */}
+      <Modal open={openInventoryModal}>
+        <Box
+          position="absolute"
+          top="50%"
+          left="50%"
+          width="80%"
+          maxWidth="md"
+          bgcolor={green_light}
+          border="2px solid #000"
+          p={2}
+          display="flex"
+          flexDirection="column"
+          justifyContent="center"
+          alignItems="center"
+          gap={3}
+          sx={{
+            transform: "translate(-50%,-50%)",
+          }}
+        >
+          <CloseIcon
+            sx={{
+              position: "absolute",
+              top: 5,
+              left: 5,
+              fontSize: 40,
+              color: `${green_dark}`,
+              transition: "200ms",
+              "&:hover": {
+                cursor: "pointer",
+                transform: "rotate(180deg) scale(1.05)",
+              },
+            }}
+            onClick={() => {
+              handleCloseInventoryModal();
+            }}
+          />
+          <Typography>{inventoryNameForDisplay}</Typography>
+        </Box>
+      </Modal>
         {/* <Accordion>
                 <AccordionSummary
                   expandIcon={<ArrowDropDownIcon />}
@@ -1419,7 +1545,6 @@ export default function Inventory() {
                   </Stack>
                 </AccordionDetails>
               </Accordion> */}
-      </Box>
     </Stack>
   );
 }
