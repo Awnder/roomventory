@@ -734,15 +734,14 @@ export default function Inventory() {
             <Typography variant="h5" textAlign="center" width="80%">
               Create New Inventory
             </Typography>
-            <Box bgcolor="white" border="1px solid black" borderRadius="5px">
-              <TextField
-                size="small"
-                placeholder="Ex. Bathroom, Kitchen"
-                border="1px solid black"
-                value={inventoryName}
-                onChange={(e) => setInventoryName(e.target.value)}
-              />
-            </Box>
+            <TextField
+              size="small"
+              placeholder="Ex. Bathroom, Kitchen"
+              border="1px solid black"
+              value={inventoryName}
+              onChange={(e) => setInventoryName(e.target.value)}
+              sx={{ bgcolor: "white" }}
+            />
             <Box onClick={createInventory}>
               <DarkButton>Create</DarkButton>
             </Box>
@@ -1265,12 +1264,34 @@ export default function Inventory() {
             transform: "translate(-50%,-50%)",
           }}
         >
+          <CloseIcon
+            sx={{
+              position: "absolute",
+              top: 5,
+              left: 5,
+              fontSize: 40,
+              color: `${green_dark}`,
+              transition: "200ms",
+              "&:hover": {
+                cursor: "pointer",
+                transform: "rotate(180deg) scale(1.05)",
+              },
+            }}
+            onClick={() => {
+              handleCloseMemberModal();
+            }}
+          />
           <Typography variant="h5" textAlign="center">
             Edit Group
           </Typography>
           <Stack direction="column" spacing={1}>
             {groupMembers.map((member) => (
-              <Chip key={member.name} label={member.name} variant="filled" />
+              <Stack direction="row" spacing={1} alignItems="center">
+                <Chip key={member.name} label={member.name} variant="filled" />
+                <TooltipIcon title="Remove" placement="top">
+                  <DeleteOutlineIcon />
+                </TooltipIcon>
+              </Stack>
             ))}
           </Stack>
           <Stack direction="row" spacing={2}>
@@ -1291,13 +1312,6 @@ export default function Inventory() {
               <DarkButton>Invite</DarkButton>
             </Box>
           </Stack>
-          <Box
-            onClick={() => {
-              handleCloseMemberModal();
-            }}
-          >
-            <DarkButton>Close</DarkButton>
-          </Box>
         </Box>
       </Modal>
 
