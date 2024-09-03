@@ -696,7 +696,7 @@ export default function Inventory() {
         </Box>
 
         {/* Modal for creating new inventories */}
-        <Modal open={openNewInventoryModal} onOpen={handleOpenInventoryModal}>
+        <Modal open={openNewInventoryModal}>
           <Box
             position="absolute"
             top="50%"
@@ -751,7 +751,7 @@ export default function Inventory() {
         </Modal>
 
         {/* Modal for adding new items */}
-        <Modal open={openAddItemModal} onOpen={handleOpenItemModal}>
+        <Modal open={openAddItemModal}>
           <Stack
             position="absolute"
             top="50%"
@@ -788,7 +788,7 @@ export default function Inventory() {
               }}
             />
             <Typography variant="h5" textAlign="center">
-              Add To Shopping List
+              Add New Item
             </Typography>
             <TextField
             size="small"
@@ -909,14 +909,14 @@ export default function Inventory() {
               sx={{ bgcolor: "white", width: "80%" }}
             />
 
-            <Box onClick={addItem} display="flex" justifyContent="center" width="30%">
-              <DarkButton fullWidth>Add</DarkButton>
+            <Box onClick={addItem}>
+              <DarkButton>Add New Item</DarkButton>
             </Box>
           </Stack>
         </Modal>
 
         {/* Modal for adding needed items */}
-        <Modal open={openNeededItemModal} onOpen={handleOpenNeededItemModal}>
+        <Modal open={openNeededItemModal}>
           <Box
             position="absolute"
             top="50%"
@@ -1099,7 +1099,7 @@ export default function Inventory() {
             <Grid item xs={12} md={6}>
               <Stack
                 direction="column"
-                justifyContent="space-between"
+                justifyContent="space-around"
                 alignItems="center"
                 height="100%"
                 bgcolor={green_dark}
@@ -1174,26 +1174,14 @@ export default function Inventory() {
                   spacing={2}
                   justifyContent="center"
                 >
-                  <Box
-                    onClick={(e) => {
-                      handleOpenInventoryModal();
-                    }}
-                  >
+                  <Box onClick={(e) => {handleOpenInventoryModal();}}>
                     <DarkButton>Create Inventory</DarkButton>
                   </Box>
-                  <Box
-                    onClick={(e) => {
-                      handleOpenItemModal();
-                    }}
-                  >
+                  <Box onClick={(e) => {handleOpenItemModal();}}>
                     <DarkButton>Add Item</DarkButton>
                   </Box>
-                  <Box
-                    onClick={(e) => {
-                      handleOpenNeededItemModal();
-                    }}
-                  >
-                    <DarkButton>Add Needed Item</DarkButton>
+                  <Box onClick={(e) => {handleOpenNeededItemModal();}}>
+                    <DarkButton>Add To Shopping List</DarkButton>
                   </Box>
                 </Stack>
               </Box>
@@ -1203,7 +1191,7 @@ export default function Inventory() {
       </Stack>
 
       {/* Modal for adding new members */}
-      <Modal open={openMemberModal} onOpen={handleOpenMemberModal}>
+      <Modal open={openMemberModal}>
         <Box
           position="absolute"
           top="50%"
