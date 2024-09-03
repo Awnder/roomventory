@@ -884,11 +884,10 @@ export default function Inventory() {
             >
               <Typography color="black" width="40%">Select Inventory:</Typography>
               <Box bgcolor="white" color="black" width="60%">
-                <FormControl fullWidth>
+                <FormControl fullWidth InputLabelProps={{shrink: false}}>
                   <Select
                     size="small"
                     value={selectedInventory}
-                    label="Inventory"
                     sx={{ color: "black" }}
                     onChange={(e) => setSelectedInventory(e.target.value)}
                   >
@@ -1156,7 +1155,7 @@ export default function Inventory() {
                 >
                   <TextField
                     fullWidth
-                    label="Search"
+                    label="Search Inventory"
                     value={search}
                     onChange={(e) => setSearch(e.target.value)}
                     InputProps={{
@@ -1245,6 +1244,7 @@ export default function Inventory() {
               inputRef={textInput}
               value={email}
               onChange={(e) => setEmail(e.target.value)}
+              sx={{ bgcolor: "white" }}
             />
             <Box
               onClick={(e) => {
@@ -1269,9 +1269,46 @@ export default function Inventory() {
           justifyContent={"center"}
           alignItems="center"
         >
+          {neededItems}
           {filteredInventories.map((inventory) => (
             <Grid item key={inventory.name} xs={12} sm={12} md={12} lg={6} xl={6}>
-              <Accordion>
+              <Box
+                height="100%"
+                display="flex"
+                justifyContent="center"
+                alignItems="center"
+                borderRadius={"15px"}
+                minHeight="200px"
+                bgcolor={green_light}
+                color={green_dark}
+                boxShadow="0 0 5px black"
+                border={`2px solid ${green_dark}`}
+                // onClick={() => handleInventoryClick(inventory.name)}
+                sx={{
+                  transition: "500ms",
+                  "&:hover": {
+                    transform: "scale(1.02)",
+                    bgcolor: `${green_dark}`,
+                    color: `${green_white}`,
+                    cursor: "pointer"
+                  },
+                }}
+              >
+                <Typography
+                  variant="h6"
+                  maxHeight="100%"
+                  width="90%"
+                  overflow="auto"
+                  textAlign="center"
+                  sx={{ overflowWrap: "break-word", '&:hover': { cursor: "pointer" }}}
+                >
+                  {inventory.name}
+                </Typography>
+              </Box>
+            </Grid>
+          ))}
+        </Grid>
+        {/* <Accordion>
                 <AccordionSummary
                   expandIcon={<ArrowDropDownIcon />}
                   aria-controls="index number"
@@ -1282,7 +1319,7 @@ export default function Inventory() {
                     textOverflow: "ellipsis",
                   }}
                 >
-                  {/* You can use inventory.name*/}
+                  // You can use inventory.name
                   <Typography
                     color="black"
                     textAlign="center"
@@ -1294,7 +1331,7 @@ export default function Inventory() {
                 </AccordionSummary>
                 <AccordionDetails>
                   <Stack direction="column">
-                    {/* below is an inventory item */}
+                     below is an inventory item 
                     <Stack
                       direction="row"
                       justifyContent="space-between"
@@ -1323,7 +1360,7 @@ export default function Inventory() {
                         },
                       }}
                     >
-                      {/* You can use groupMembers here*/}
+                      {/* You can use groupMembers here
                       <Stack direction="column" zIndex={2}>
                         <Chip
                           label="Andrew"
@@ -1347,7 +1384,7 @@ export default function Inventory() {
                         />
                       </Stack>
                       <Box zIndex={2}>
-                        {/* You can use inventory.items.name here*/}
+                        {/* You can use inventory.items.name here
                         <Typography
                           sx={{
                             display: { xs: "block", sm: "inline" },
@@ -1356,7 +1393,7 @@ export default function Inventory() {
                         >
                           Name of item
                         </Typography>
-                        {/* You can use inventory.items.quantity here*/}
+                        {/* You can use inventory.items.quantity here
                         <Typography
                           sx={{
                             display: { xs: "block", sm: "inline" },
@@ -1368,7 +1405,7 @@ export default function Inventory() {
                       </Box>
                       <Box zIndex={2}>
                         <TooltipIcon title="Delete" placement="top">
-                          {/* You can use deleteItem here (probably pass item.name as parameter)*/}
+                          {/* You can use deleteItem here (probably pass item.name as parameter)
                           <DeleteOutlineIcon />
                         </TooltipIcon>
                         <TooltipIcon title="-1" placement="top">
@@ -1381,18 +1418,7 @@ export default function Inventory() {
                     </Stack>
                   </Stack>
                 </AccordionDetails>
-              </Accordion>
-            </Grid>
-          ))}
-        </Grid>
-        {/* <Box>
-          <TextField
-            label="input"
-            value={itemName}
-            onChange={(e) => setItemName(e.target.value)}
-          />
-          <Button onClick={() => {addItem}}>Test Function</Button>
-        </Box> */}
+              </Accordion> */}
       </Box>
     </Stack>
   );
