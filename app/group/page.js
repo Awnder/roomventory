@@ -1657,7 +1657,7 @@ export default function Inventory() {
           <Box width="80%" maxWidth="lg"> 
             <Grid container flexGrow={1} spacing={2} diplay="flex" justifyContent="center">
               {items.length ? items.map((item) => {
-                <Grid item key={item.name} xs={12} md={12} lg={6} border="2px solid red">
+                <Grid item key={item.name} xs={12} md={12} lg={6}>
                   <Stack
                     direction="row"
                     justifyContent="space-between"
@@ -1692,25 +1692,47 @@ export default function Inventory() {
                       ))}
                     </Stack>
                     <Box zIndex={2}>
-                      {/* {/* You can use inventory.items.name here */}
                       <Typography
                         sx={{
                           display: { xs: "block", sm: "inline" },
                           pr: { xs: 0, sm: 2, md: 3, lg: 3, xl: 4 },
                         }}
                       >
-                        Name of item
+                        {item.name}
                       </Typography>
-                      {/* {/* You can use inventory.items.quantity here */}
                       <Typography
                         sx={{
                           display: { xs: "block", sm: "inline" },
                           pl: { xs: 0, sm: 2, md: 3, lg: 3, xl: 4 },
                         }}
                       >
-                        # of item
+                        {item.quantity} {item.unit}
                       </Typography>
                     </Box>
+                    <Typography zIndex={2}>
+                      {item.price}
+                    </Typography>
+                    <Box zIndex={2}>
+                      <Typography
+                        sx={{
+                          display: { xs: "block", sm: "inline" },
+                          pr: { xs: 0, sm: 2, md: 3, lg: 3, xl: 4 },
+                        }}
+                      >
+                        {item.isPerishable ? "Perishable" : "Not Perishable"}
+                      </Typography>
+                      <Typography
+                        sx={{
+                          display: { xs: "block", sm: "inline" },
+                          pl: { xs: 0, sm: 2, md: 3, lg: 3, xl: 4 },
+                        }}
+                      >
+                        {item.expiryDate}
+                      </Typography>
+                    </Box>
+                    <Typography zIndex={2}>
+                      {item.notes}
+                    </Typography>
                     <Box zIndex={2}>
                       <TooltipIcon title="Delete" placement="top">
                         <Box onClick={(inventoryNameForDisplay) => deleteItem(inventoryNameForDisplay)}>
