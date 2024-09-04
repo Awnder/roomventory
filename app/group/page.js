@@ -137,6 +137,7 @@ export default function Inventory() {
   const handleOpenNeededItemModal = () => setOpenNeededItemModal(true);
   const handleCloseNeededItemModal = () => setOpenNeededItemModal(false);
   const handleOpenInventoryModal = (inventoryName) => {
+    fetchItemsFromInventory(inventoryName);
     setInventoryNameForDisplay(inventoryName);
     setOpenInventoryModal(true);
   };
@@ -569,12 +570,12 @@ export default function Inventory() {
   ]);
 
   //function to delete an item from the inventory (1 READ, 1 WRITE operation)
-  const deleteItem = useCallback(async () => {
+  const deleteItem = useCallback(async (selectedInventory) => {
     console.log("deleting item");
     const groupRef = doc(collection(db, "groups"), groupID);
     const inventoryCollection = collection(groupRef, "inventories");
 
-    const inventoryRef = doc(inventoryCollection, exampleInventory); //inventory should be dynamically selected
+    const inventoryRef = doc(inventoryCollection, selectedInventory); //inventory should be dynamically selected
 
     //READ
     const inventorySnap = await getDoc(inventoryRef);
@@ -652,6 +653,24 @@ export default function Inventory() {
       });
 
       fetchInventories();
+    }
+  }, []);
+
+  const fetchItemsFromInventory = useCallback(async (selectedInventory) => {
+    const groupRef = doc(collection(db, "groups"), groupID);
+
+    const inventoryCollection = collection(groupRef, "inventories");
+
+    const inventoryRef = doc(inventoryCollection, selectedInventory);
+
+    //READ
+    const inventorySnap = await getDoc(inventoryRef);
+
+    if (!inventorySnap.exists()) {
+      alert("Inventory does not exist");
+      return;
+    } else {
+      setItems(inventorySnap.data().items);
     }
   }, []);
 
@@ -1596,16 +1615,17 @@ export default function Inventory() {
         </Grid>
       </Box>
 
-      {/* Modal that display's inventory items */}
+      {/* Modal that displays inventory items */}
       <Modal open={openInventoryModal}>
         <Box
           position="absolute"
           top="50%"
           left="50%"
-          width="80%"
-          maxWidth="md"
+          width="90%"
+          maxWidth="lg"
           bgcolor={green_light}
           border="2px solid #000"
+          borderRadius="20px"
           p={2}
           display="flex"
           flexDirection="column"
@@ -1634,6 +1654,81 @@ export default function Inventory() {
             }}
           />
           <Typography>{inventoryNameForDisplay}</Typography>
+          <Box width="80%" maxWidth="lg"> 
+            <Grid container flexGrow={1} spacing={2} diplay="flex" justifyContent="center">
+              {items.length ? items.map((item) => {
+                <Grid item key={item.name} xs={12} md={12} lg={6} border="2px solid red">
+                  <Stack
+                    direction="row"
+                    justifyContent="space-between"
+                    alignItems="center"
+                    borderRadius="15px"
+                    position="relative"
+                    mb={2}
+                    sx={{
+                      background: `linear-gradient(to bottom, ${green_light}, #fff)`,
+                      "&::before": {
+                        position: "absolute",
+                        content: "''",
+                        top: 0,
+                        right: 0,
+                        bottom: 0,
+                        left: 0,
+                        background: `linear-gradient(to bottom, #fff, ${green_light})`,
+                        transition: "opacity 200ms linear",
+                        opacity: 0,
+                        borderRadius: "15px",
+                      },
+                      "&:hover::before": {
+                        opacity: 1,
+                        zIndex: 1,
+                        borderRadius: "15px",
+                      },
+                    }}
+                  >
+                    <Stack direction="column" zIndex={2}>
+                      {groupMembers.map((member) => (
+                        <Chip key={member.name} label={member.name} variant="outlined" />
+                      ))}
+                    </Stack>
+                    <Box zIndex={2}>
+                      {/* {/* You can use inventory.items.name here */}
+                      <Typography
+                        sx={{
+                          display: { xs: "block", sm: "inline" },
+                          pr: { xs: 0, sm: 2, md: 3, lg: 3, xl: 4 },
+                        }}
+                      >
+                        Name of item
+                      </Typography>
+                      {/* {/* You can use inventory.items.quantity here */}
+                      <Typography
+                        sx={{
+                          display: { xs: "block", sm: "inline" },
+                          pl: { xs: 0, sm: 2, md: 3, lg: 3, xl: 4 },
+                        }}
+                      >
+                        # of item
+                      </Typography>
+                    </Box>
+                    <Box zIndex={2}>
+                      <TooltipIcon title="Delete" placement="top">
+                        <Box onClick={(inventoryNameForDisplay) => deleteItem(inventoryNameForDisplay)}>
+                          <DeleteOutlineIcon />
+                        </Box>
+                      </TooltipIcon>
+                      <TooltipIcon title="-1" placement="top">
+                        <RemoveIcon sx={{ mx: { xs: 1 } }} />
+                      </TooltipIcon>
+                      <TooltipIcon title="+1" placement="top">
+                        <AddIcon sx={{ mr: 1 }} />
+                      </TooltipIcon>
+                    </Box>
+                  </Stack>
+                </Grid>
+              }) : <Typography textAlign="center">No Items Here</Typography>}
+            </Grid>
+          </Box>
         </Box>
       </Modal>
 
