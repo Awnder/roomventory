@@ -73,7 +73,7 @@ export default function Inventory() {
   // States for handling functions
   //search function
   const [search, setSearch] = useState("");
-  // 
+  //
   const [inventoryName, setInventoryName] = useState("");
   const [items, setItems] = useState([]);
   const [neededItems, setNeededItems] = useState([]);
@@ -101,7 +101,8 @@ export default function Inventory() {
   const [openAddItemModal, setOpenAddItemModal] = useState(false);
   const [openNeededItemModal, setOpenNeededItemModal] = useState(false);
   const [openInventoryModal, setOpenInventoryModal] = useState(false);
-  const [openDeleteInventoryModal, setOpenDeleteInventoryModal] = useState(false);
+  const [openDeleteInventoryModal, setOpenDeleteInventoryModal] =
+    useState(false);
 
   //Modals open/close
   const handleOpenMemberModal = () => setOpenMemberModal(true);
@@ -322,29 +323,32 @@ export default function Inventory() {
   }, [inventoryName]);
 
   //function to delete an inventory in a group from the database (1 READ, 1 DELETE operation)
-  const deleteInventory = useCallback(async (inventoryName) => {
-    console.log("deleting inventory");
-    try {
-      const groupRef = doc(collection(db, "groups"), groupName);
-      const inventoryCollection = collection(groupRef, "inventories");
+  const deleteInventory = useCallback(
+    async (inventoryName) => {
+      console.log("deleting inventory");
+      try {
+        const groupRef = doc(collection(db, "groups"), groupName);
+        const inventoryCollection = collection(groupRef, "inventories");
 
-      const inventoryRef = doc(inventoryCollection, inventoryName); //inventory should be dynamically selected
+        const inventoryRef = doc(inventoryCollection, inventoryName); //inventory should be dynamically selected
 
-      //READ
-      const inventorySnap = await getDoc(inventoryRef);
+        //READ
+        const inventorySnap = await getDoc(inventoryRef);
 
-      if (inventorySnap.exists()) {
-        //DELETE
-        await deleteDoc(inventoryRef);
-      } else {
-        alert("Inventory does not exist");
+        if (inventorySnap.exists()) {
+          //DELETE
+          await deleteDoc(inventoryRef);
+        } else {
+          alert("Inventory does not exist");
+        }
+      } catch (error) {
+        console.error("Error deleting inventory:", error);
       }
-    } catch (error) {
-      console.error("Error deleting inventory:", error);
-    }
-    fetchInventories();
-    setInventoryName("");
-  }, [inventoryName]);
+      fetchInventories();
+      setInventoryName("");
+    },
+    [inventoryName]
+  );
 
   /****************************************************** Expense Tracking ******************************************************/
 
@@ -429,8 +433,8 @@ export default function Inventory() {
         addedBy: userName, // automatically set to the user's full name
         Category: category, // allow user to adjust category (default to null)
         expiryDate: expiryDate, // allow  user to adjust expiry date (default to null)
-        dateAdded: Date.now(), // default to time now
-        lastUpdated: Date.now(), // default to date added
+        dateAdded: new Date(), // default to time now
+        lastUpdated: new Date(), // default to date added
         isPerishable: isPerishable, // allow user to adjust (default to false)
         minimumQuantity: 0, // allow user to specify (default to 0)
         notes: notes, // allow user to add notes (default to empty string)
@@ -454,7 +458,17 @@ export default function Inventory() {
     setIsPerishable(false);
     setNotes("");
     handleCloseItemModal(false);
-  }, [selectedInventory, itemName, quantity, unit, category, expiryDate, isPerishable, notes, price]);
+  }, [
+    selectedInventory,
+    itemName,
+    quantity,
+    unit,
+    category,
+    expiryDate,
+    isPerishable,
+    notes,
+    price,
+  ]);
 
   //function to delete an item from the inventory (1 READ, 1 WRITE operation)
   const deleteItem = useCallback(async () => {
@@ -552,8 +566,9 @@ export default function Inventory() {
     const groupRef = doc(collection(db, "groups"), groupName);
     const inventoryCollection = collection(groupRef, "inventories");
 
-    const inventoryRef = doc(inventoryCollection, exampleInventory); //inventory should be dynamically selected
-
+    console.log("selectedInventory", selectedInventory);
+    const inventoryRef = doc(inventoryCollection, selectedInventory); //inventory should be dynamically selected
+    console.log("inventoryRef", inventoryRef);
     //READ
     const inventorySnap = await getDoc(inventoryRef);
 
@@ -585,7 +600,15 @@ export default function Inventory() {
       fetchInventories();
     }
     setItemName("");
-  }, []);
+  }, [
+    selectedInventory,
+    itemName,
+    quantity,
+    unit,
+    priority,
+    assignedRoommate,
+    notes,
+  ]);
 
   /****************************************************** Use Effects ******************************************************/
 
@@ -661,9 +684,11 @@ export default function Inventory() {
   // Filtering inventories based on search term
   useEffect(() => {
     console.log("Filtering groups");
-    setFilteredInventories(inventories.filter(inventory =>
-      inventory.name.toLowerCase().includes(search.toLowerCase())
-    ));
+    setFilteredInventories(
+      inventories.filter((inventory) =>
+        inventory.name.toLowerCase().includes(search.toLowerCase())
+      )
+    );
   }, [search, inventories]);
 
   return (
@@ -810,7 +835,7 @@ export default function Inventory() {
               Add New Item
             </Typography>
             <TextField
-            size="small"
+              size="small"
               placeholder="Name"
               fullWidth
               value={itemName}
@@ -834,9 +859,7 @@ export default function Inventory() {
                 onChange={(e) => setQuantity(e.target.value)}
                 sx={{ bgcolor: "white", width: "50%" }}
               />
-              <Typography textAlign="center">
-                X
-              </Typography>
+              <Typography textAlign="center">X</Typography>
               <TextField
                 size="small"
                 placeholder="Unit"
@@ -847,8 +870,15 @@ export default function Inventory() {
                 sx={{ bgcolor: "white", width: "50%" }}
               />
             </Stack>
-            <Stack direction="row" justifyContent="center" alignItems="center" width="80%">
-              <Typography color="black" mr={1} width="20%">Price:</Typography>
+            <Stack
+              direction="row"
+              justifyContent="center"
+              alignItems="center"
+              width="80%"
+            >
+              <Typography color="black" mr={1} width="20%">
+                Price:
+              </Typography>
               <TextField
                 size="small"
                 border="1px solid black"
@@ -864,7 +894,14 @@ export default function Inventory() {
               />
             </Stack>
             <Stack direction="row" spacing={2} alignItems="center" width="80%">
-              <FormControl sx={{ display: "flex", flexDirection: "row", justifyContent: "center", alignItems: "center" }}>
+              <FormControl
+                sx={{
+                  display: "flex",
+                  flexDirection: "row",
+                  justifyContent: "center",
+                  alignItems: "center",
+                }}
+              >
                 <FormLabel sx={{ textAlign: "center" }}>Perishable?</FormLabel>
                 <RadioGroup
                   defaultValue="No"
@@ -901,7 +938,9 @@ export default function Inventory() {
               justifyContent="center"
               width="80%"
             >
-              <Typography color="black" width="40%">Select Inventory:</Typography>
+              <Typography color="black" width="40%">
+                Select Inventory:
+              </Typography>
               <Box bgcolor="white" color="black" width="60%">
                 <FormControl fullWidth>
                   <Select
@@ -927,7 +966,11 @@ export default function Inventory() {
               sx={{ bgcolor: "white", width: "80%" }}
             />
 
-            <Box onClick={() => {addItem}}>
+            <Box
+              onClick={() => {
+                addItem();
+              }}
+            >
               <DarkButton>Add New Item</DarkButton>
             </Box>
           </Stack>
@@ -954,7 +997,7 @@ export default function Inventory() {
               transform: "translate(-50%,-50%)",
             }}
           >
-             <CloseIcon
+            <CloseIcon
               sx={{
                 position: "absolute",
                 top: 5,
@@ -974,7 +1017,7 @@ export default function Inventory() {
             <Typography variant="h5" textAlign="center">
               Add to Shopping List
             </Typography>
-            
+
             <TextField
               size="small"
               placeholder="Name"
@@ -1013,27 +1056,7 @@ export default function Inventory() {
                 sx={{ bgcolor: "white", width: "50%" }}
               />
             </Stack>
-            <Stack
-              direction="row"
-              spacing={2}
-              alignItems="center"
-              width="80%"
-            >
-              <Typography color="black" mr={1}>Price:</Typography>
-              <TextField
-                size="small"
-                border="1px solid black"
-                inputMode="decimal"
-                value={price}
-                onChange={(e) => setPrice(e.target.value)}
-                InputProps={{
-                  startAdornment: (
-                    <InputAdornment sx={{ mr: 1 }}>$</InputAdornment>
-                  ),
-                }}
-                sx={{ bgcolor: "white", width: "60%" }}
-              />
-
+            <Stack direction="row" spacing={2} alignItems="center" width="80%">
               <Stack direction="row" alignItems="center">
                 <Typography color="black" textAlign="center" mx={1}>
                   Priority:
@@ -1053,11 +1076,7 @@ export default function Inventory() {
                 </Box>
               </Stack>
             </Stack>
-            <Stack
-              direction="row"
-              alignItems="center"
-              width="80%"
-            >
+            <Stack direction="row" alignItems="center" width="80%">
               <Typography width="30%">Select Inventory:</Typography>
               <Box bgcolor="white" color="black" width="70%">
                 <FormControl fullWidth>
@@ -1075,11 +1094,7 @@ export default function Inventory() {
                 </FormControl>
               </Box>
             </Stack>
-            <Stack
-              direction="row"
-              alignItems="center"
-              width="80%"
-            >
+            <Stack direction="row" alignItems="center" width="80%">
               <Typography width="30%">Assign To:</Typography>
               <Box bgcolor="white" color="black" width="70%">
                 <FormControl fullWidth>
@@ -1090,7 +1105,9 @@ export default function Inventory() {
                     onChange={(e) => setAssignedRoommate(e.target.value)}
                   >
                     {groupMembers.map((member) => (
-                      <MenuItem key={member.name} value={member.name}>{member.name}</MenuItem>
+                      <MenuItem key={member.name} value={member.name}>
+                        {member.name}
+                      </MenuItem>
                     ))}
                   </Select>
                 </FormControl>
@@ -1105,7 +1122,14 @@ export default function Inventory() {
                 onChange={(e) => setNotes(e.target.value)}
               />
             </Box>
-            <Box onClick={addNeededItem} display="flex" justifyContent="center" width="30%">
+            <Box
+              onClick={() => {
+                addNeededItem();
+              }}
+              display="flex"
+              justifyContent="center"
+              width="30%"
+            >
               <DarkButton>Add to List</DarkButton>
             </Box>
           </Box>
@@ -1135,7 +1159,11 @@ export default function Inventory() {
                 </Typography>
                 <Stack direction="column" spacing={2}>
                   {groupMembers.map((member) => (
-                    <Typography key={member.name} textAlign="center" color="white">
+                    <Typography
+                      key={member.name}
+                      textAlign="center"
+                      color="white"
+                    >
                       {member.name}
                     </Typography>
                   ))}
@@ -1192,13 +1220,25 @@ export default function Inventory() {
                   spacing={2}
                   justifyContent="center"
                 >
-                  <Box onClick={(e) => {handleOpenNewInventoryModal();}}>
+                  <Box
+                    onClick={(e) => {
+                      handleOpenNewInventoryModal();
+                    }}
+                  >
                     <DarkButton>Create Inventory</DarkButton>
                   </Box>
-                  <Box onClick={(e) => {handleOpenItemModal();}}>
+                  <Box
+                    onClick={(e) => {
+                      handleOpenItemModal();
+                    }}
+                  >
                     <DarkButton>Add Item</DarkButton>
                   </Box>
-                  <Box onClick={(e) => {handleOpenNeededItemModal();}}>
+                  <Box
+                    onClick={(e) => {
+                      handleOpenNeededItemModal();
+                    }}
+                  >
                     <DarkButton>Add To Shopping List</DarkButton>
                   </Box>
                 </Stack>
@@ -1249,7 +1289,12 @@ export default function Inventory() {
           </Typography>
           <Stack direction="column" spacing={1}>
             {groupMembers.map((member) => (
-              <Stack key={member.name} direction="row" spacing={1} alignItems="center">
+              <Stack
+                key={member.name}
+                direction="row"
+                spacing={1}
+                alignItems="center"
+              >
                 <Chip label={member.name} variant="filled" />
                 <TooltipIcon title="Remove" placement="top">
                   <DeleteOutlineIcon />
@@ -1281,11 +1326,7 @@ export default function Inventory() {
 
       {/* Inventory Area */}
       <Box width="80%" maxWidth="lg" flexGrow={1}>
-        <Grid
-          container
-          spacing={2}
-          mb={8}
-        >
+        <Grid container spacing={2} mb={8}>
           {filteredInventories.map((inventory) => (
             <Grid item key={inventory.name} xs={12} sm={6} md={4}>
               <Box
@@ -1300,7 +1341,9 @@ export default function Inventory() {
                 color={green_dark}
                 boxShadow="0 0 5px black"
                 border={`2px solid ${green_dark}`}
-                onClick={(event) => {handleOpenInventoryModal(inventory.name); }}
+                onClick={(event) => {
+                  handleOpenInventoryModal(inventory.name);
+                }}
                 sx={{
                   transition: "500ms",
                   "&:hover": {
@@ -1340,11 +1383,13 @@ export default function Inventory() {
                   width="90%"
                   overflow="auto"
                   textAlign="center"
-                  sx={{ overflowWrap: "break-word", '&:hover': { cursor: "pointer" }}}
+                  sx={{
+                    overflowWrap: "break-word",
+                    "&:hover": { cursor: "pointer" },
+                  }}
                 >
                   {inventory.name}
                 </Typography>
-                
               </Box>
             </Grid>
           ))}
@@ -1391,7 +1436,7 @@ export default function Inventory() {
           <Typography>{inventoryNameForDisplay}</Typography>
         </Box>
       </Modal>
-      
+
       {/* Modal for Inventory Deletion */}
       <Modal open={openDeleteInventoryModal}>
         <Box
@@ -1409,8 +1454,8 @@ export default function Inventory() {
           gap={3}
           sx={{
             transform: "translate(-50%,-50%)",
-            width: {xs: "80%", sm: "60%"},
-            maxWidth: "md"
+            width: { xs: "80%", sm: "60%" },
+            maxWidth: "md",
           }}
         >
           <CloseIcon
@@ -1430,15 +1475,24 @@ export default function Inventory() {
               setOpenDeleteInventoryModal(false);
             }}
           />
-          <Typography variant="h4" width="80%" textAlign="center">Inventory Deletion</Typography>
-          <Typography width="80%" textAlign="center">Are you sure you want to delete {inventoryNameForDeletion} and all its contents?</Typography>
-          <Box onClick={() => handleCloseDeleteInventoryModal(inventoryNameForDeletion)}>
+          <Typography variant="h4" width="80%" textAlign="center">
+            Inventory Deletion
+          </Typography>
+          <Typography width="80%" textAlign="center">
+            Are you sure you want to delete {inventoryNameForDeletion} and all
+            its contents?
+          </Typography>
+          <Box
+            onClick={() =>
+              handleCloseDeleteInventoryModal(inventoryNameForDeletion)
+            }
+          >
             <DarkButton>Delete</DarkButton>
           </Box>
         </Box>
       </Modal>
 
-        {/* <Accordion>
+      {/* <Accordion>
                 <AccordionSummary
                   expandIcon={<ArrowDropDownIcon />}
                   aria-controls="index number"
