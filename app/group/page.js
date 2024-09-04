@@ -118,8 +118,7 @@ export default function Inventory() {
     setInventoryNameForDeletion(inventoryName);
     setOpenDeleteInventoryModal(true);
   };
-  const handleCloseDeleteInventoryModal = () => setOpenDeleteInventoryModal(false);
-  const handleCloseDeleteInventoryModalDelete = (inventoryName) => {
+  const handleCloseDeleteInventoryModal = (inventoryName) => {
     setOpenDeleteInventoryModal(false);
     deleteInventory(inventoryName);
   };
@@ -1383,12 +1382,12 @@ export default function Inventory() {
               },
             }}
             onClick={() => {
-              handleCloseDeleteInventoryModal();
+              setOpenDeleteInventoryModal(false);
             }}
           />
           <Typography variant="h4" width="80%" textAlign="center">Inventory Deletion</Typography>
           <Typography width="80%" textAlign="center">Are you sure you want to delete {inventoryNameForDeletion} and all its contents?</Typography>
-          <Box onClick={() => handleCloseDeleteInventoryModalDelete(inventoryNameForDeletion)}>
+          <Box onClick={() => handleCloseDeleteInventoryModal(inventoryNameForDeletion)}>
             <DarkButton>Delete</DarkButton>
           </Box>
         </Box>
