@@ -71,7 +71,9 @@ export default function Inventory() {
   const [isLeader, setIsLeader] = useState(false);
 
   // States for handling functions
+  //search function
   const [search, setSearch] = useState("");
+  // 
   const [inventoryName, setInventoryName] = useState("");
   const [items, setItems] = useState([]);
   const [neededItems, setNeededItems] = useState([]);
@@ -84,9 +86,9 @@ export default function Inventory() {
   // Item Metadata
   const [selectedInventory, setSelectedInventory] = useState("");
   const [quantity, setQuantity] = useState(1);
-  const [unit, setUnit] = useState(null);
-  const [category, setCategory] = useState(null);
-  const [expiryDate, setExpiryDate] = useState(null);
+  const [unit, setUnit] = useState("");
+  const [category, setCategory] = useState("");
+  const [expiryDate, setExpiryDate] = useState("");
   const [isPerishable, setIsPerishable] = useState(false);
   const [notes, setNotes] = useState("");
   const [price, setPrice] = useState(0.0);
@@ -407,7 +409,7 @@ export default function Inventory() {
 
     const inventoryCollection = collection(groupRef, "inventories");
 
-    const inventoryRef = doc(inventoryCollection, exampleInventory); //inventory should be dynamically selected
+    const inventoryRef = doc(inventoryCollection, selectedInventory); //inventory should be dynamically selected
 
     //READ
     const inventorySnap = await getDoc(inventoryRef);
@@ -452,7 +454,7 @@ export default function Inventory() {
     setIsPerishable(false);
     setNotes("");
     handleCloseItemModal(false);
-  }, []);
+  }, [selectedInventory, itemName, quantity, unit, category, expiryDate, isPerishable, notes, price]);
 
   //function to delete an item from the inventory (1 READ, 1 WRITE operation)
   const deleteItem = useCallback(async () => {
@@ -901,7 +903,7 @@ export default function Inventory() {
             >
               <Typography color="black" width="40%">Select Inventory:</Typography>
               <Box bgcolor="white" color="black" width="60%">
-                <FormControl fullWidth InputLabelProps={{shrink: false}}>
+                <FormControl fullWidth>
                   <Select
                     size="small"
                     value={selectedInventory}
@@ -925,7 +927,7 @@ export default function Inventory() {
               sx={{ bgcolor: "white", width: "80%" }}
             />
 
-            <Box onClick={addItem}>
+            <Box onClick={() => {addItem}}>
               <DarkButton>Add New Item</DarkButton>
             </Box>
           </Stack>
@@ -1037,7 +1039,7 @@ export default function Inventory() {
                   Priority:
                 </Typography>
                 <Box bgcolor="white" width="60%">
-                  <FormControl fullWidth InputLabelProps={{shrink: false}}>
+                  <FormControl fullWidth>
                     <Select
                       size="small"
                       value={priority}
@@ -1058,7 +1060,7 @@ export default function Inventory() {
             >
               <Typography width="30%">Select Inventory:</Typography>
               <Box bgcolor="white" color="black" width="70%">
-                <FormControl fullWidth InputLabelProps={{shrink: false}}>
+                <FormControl fullWidth>
                   <Select
                     size="small"
                     value={selectedInventory}
@@ -1080,7 +1082,7 @@ export default function Inventory() {
             >
               <Typography width="30%">Assign To:</Typography>
               <Box bgcolor="white" color="black" width="70%">
-                <FormControl fullWidth InputLabelProps={{shrink: false}}>
+                <FormControl fullWidth>
                   <Select
                     size="small"
                     value={assignedRoommate}
@@ -1298,7 +1300,7 @@ export default function Inventory() {
                 color={green_dark}
                 boxShadow="0 0 5px black"
                 border={`2px solid ${green_dark}`}
-                onClick={(e) => {handleOpenInventoryModal(inventory.name); e.stopPropagation();}}
+                onClick={(event) => {handleOpenInventoryModal(inventory.name); }}
                 sx={{
                   transition: "500ms",
                   "&:hover": {
@@ -1327,8 +1329,9 @@ export default function Inventory() {
                       transform: "rotate(180deg) scale(1.05)",
                     },
                   }}
-                  onClick={() => {
+                  onClick={(event) => {
                     handleOpenDeleteInventoryModal(inventory.name);
+                    event.stopPropagation();
                   }}
                 />
                 <Typography
