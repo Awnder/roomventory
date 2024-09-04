@@ -862,10 +862,6 @@ export default function Inventory() {
     }
   }, [user, groupName, groupID]);
 
-  useEffect(() => {
-    console.log("groupMembers from useeffet", groupMembers);
-  }, [groupMembers]);
-
   // Fetching group data (1 READ operation)
   useEffect(() => {
     console.log("fetching groups from UseEffect");
@@ -893,19 +889,11 @@ export default function Inventory() {
   }, [itemSearch, items]);
 
   useEffect(() => {
-    console.log("filtered items from useffect", filteredItems);
-  }, [filteredItems]);
-
-  useEffect(() => {
     console.log("setting groupID from UseEffect");
     if (user) {
       setGroupID(user.id.slice(-5) + " " + groupName);
     }
   }, [user, groupName]);
-
-  useEffect(() => {
-    console.log("groupID", groupID);
-  }, [groupID]);
 
   return (
     <Stack direction="column" alignItems="center" minHeight="100vh">
