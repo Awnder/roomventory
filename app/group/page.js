@@ -26,6 +26,7 @@ import {
   Alert,
 } from "@mui/material";
 import TooltipIcon from "../../Components/tooltipicon";
+import ShoppingCartOutlinedIcon from '@mui/icons-material/ShoppingCartOutlined';
 import PaidIcon from "@mui/icons-material/Paid";
 import DirectionsRunIcon from "@mui/icons-material/DirectionsRun";
 import SettingsIcon from "@mui/icons-material/Settings";
@@ -97,6 +98,7 @@ export default function Inventory() {
   const [inventoryNameForDisplay, setInventoryNameForDisplay] = useState("");
   const [inventoryNameForDeletion, setInventoryNameForDeletion] = useState("");
   const [kickedMember, setKickedMember] = useState("");
+  const [inventoryNameForShopping, setInventoryNameForShopping] = useState("");
 
   // Item Metadata
   const [itemName, setItemName] = useState("");
@@ -127,6 +129,7 @@ export default function Inventory() {
   const [openLeaveGroupModal, setOpenLeaveGroupModal] = useState(false);
   const [openKickMemberModal, setOpenKickMemberModal] = useState(false);
   const [openExpenseModal, setOpenExpenseModal] = useState(false);
+  const [openShoppingListModal, setOpenShoppingListModal] = useState(false);
 
   //Modals open/close
   const handleOpenMemberModal = () => setOpenMemberModal(true);
@@ -157,6 +160,8 @@ export default function Inventory() {
   const handleCloseKickMemberModal = () => setOpenKickMemberModal(false);
   const handleOpenExpenseModal = () => setOpenExpenseModal(true);
   const handleCloseExpenseModal = () => setOpenExpenseModal(false);
+  const handleOpenShoppingListModal = () => setOpenShoppingListModal(true);
+  const handleCloseShoppingListModal = () => setOpenShoppingListModal(false);
 
   //Filtered objects
   const [filteredInventories, setFilteredInventories] = useState([]);
@@ -1568,7 +1573,6 @@ export default function Inventory() {
           </Stack>
         </Box>
       </Modal>
-
       {/* Inventory Area */}
       <Box width="80%" maxWidth="lg" flexGrow={1}>
         <Grid container spacing={2} mb={8}>
@@ -1622,6 +1626,30 @@ export default function Inventory() {
                     event.stopPropagation();
                   }}
                 />
+                 <Box
+                  sx={{
+                    position: "absolute",
+                    top: 5,
+                    right: 5,
+                    fontSize: 40,
+                    color: `${green_dark}`,
+                    transition: "200ms",
+                    "&:hover": {
+                      cursor: "pointer",
+                      color: `${green_light}`,
+                      transform: "scale(1.05)",
+                    },
+                  }}
+                  onClick={(event) => {
+                    setInventoryNameForShopping(inventory.name);
+                    handleOpenShoppingListModal();
+                    event.stopPropagation();
+                  }}
+                >
+                  <DarkButton>
+                    <ShoppingCartOutlinedIcon />
+                  </DarkButton>
+                </Box>
                 <Typography
                   variant="h6"
                   maxHeight="100%"
@@ -2028,6 +2056,50 @@ export default function Inventory() {
           >
             <DarkButton>Delete</DarkButton>
           </Box>
+        </Box>
+      </Modal>
+
+      {/* Modal for showing shopping list*/}
+      <Modal open={openShoppingListModal}>
+        <Box
+          position="absolute"
+          top="50%"
+          left="50%"
+          bgcolor={green_light}
+          border="2px solid #000"
+          borderRadius="20px"
+          p={2}
+          display="flex"
+          flexDirection="column"
+          justifyContent="center"
+          alignItems="center"
+          gap={3}
+          sx={{
+            transform: "translate(-50%,-50%)",
+            width: { xs: "80%", sm: "60%" },
+            maxWidth: "md",
+          }}
+        >
+          <CloseIcon
+            sx={{
+              position: "absolute",
+              top: 5,
+              left: 5,
+              fontSize: 40,
+              color: `${green_dark}`,
+              transition: "200ms",
+              "&:hover": {
+                cursor: "pointer",
+                transform: "rotate(180deg) scale(1.05)",
+              },
+            }}
+            onClick={() => {
+              handleCloseShoppingListModal();
+            }}
+          />
+          <Typography variant="h4" width="80%" textAlign="center">
+            {inventoryNameForShopping} Shopping List
+          </Typography>
         </Box>
       </Modal>
 
