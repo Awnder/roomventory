@@ -86,6 +86,7 @@ export default function Inventory() {
   const [suggestedItems, setSuggestedItems] = useState({});
   const [inventoryNameForDisplay, setInventoryNameForDisplay] = useState("");
   const [inventoryNameForDeletion, setInventoryNameForDeletion] = useState("");
+  const [kickedMember, setKickedMember] = useState("");
 
   // Item Metadata
   const [itemName, setItemName] = useState("");
@@ -115,6 +116,7 @@ export default function Inventory() {
   const [openDeleteInventoryModal, setOpenDeleteInventoryModal] =
     useState(false);
   const [openLeaveGroupModal, setOpenLeaveGroupModal] = useState(false);
+  const [openKickMemberModal, setOpenKickMemberModal] = useState(false);
 
   //Modals open/close
   const handleOpenMemberModal = () => setOpenMemberModal(true);
@@ -140,6 +142,8 @@ export default function Inventory() {
   };
   const handleOpenLeaveGroupModal = () => setOpenLeaveGroupModal(true);
   const handleCloseLeaveGroupModal = () => setOpenLeaveGroupModal(false);
+  const handleOpenKickMemberModal = () => setOpenKickMemberModal(true);
+  const handleCloseKickMemberModal = () => setOpenKickMemberModal(false);
 
   //Filtered objects
   const [filteredInventories, setFilteredInventories] = useState([]);
@@ -193,6 +197,8 @@ export default function Inventory() {
       const newMembers = groupData.members.filter(
         (groupMember) => groupMember.name !== member
       );
+
+      console.log("newMembers", newMembers);
 
       //WRITE
       await updateDoc(groupRef, {
@@ -1384,7 +1390,9 @@ export default function Inventory() {
                 <Chip label={member.name} variant="filled" />
                 {isLeader && member.name !== userName ? (
                   <TooltipIcon title="Remove" placement="top">
+                    <Box onClick={() => {handleCloseMemberModal(); setKickedMember(member.name); handleOpenKickMemberModal();}}>
                     <DeleteOutlineIcon />
+                    </Box>
                   </TooltipIcon>
                 ) : null}
               </Stack>
@@ -1579,6 +1587,7 @@ export default function Inventory() {
           </Box>
         </Box>
       </Modal>
+
       {/* Modal for Leaving Group */}
       <Modal open={openLeaveGroupModal}>
         <Box
@@ -1631,6 +1640,61 @@ export default function Inventory() {
             }}
           >
             <DarkButton>Leave</DarkButton>
+          </Box>
+        </Box>
+      </Modal>
+
+      {/* Modal for Kicking Member */}
+      <Modal open={openKickMemberModal}>
+        <Box
+          position="absolute"
+          top="50%"
+          left="50%"
+          bgcolor={green_light}
+          border="2px solid #000"
+          borderRadius="20px"
+          p={2}
+          display="flex"
+          flexDirection="column"
+          justifyContent="center"
+          alignItems="center"
+          gap={3}
+          sx={{
+            transform: "translate(-50%,-50%)",
+            width: { xs: "80%", sm: "60%" },
+            maxWidth: "md",
+          }}
+        >
+          <CloseIcon
+            sx={{
+              position: "absolute",
+              top: 5,
+              left: 5,
+              fontSize: 40,
+              color: `${green_dark}`,
+              transition: "200ms",
+              "&:hover": {
+                cursor: "pointer",
+                transform: "rotate(180deg) scale(1.05)",
+              },
+            }}
+            onClick={() => {
+              handleCloseKickMemberModal();
+            }}
+          />
+          <Typography variant="h4" width="80%" textAlign="center">
+            We'll miss you {kickedMember} :(
+          </Typography>
+          <Typography width="80%" textAlign="center">
+            Are you sure you want to kick your best friend {kickedMember} out?
+          </Typography>
+          <Box
+            onClick={() => {
+              kickMember(kickedMember);
+              handleCloseKickMemberModal();
+            }}
+          >
+            <DarkButton>Yes</DarkButton>
           </Box>
         </Box>
       </Modal>
