@@ -1,5 +1,6 @@
 "use client";
 
+import React from "react";
 import {
   Box,
   Grid,
@@ -25,12 +26,14 @@ import {
   Alert,
 } from "@mui/material";
 import TooltipIcon from "../../Components/tooltipicon";
+import PaidIcon from "@mui/icons-material/Paid";
 import DirectionsRunIcon from "@mui/icons-material/DirectionsRun";
 import SettingsIcon from "@mui/icons-material/Settings";
 import SearchIcon from "@mui/icons-material/Search";
 import ArrowDropDownIcon from "@mui/icons-material/ArrowDropDown";
 import AddIcon from "@mui/icons-material/Add";
 import RemoveIcon from "@mui/icons-material/Remove";
+import StarsSharpIcon from "@mui/icons-material/StarsSharp";
 import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
 import CloseIcon from "@mui/icons-material/Close";
 import { DarkButton, LightButton } from "../../Components/styledbuttons";
@@ -66,6 +69,12 @@ export default function Inventory() {
 
   const { isLoaded, isSignedIn, user } = useUser();
   const router = useRouter();
+
+  //Group Members Info
+  const [expandedMember, setExpandedMember] = useState({
+    expanded: false,
+    name: "",
+  });
 
   //Group ID
   const [groupID, setGroupID] = useState("");
@@ -105,7 +114,6 @@ export default function Inventory() {
   const [linksOnline, setLinksOnline] = useState([]);
   const [status, setStatus] = useState("Needed");
   const [quantityNeeded, setQuantityNeeded] = useState(1);
-  
 
   //Modals
   const [openMemberModal, setOpenMemberModal] = useState(false);
@@ -117,6 +125,7 @@ export default function Inventory() {
     useState(false);
   const [openLeaveGroupModal, setOpenLeaveGroupModal] = useState(false);
   const [openKickMemberModal, setOpenKickMemberModal] = useState(false);
+  const [openExpenseModal, setOpenExpenseModal] = useState(false);
 
   //Modals open/close
   const handleOpenMemberModal = () => setOpenMemberModal(true);
@@ -144,6 +153,8 @@ export default function Inventory() {
   const handleCloseLeaveGroupModal = () => setOpenLeaveGroupModal(false);
   const handleOpenKickMemberModal = () => setOpenKickMemberModal(true);
   const handleCloseKickMemberModal = () => setOpenKickMemberModal(false);
+  const handleOpenExpenseModal = () => setOpenExpenseModal(true);
+  const handleCloseExpenseModal = () => setOpenExpenseModal(false);
 
   //Filtered objects
   const [filteredInventories, setFilteredInventories] = useState([]);
@@ -198,13 +209,17 @@ export default function Inventory() {
         (groupMember) => groupMember.name !== member
       );
 
-      console.log("newMembers", newMembers);
-
       //WRITE
       await updateDoc(groupRef, {
         members: newMembers,
       });
-      setGroupMembers(newMembers);
+
+      const updatedMembers = newMembers.map((member) => ({
+        ...member, // Spread the existing member properties
+        expanded: false, // Add or update the 'expanded' field
+      }));
+
+      setGroupMembers(updatedMembers);
 
       const userRef = doc(collection(db, "users"), user.id);
       //READ
@@ -385,9 +400,7 @@ export default function Inventory() {
     async (inventoryName) => {
       console.log("deleting inventory");
       try {
-        console.log("inventoryName", inventoryName);
         const groupRef = doc(collection(db, "groups"), groupID);
-        console.log("groupRef", groupRef);
         const inventoryCollection = collection(groupRef, "inventories");
 
         const inventoryRef = doc(inventoryCollection, inventoryName); //inventory should be dynamically selected
@@ -413,40 +426,52 @@ export default function Inventory() {
   /****************************************************** Expense Tracking ******************************************************/
 
   // Function to add an expense to the group (1 READ, 1 WRITE operation)
-  const addExpense = useCallback(async (price) => {
-    /*If person bought it:
+  const addExpense = useCallback(
+    async (passedPrice) => {
+      /*If person bought it:
 	      Owe = price/#members - price
       If not:
 	      Owe = price/#members
    */
 
-    console.log("adding expense");
-    const examplePrice = 10;
-    const groupRef = doc(collection(db, "groups"), groupID);
-    //READ
-    const groupSnap = await getDoc(groupRef);
-    const members = groupSnap.data().members;
-    const newMembers = members.map((member) => {
-      return {
-        ...member,
-        owe:
-          member.owe +
-          (member.leader
-            ? examplePrice / members.length - examplePrice
-            : examplePrice / members.length),
-      };
-    });
+      console.log("price", passedPrice);
 
-    //WRITE
-    await updateDoc(groupRef, { members: newMembers });
+      console.log("adding expense");
 
-    fetchGroups();
+      const groupRef = doc(collection(db, "groups"), groupID);
 
-    setGroupMembers(newMembers);
-  }, []);
+      const newMembers = groupMembers.map((member) => {
+        return {
+          ...member,
+          owe:
+            member.owe +
+            (member.name === userName
+              ? passedPrice / groupMembers.length - passedPrice
+              : passedPrice / groupMembers.length),
+        };
+      });
+
+      //WRITE
+      await updateDoc(groupRef, { members: newMembers });
+
+      const updatedMembers = newMembers.map((member) => ({
+        ...member, // Spread the existing member properties
+        expanded: false, // Add or update the 'expanded' field
+      }));
+
+      fetchGroups();
+
+      setGroupMembers(updatedMembers);
+    },
+    [price, groupMembers]
+  );
 
   // Function to clear expenses for the group (1 READ, 1 WRITE operation)
   const clearExpenses = async () => {
+    if (!isLeader) {
+      alert("You must be the leader of the group to clear expenses!");
+    }
+
     const groupRef = doc(collection(db, "groups"), groupID);
     //READ
     const groupSnap = await getDoc(groupRef);
@@ -461,7 +486,12 @@ export default function Inventory() {
     //WRITE
     await updateDoc(groupRef, { members: newMembers });
 
-    setGroupMembers(newMembers);
+    const updatedMembers = newMembers.map((member) => ({
+      ...member, // Spread the existing member properties
+      expanded: false, // Add or update the 'expanded' field
+    }));
+
+    setGroupMembers(updatedMembers);
   };
 
   /****************************************************** Item Functions ******************************************************/
@@ -477,6 +507,15 @@ export default function Inventory() {
 
     //READ
     const inventorySnap = await getDoc(inventoryRef);
+
+    const itemExists = inventorySnap
+      .data()
+      .items.find((item) => item.name === itemName);
+
+    if (itemExists) {
+      alert("Item already exists");
+      return;
+    }
 
     if (!inventorySnap.exists()) {
       alert("Inventory does not exist");
@@ -511,6 +550,7 @@ export default function Inventory() {
     setItemName("");
     setQuantity(1);
     setSelectedInventory("");
+    setPrice(0.0);
     setUnit("");
     setExpiryDate("");
     setIsPerishable(false);
@@ -525,7 +565,7 @@ export default function Inventory() {
     isPerishable,
     notes,
     price,
-    minimumQuantity
+    minimumQuantity,
   ]);
 
   //function to delete an item from the inventory (1 READ, 1 WRITE operation)
@@ -623,9 +663,7 @@ export default function Inventory() {
     const groupRef = doc(collection(db, "groups"), groupID);
     const inventoryCollection = collection(groupRef, "inventories");
 
-    console.log("selectedInventory", selectedInventory);
     const inventoryRef = doc(inventoryCollection, selectedInventory); //inventory should be dynamically selected
-    console.log("inventoryRef", inventoryRef);
     //READ
     const inventorySnap = await getDoc(inventoryRef);
 
@@ -685,7 +723,6 @@ export default function Inventory() {
       if (!groupID) return;
 
       const inventoriesCol = collection(db, "groups", groupID, "inventories");
-      console.log("inventoriesCol", inventoriesCol);
 
       //READ
       const inventoriesSnap = await getDocs(inventoriesCol);
@@ -714,7 +751,6 @@ export default function Inventory() {
   useEffect(() => {
     console.log("fetching inventories from UseEffect");
     fetchInventories();
-    console.log("inventories", inventories);
   }, [user, groupName, groupID]);
 
   // Fetching group data (1 READ operation)
@@ -734,7 +770,15 @@ export default function Inventory() {
         );
         const leaderState = member ? member.leader : false;
         setIsLeader(leaderState);
-        setGroupMembers(groupData.members);
+
+        const newMembers = groupData.members;
+
+        const updatedMembers = newMembers.map((member) => ({
+          ...member, // Spread the existing member properties
+          expanded: false, // Add or update the 'expanded' field
+        }));
+
+        setGroupMembers(updatedMembers);
       } else {
         console.log("No such document!");
       }
@@ -743,11 +787,14 @@ export default function Inventory() {
     }
   }, [user, groupName, groupID]);
 
+  useEffect(() => {
+    console.log("groupMembers from useeffet", groupMembers);
+  }, [groupMembers]);
+
   // Fetching group data (1 READ operation)
   useEffect(() => {
     console.log("fetching groups from UseEffect");
     fetchGroups();
-    console.log("groupMembers", groupMembers);
   }, [user, groupName, groupID]);
 
   // Filtering inventories based on search term
@@ -1231,6 +1278,23 @@ export default function Inventory() {
                 position="relative"
                 py={3}
               >
+                <PaidIcon
+                  sx={{
+                    position: "absolute",
+                    top: 10,
+                    left: 10,
+                    fontSize: 40,
+                    color: `${green_light}`,
+                    transition: "200ms",
+                    "&:hover": {
+                      cursor: "pointer",
+                      transform: "rotate(180deg) scale(1.05)",
+                    },
+                  }}
+                  onClick={(e) => {
+                    handleOpenExpenseModal();
+                  }}
+                />
                 <Typography
                   variant="h4"
                   textAlign="center"
@@ -1239,15 +1303,48 @@ export default function Inventory() {
                 >
                   Roommates
                 </Typography>
-                <Stack direction="column" spacing={2}>
+                <Stack spacing={2}>
                   {groupMembers.map((member) => (
-                    <Typography
+                    <Stack
                       key={member.name}
-                      textAlign="center"
-                      color="white"
+                      direction="row"
+                      spacing={1}
+                      alignItems="center"
                     >
-                      {member.name}
-                    </Typography>
+                      <Tooltip title="press to show debt">
+                        <Typography
+                          textAlign="center"
+                          color={member.expanded ? "yellow" : "white"} // Change text color on click
+                          sx={{
+                            cursor: "pointer",
+                            "&:hover": {
+                              color: "lightblue", // Change text color on hover
+                              transform: "scale(1.05)", // Slight zoom effect on hover
+                              transition: "color 0.3s, transform 0.3s", // Smooth transition
+                            },
+                            transition: "color 0.3s", // Smooth transition for color change on click
+                          }}
+                          onClick={() => {
+                            const newMembers = groupMembers.map((m) => {
+                              if (m.name === member.name) {
+                                m.expanded = !m.expanded;
+                              }
+                              return m;
+                            });
+                            setGroupMembers(newMembers);
+                          }}
+                        >
+                          {member.name}
+                        </Typography>
+                      </Tooltip>
+                      {member.expanded && (
+                        <Typography textAlign="center" color="white">
+                          {member.owe >= 0
+                            ? `owes $${member.owe}`
+                            : `needs $${member.owe * -1}`}
+                        </Typography>
+                      )}
+                    </Stack>
                   ))}
                 </Stack>
                 <SettingsIcon
@@ -1390,11 +1487,18 @@ export default function Inventory() {
                 <Chip label={member.name} variant="filled" />
                 {isLeader && member.name !== userName ? (
                   <TooltipIcon title="Remove" placement="top">
-                    <Box onClick={() => {handleCloseMemberModal(); setKickedMember(member.name); handleOpenKickMemberModal();}}>
-                    <DeleteOutlineIcon />
+                    <Box
+                      onClick={() => {
+                        handleCloseMemberModal();
+                        setKickedMember(member.name);
+                        handleOpenKickMemberModal();
+                      }}
+                    >
+                      <DeleteOutlineIcon />
                     </Box>
                   </TooltipIcon>
                 ) : null}
+                {member.leader ? <StarsSharpIcon /> : null}
               </Stack>
             ))}
           </Stack>
@@ -1644,8 +1748,8 @@ export default function Inventory() {
         </Box>
       </Modal>
 
-      {/* Modal for Kicking Member */}
-      <Modal open={openKickMemberModal}>
+      {/* Modal for Handling Expenses */}
+      <Modal open={openExpenseModal}>
         <Box
           position="absolute"
           top="50%"
@@ -1679,22 +1783,82 @@ export default function Inventory() {
               },
             }}
             onClick={() => {
-              handleCloseKickMemberModal();
+              handleCloseExpenseModal();
             }}
           />
           <Typography variant="h4" width="80%" textAlign="center">
-            We'll miss you {kickedMember} :(
+            {groupName} expenses
           </Typography>
           <Typography width="80%" textAlign="center">
-            Are you sure you want to kick your best friend {kickedMember} out?
+            You know how much everyone owes (hint: press on a roommate's name).
+          </Typography>
+          <Typography width="80%" textAlign="center">
+            Handle payments among yourselves -_-
+          </Typography>
+          <Typography width="80%" textAlign="center">
+            Do you want to clear expenses for everyone?
           </Typography>
           <Box
             onClick={() => {
-              kickMember(kickedMember);
-              handleCloseKickMemberModal();
+              clearExpenses();
+              handleCloseExpenseModal();
             }}
           >
-            <DarkButton>Yes</DarkButton>
+            <DarkButton>Yes, we took care of it.</DarkButton>
+          </Box>
+        </Box>
+      </Modal>
+      {/* Modal for Inventory Deletion */}
+      <Modal open={openDeleteInventoryModal}>
+        <Box
+          position="absolute"
+          top="50%"
+          left="50%"
+          bgcolor={green_light}
+          border="2px solid #000"
+          borderRadius="20px"
+          p={2}
+          display="flex"
+          flexDirection="column"
+          justifyContent="center"
+          alignItems="center"
+          gap={3}
+          sx={{
+            transform: "translate(-50%,-50%)",
+            width: { xs: "80%", sm: "60%" },
+            maxWidth: "md",
+          }}
+        >
+          <CloseIcon
+            sx={{
+              position: "absolute",
+              top: 5,
+              left: 5,
+              fontSize: 40,
+              color: `${green_dark}`,
+              transition: "200ms",
+              "&:hover": {
+                cursor: "pointer",
+                transform: "rotate(180deg) scale(1.05)",
+              },
+            }}
+            onClick={() => {
+              setOpenDeleteInventoryModal(false);
+            }}
+          />
+          <Typography variant="h4" width="80%" textAlign="center">
+            Inventory Deletion
+          </Typography>
+          <Typography width="80%" textAlign="center">
+            Are you sure you want to delete {inventoryNameForDeletion} and all
+            its contents?
+          </Typography>
+          <Box
+            onClick={() =>
+              handleCloseDeleteInventoryModal(inventoryNameForDeletion)
+            }
+          >
+            <DarkButton>Delete</DarkButton>
           </Box>
         </Box>
       </Modal>
