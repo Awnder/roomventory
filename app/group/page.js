@@ -137,8 +137,8 @@ export default function Inventory() {
   const handleOpenNeededItemModal = () => setOpenNeededItemModal(true);
   const handleCloseNeededItemModal = () => setOpenNeededItemModal(false);
   const handleOpenInventoryModal = (inventoryName) => {
-    fetchItemsFromInventory(inventoryName);
     setInventoryNameForDisplay(inventoryName);
+    fetchItemsFromInventory(inventoryName);
     setOpenInventoryModal(true);
   };
   const handleCloseInventoryModal = () => setOpenInventoryModal(false);
