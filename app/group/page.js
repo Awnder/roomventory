@@ -29,7 +29,6 @@ import ArrowDropDownIcon from "@mui/icons-material/ArrowDropDown";
 import AddIcon from "@mui/icons-material/Add";
 import RemoveIcon from "@mui/icons-material/Remove";
 import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
-import ModeEditOutlineIcon from "@mui/icons-material/ModeEditOutline";
 import CloseIcon from "@mui/icons-material/Close";
 import { DarkButton, LightButton } from "../../Components/styledbuttons";
 import { Category, Opacity, Search } from "@mui/icons-material";
@@ -71,23 +70,13 @@ export default function Inventory() {
   const [isLeader, setIsLeader] = useState(false);
 
   // States for handling functions
-  //search functions
   const [search, setSearch] = useState("");
-  //create inventory
   const [inventoryName, setInventoryName] = useState("");
-  //??
   const [items, setItems] = useState([]);
-  //??
   const [neededItems, setNeededItems] = useState([]);
-  //add item
   const [itemName, setItemName] = useState("");
-  //invite member
   const [email, setEmail] = useState("");
-  //suggestions from AI
   const [suggestedItems, setSuggestedItems] = useState({});
-  //edit inventory
-  const [newInventoryName, setNewInventoryName] = useState(""); //new name
-  const [inventoryToEdit, setInventoryToEdit] = useState(""); //old name
 
   // Item Metadata
   const [selectedInventory, setSelectedInventory] = useState("");
@@ -106,7 +95,6 @@ export default function Inventory() {
   const [openNewInventoryModal, setOpenNewInventoryModal] = useState(false);
   const [openAddItemModal, setOpenAddItemModal] = useState(false);
   const [openNeededItemModal, setOpenNeededItemModal] = useState(false);
-  const [openEditInventoryModal, setOpenEditInventoryModal] = useState(false);
 
   //Modals open/close
   const handleOpenMemberModal = () => setOpenMemberModal(true);
@@ -117,8 +105,6 @@ export default function Inventory() {
   const handleCloseItemModal = () => setOpenAddItemModal(false);
   const handleOpenNeededItemModal = () => setOpenNeededItemModal(true);
   const handleCloseNeededItemModal = () => setOpenNeededItemModal(false);
-  const handleOpenEditInventoryModal = () => setOpenEditInventoryModal(true);
-  const handleCloseEditInventoryModal = () => setOpenEditInventoryModal(false);
 
   //Filtered objects
   const [filteredInventories, setFilteredInventories] = useState([]);
@@ -316,13 +302,13 @@ export default function Inventory() {
   }, [inventoryName]);
 
   //function to delete an inventory in a group from the database (1 READ, 1 DELETE operation)
-  const deleteInventory = useCallback(async (name) => {
+  const deleteInventory = useCallback(async () => {
     console.log("deleting inventory");
     try {
       const groupRef = doc(collection(db, "groups"), groupName);
       const inventoryCollection = collection(groupRef, "inventories");
 
-      const inventoryRef = doc(inventoryCollection, name); //inventory should be dynamically selected
+      const inventoryRef = doc(inventoryCollection, exampleInventory); //inventory should be dynamically selected
 
       //READ
       const inventorySnap = await getDoc(inventoryRef);
@@ -338,66 +324,7 @@ export default function Inventory() {
     }
     fetchInventories();
     setInventoryName("");
-  }, []);
-
-  //function to edit name of inventory 1 READ, 1 WRITE operation
-  const editInventory = useCallback(async () => {
-    console.log("editing inventory");
-    try {
-      const groupRef = doc(collection(db, "groups"), groupName);
-
-      const inventoryCollection = collection(groupRef, "inventories");
-      console.log("inventoryCollection", inventoryCollection);
-
-      console.log("inventoryToEdit", inventoryToEdit);
-      const inventoryRef = doc(inventoryCollection, inventoryToEdit); //inventory should be dynamically selected
-      console.log("inventoryRef", inventoryRef);
-
-      //READ
-      const inventorySnap = await getDoc(inventoryRef);
-
-      // Editing name field
-      if (inventorySnap.exists()) {
-        console.log("newInventoryName", newInventoryName);
-
-        //WRITE
-        await updateDoc(inventoryRef, {
-          name: newInventoryName,
-        });
-      } else {
-        alert("Inventory does not exist");
-      }
-
-      const newInventoryRef = doc(inventoryCollection, newInventoryName);
-      const newInventorySnap = await getDoc(newInventoryRef);
-
-      //This works but it rearranges the order of the inventories
-      /*
-      // Renaming the actual document (delete the old and create a new one)
-      if (inventorySnap.exists()) {
-        const data = inventorySnap.data();
-        data.name = newInventoryName;
-
-        // Set the data to the new document
-        await setDoc(newInventoryRef, data);
-
-        // Delete the old document
-        await deleteDoc(inventoryRef);
-
-        console.log("Document renamed successfully");
-      } else {
-        console.log("No such document!");
-      }
-        */
-        
-    } catch (error) {
-      console.error("Error editing inventory:", error);
-    }
-
-    fetchInventories();
-    setNewInventoryName("");
-    setInventoryToEdit("");
-  }, [inventoryToEdit, newInventoryName]);
+  }, [exampleInventory]);
 
   /****************************************************** Expense Tracking ******************************************************/
 
@@ -462,7 +389,7 @@ export default function Inventory() {
 
     const inventoryCollection = collection(groupRef, "inventories");
 
-    const inventoryRef = doc(inventoryCollection, selectedInventory); //inventory should be dynamically selected
+    const inventoryRef = doc(inventoryCollection, exampleInventory); //inventory should be dynamically selected
 
     //READ
     const inventorySnap = await getDoc(inventoryRef);
@@ -714,11 +641,9 @@ export default function Inventory() {
   // Filtering inventories based on search term
   useEffect(() => {
     console.log("Filtering groups");
-    setFilteredInventories(
-      inventories.filter((inventory) =>
-        inventory.name.toLowerCase().includes(search.toLowerCase())
-      )
-    );
+    setFilteredInventories(inventories.filter(inventory =>
+      inventory.name.toLowerCase().includes(search.toLowerCase())
+    ));
   }, [search, inventories]);
 
   return (
@@ -865,7 +790,7 @@ export default function Inventory() {
               Add New Item
             </Typography>
             <TextField
-              size="small"
+            size="small"
               placeholder="Name"
               fullWidth
               value={itemName}
@@ -901,12 +826,7 @@ export default function Inventory() {
                 sx={{ bgcolor: "white", width: "50%" }}
               />
             </Stack>
-            <Stack
-              direction="row"
-              justifyContent="center"
-              alignItems="center"
-              width="80%"
-            >
+            <Stack direction="row" justifyContent="center" alignItems="center" width="80%">
               <Typography color="black" textAlign="center" mr={1} width="20%">
                 Total Cost:
               </Typography>
@@ -1038,7 +958,7 @@ export default function Inventory() {
               transform: "translate(-50%,-50%)",
             }}
           >
-            <CloseIcon
+             <CloseIcon
               sx={{
                 position: "absolute",
                 top: 5,
@@ -1071,7 +991,8 @@ export default function Inventory() {
                 onClick={addNeededItem}
                 display="flex"
                 justifyContent="center"
-              ></Box>
+              >
+              </Box>
             </Stack>
             <Stack
               direction="row"
@@ -1161,6 +1082,7 @@ export default function Inventory() {
                     value={priority}
                     onChange={(e) => setPriority(e.target.value)}
                   />
+
                 </Box>
               </Stack>
             </Stack>
@@ -1220,9 +1142,7 @@ export default function Inventory() {
                     onChange={(e) => setAssignedRoommate(e.target.value)}
                   >
                     {groupMembers.map((member) => (
-                      <MenuItem key={member.name} value={member.name}>
-                        {member.name}
-                      </MenuItem>
+                      <MenuItem key={member.name} value={member.name}>{member.name}</MenuItem>
                     ))}
                   </Select>
                 </FormControl>
@@ -1265,11 +1185,7 @@ export default function Inventory() {
                 </Typography>
                 <Stack direction="column" spacing={2}>
                   {groupMembers.map((member) => (
-                    <Typography
-                      key={member.name}
-                      textAlign="center"
-                      color="white"
-                    >
+                    <Typography key={member.name} textAlign="center" color="white">
                       {member.name}
                     </Typography>
                   ))}
@@ -1408,54 +1324,7 @@ export default function Inventory() {
           </Box>
         </Box>
       </Modal>
-      {/* Modal for editing Inventory Name*/}
-      <Modal
-        open={openEditInventoryModal}
-        onClose={handleCloseEditInventoryModal}
-        aria-labelledby="edit-inventory-modal"
-        aria-describedby="modal-to-edit-inventory-name"
-      >
-        <Box
-          sx={{
-            position: "absolute",
-            top: "50%",
-            left: "50%",
-            transform: "translate(-50%, -50%)",
-            width: 300,
-            bgcolor: "background.paper",
-            boxShadow: 24,
-            p: 4,
-            borderRadius: 2,
-          }}
-        >
-          <Typography
-            id="edit-inventory-modal"
-            variant="h6"
-            component="h2"
-            gutterBottom
-          >
-            Edit Inventory Name
-          </Typography>
-          <TextField
-            fullWidth
-            label="Inventory Name"
-            value={newInventoryName}
-            onChange={(e) => setNewInventoryName(e.target.value)}
-          />
-          <Box sx={{ mt: 2, display: "flex", justifyContent: "flex-end" }}>
-            <Button
-              variant="contained"
-              color="primary"
-              onClick={() => {
-                editInventory();
-                handleCloseEditInventoryModal();
-              }}
-            >
-              Save
-            </Button>
-          </Box>
-        </Box>
-      </Modal>
+
       {/* Inventory Area */}
       <Box width="80%" maxWidth="xl" flexGrow={1}>
         <Grid
@@ -1466,15 +1335,7 @@ export default function Inventory() {
           alignItems="center"
         >
           {filteredInventories.map((inventory) => (
-            <Grid
-              item
-              key={inventory.name}
-              xs={12}
-              sm={12}
-              md={12}
-              lg={6}
-              xl={6}
-            >
+            <Grid item key={inventory.name} xs={12} sm={12} md={12} lg={6} xl={6}>
               <Accordion>
                 <AccordionSummary
                   expandIcon={<ArrowDropDownIcon />}
@@ -1495,33 +1356,6 @@ export default function Inventory() {
                   >
                     {inventory.name}
                   </Typography>
-                  {/*
-                  <Button
-                    aria-label="edit"
-                    onClick={(event) => {
-                      setInventoryToEdit(inventory.name);
-                      handleOpenEditInventoryModal();
-                      event.stopPropagation(); // Prevents the accordion from expanding
-                    }}
-                    sx={{
-                      marginLeft: "auto",
-                    }}
-                  >
-                    <ModeEditOutlineIcon />
-                  </Button>
-                  */}
-                  <Button
-                    aria-label="delete"
-                    onClick={(event) => {
-                      deleteInventory(inventory.name);
-                      event.stopPropagation(); // Prevents the accordion from expanding
-                    }}
-                    sx={{
-                      marginLeft: "auto",
-                    }}
-                  >
-                    <DeleteOutlineIcon color="error" />
-                  </Button>
                 </AccordionSummary>
                 <AccordionDetails>
                   <Stack direction="column">
