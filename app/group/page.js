@@ -118,7 +118,8 @@ export default function Inventory() {
     setInventoryNameForDeletion(inventoryName);
     setOpenDeleteInventoryModal(true);
   };
-  const handleCloseDeleteInventoryModal = (inventoryName) => {
+  const handleCloseDeleteInventoryModal = () => setOpenDeleteInventoryModal(false);
+  const handleCloseDeleteInventoryModalDelete = (inventoryName) => {
     setOpenDeleteInventoryModal(false);
     deleteInventory(inventoryName);
   };
@@ -320,7 +321,6 @@ export default function Inventory() {
 
   //function to delete an inventory in a group from the database (1 READ, 1 DELETE operation)
   const deleteInventory = useCallback(async (inventoryName) => {
-    console.log(inventoryName)
     console.log("deleting inventory");
     try {
       const groupRef = doc(collection(db, "groups"), groupName);
@@ -342,7 +342,7 @@ export default function Inventory() {
     }
     fetchInventories();
     setInventoryName("");
-  }, [exampleInventory]);
+  }, [inventoryName]);
 
   /****************************************************** Expense Tracking ******************************************************/
 
@@ -1247,8 +1247,8 @@ export default function Inventory() {
           </Typography>
           <Stack direction="column" spacing={1}>
             {groupMembers.map((member) => (
-              <Stack direction="row" spacing={1} alignItems="center">
-                <Chip key={member.name} label={member.name} variant="filled" />
+              <Stack key={member.name} direction="row" spacing={1} alignItems="center">
+                <Chip label={member.name} variant="filled" />
                 <TooltipIcon title="Remove" placement="top">
                   <DeleteOutlineIcon />
                 </TooltipIcon>
@@ -1383,12 +1383,12 @@ export default function Inventory() {
               },
             }}
             onClick={() => {
-              handleCloseDeleteInventoryModal(false);
+              handleCloseDeleteInventoryModal();
             }}
           />
           <Typography variant="h4" width="80%" textAlign="center">Inventory Deletion</Typography>
           <Typography width="80%" textAlign="center">Are you sure you want to delete {inventoryNameForDeletion} and all its contents?</Typography>
-          <Box onClick={() => handleCloseDeleteInventoryModal(inventoryNameForDeletion)}>
+          <Box onClick={() => handleCloseDeleteInventoryModalDelete(inventoryNameForDeletion)}>
             <DarkButton>Delete</DarkButton>
           </Box>
         </Box>
