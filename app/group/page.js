@@ -26,7 +26,7 @@ import {
   Alert,
 } from "@mui/material";
 import TooltipIcon from "../../Components/tooltipicon";
-import ShoppingCartOutlinedIcon from '@mui/icons-material/ShoppingCartOutlined';
+import ShoppingCartOutlinedIcon from "@mui/icons-material/ShoppingCartOutlined";
 import PaidIcon from "@mui/icons-material/Paid";
 import DirectionsRunIcon from "@mui/icons-material/DirectionsRun";
 import SettingsIcon from "@mui/icons-material/Settings";
@@ -106,7 +106,7 @@ export default function Inventory() {
   const [unit, setUnit] = useState("");
   const [notes, setNotes] = useState("");
   //special item metadata
-  const [price, setPrice] = useState(0.0);
+  const [price, setPrice] = useState(0);
   const [expiryDate, setExpiryDate] = useState("");
   const [isPerishable, setIsPerishable] = useState(false);
   const [minimumQuantity, setMinimumQuantity] = useState(0);
@@ -165,7 +165,7 @@ export default function Inventory() {
 
   //Filtered objects
   const [filteredInventories, setFilteredInventories] = useState([]);
-  const [filteredItems, setFilteredItems] = useState([])
+  const [filteredItems, setFilteredItems] = useState([]);
 
   // Get group name from URL
   const searchParams = useSearchParams();
@@ -404,32 +404,29 @@ export default function Inventory() {
   }, [inventoryName]);
 
   //function to delete an inventory in a group from the database (1 READ, 1 DELETE operation)
-  const deleteInventory = useCallback(
-    async () => {
-      console.log("deleting inventory");
-      try {
-        const groupRef = doc(collection(db, "groups"), groupID);
-        const inventoryCollection = collection(groupRef, "inventories");
+  const deleteInventory = useCallback(async () => {
+    console.log("deleting inventory");
+    try {
+      const groupRef = doc(collection(db, "groups"), groupID);
+      const inventoryCollection = collection(groupRef, "inventories");
 
-        const inventoryRef = doc(inventoryCollection, inventoryNameForDeletion); //inventory should be dynamically selected
+      const inventoryRef = doc(inventoryCollection, inventoryNameForDeletion); //inventory should be dynamically selected
 
-        //READ
-        const inventorySnap = await getDoc(inventoryRef);
+      //READ
+      const inventorySnap = await getDoc(inventoryRef);
 
-        if (inventorySnap.exists()) {
-          //DELETE
-          await deleteDoc(inventoryRef);
-        } else {
-          alert("Inventory does not exist");
-        }
-      } catch (error) {
-        console.error("Error deleting inventory:", error);
+      if (inventorySnap.exists()) {
+        //DELETE
+        await deleteDoc(inventoryRef);
+      } else {
+        alert("Inventory does not exist");
       }
-      fetchInventories();
-      setInventoryName("");
-    },
-    [inventoryNameForDeletion]
-  );
+    } catch (error) {
+      console.error("Error deleting inventory:", error);
+    }
+    fetchInventories();
+    setInventoryName("");
+  }, [inventoryNameForDeletion]);
 
   /****************************************************** Expense Tracking ******************************************************/
 
@@ -507,6 +504,28 @@ export default function Inventory() {
   //function to add an item to the inventory (1 READ, 1 WRITE operation)
   const addItem = useCallback(async () => {
     console.log("adding item");
+
+    if (!itemName.trim()) {
+      alert("Item Name is required");
+      return;
+    }
+
+    if (!selectedInventory.trim()) {
+      alert("Inventory must be selected");
+      return;
+    }
+
+    if (!quantity || quantity <= 0) {
+      alert("Quantity must be a positive number");
+      return;
+    }
+
+    console.log("price", price);
+    if (price < 0) {
+      alert("Price must be a non-negative number");
+      return;
+    }
+
     const groupRef = doc(collection(db, "groups"), groupID);
 
     const inventoryCollection = collection(groupRef, "inventories");
@@ -533,10 +552,10 @@ export default function Inventory() {
 
       const newItem = {
         name: itemName, // require user to give name
-        quantity: quantity, //allow user to adjust quantity (default to 1)
+        quantity: parseInt(quantity), //allow user to adjust quantity (default to 1)
         inventory: selectedInventory, // automatically selected based on the inventory selected
         unit: unit, // allow user to adjust unit (default to null)
-        price: price, // allow user to adjust price (default to 0)
+        price: parseFloat(price), // allow user to adjust price (default to 0)
         addedBy: userName, // automatically set to the user's full name
         expiryDate: expiryDate, // allow  user to adjust expiry date (default to null)
         dateAdded: new Date(), // default to time now
@@ -558,12 +577,13 @@ export default function Inventory() {
     setItemName("");
     setQuantity(1);
     setSelectedInventory("");
-    setPrice(0.0);
+    setPrice(0);
     setUnit("");
     setExpiryDate("");
     setIsPerishable(false);
     setMinimumQuantity(0);
     setNotes("");
+    handleCloseItemModal();
   }, [
     selectedInventory,
     itemName,
@@ -663,10 +683,11 @@ export default function Inventory() {
     }
   }, []);
 
-  const fetchItemsFromInventory = useCallback(async (passedInventory) => {
-    console.log('setting items');
-    
-    /*
+  const fetchItemsFromInventory = useCallback(
+    async (passedInventory) => {
+      console.log("setting items");
+
+      /*
     const groupRef = doc(collection(db, "groups"), groupID);
 
     const inventoryCollection = collection(groupRef, "inventories");
@@ -683,13 +704,16 @@ export default function Inventory() {
       setItems(inventorySnap.data().items);
     }
       */
-    const localInventory = inventories.find(inventory => inventory.name === passedInventory);
+      const localInventory = inventories.find(
+        (inventory) => inventory.name === passedInventory
+      );
 
-    console.log('localInventory', localInventory);
+      console.log("localInventory", localInventory);
 
-    setItems(localInventory.items);
-
-  }, [inventories]);
+      setItems(localInventory.items);
+    },
+    [inventories]
+  );
 
   /****************************************************** Needed Items Functions ******************************************************/
 
@@ -854,7 +878,7 @@ export default function Inventory() {
   }, [itemSearch, items]);
 
   useEffect(() => {
-    console.log('filtered items from useffect', filteredItems)
+    console.log("filtered items from useffect", filteredItems);
   }, [filteredItems]);
 
   useEffect(() => {
@@ -1018,6 +1042,7 @@ export default function Inventory() {
               value={itemName}
               onChange={(e) => setItemName(e.target.value)}
               sx={{ bgcolor: "white", width: "80%" }}
+              required
             />
             <Stack
               direction="row"
@@ -1033,13 +1058,19 @@ export default function Inventory() {
                 border="1px solid black"
                 inputMode="numeric"
                 value={quantity}
-                onChange={(e) => setQuantity(e.target.value)}
+                onChange={(e) => {
+                  const value = e.target.value;
+                  // Regular expression to allow only numbers and decimals
+                  if (/^\d*$/.test(value)) {
+                    setQuantity(value); // Convert the value to an integer
+                  }
+                }}
                 sx={{ bgcolor: "white", width: "50%" }}
               />
               <Typography textAlign="center">X</Typography>
               <TextField
                 size="small"
-                placeholder="Unit"
+                placeholder="Unit (optional)"
                 border="1px solid black"
                 inputMode="numeric"
                 value={unit}
@@ -1061,7 +1092,13 @@ export default function Inventory() {
                 border="1px solid black"
                 inputMode="decimal"
                 value={price}
-                onChange={(e) => setPrice(e.target.value)}
+                onChange={(e) => {
+                  const value = e.target.value;
+                  // Regular expression to allow only numbers and decimals
+                  if (/^\d*\.?\d*$/.test(value)) {
+                    setPrice(value);
+                  }
+                }}
                 InputProps={{
                   startAdornment: (
                     <InputAdornment sx={{ mr: 1 }}>$</InputAdornment>
@@ -1098,6 +1135,7 @@ export default function Inventory() {
                   />
                 </RadioGroup>
               </FormControl>
+              {/*
               <TextField
                 size="small"
                 placeholder="Exp. Date"
@@ -1107,6 +1145,7 @@ export default function Inventory() {
                 onChange={(e) => setExpiryDate(e.target.value)}
                 sx={{ bgcolor: "white", width: "60%" }}
               />
+              */}
             </Stack>
             <Stack
               direction="row"
@@ -1137,7 +1176,7 @@ export default function Inventory() {
             </Stack>
             <TextField
               multiline
-              placeholder="Add notes"
+              placeholder="Add notes (optional)"
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
               sx={{ bgcolor: "white", width: "80%" }}
@@ -1146,7 +1185,7 @@ export default function Inventory() {
             <Box
               onClick={() => {
                 addItem();
-                handleCloseItemModal();
+                //handleCloseItemModal();
               }}
             >
               <DarkButton>Add New Item</DarkButton>
@@ -1226,7 +1265,7 @@ export default function Inventory() {
               </Typography>
               <TextField
                 size="small"
-                placeholder="Unit"
+                placeholder="Unit (optional)"
                 border="1px solid black"
                 inputMode="numeric"
                 value={unit}
@@ -1295,7 +1334,7 @@ export default function Inventory() {
               <TextField
                 multiline
                 fullWidth
-                placeholder="Add notes"
+                placeholder="Add notes (optional)" 
                 value={notes}
                 onChange={(e) => setNotes(e.target.value)}
               />
@@ -1626,7 +1665,7 @@ export default function Inventory() {
                     event.stopPropagation();
                   }}
                 />
-                 <Box
+                <Box
                   sx={{
                     position: "absolute",
                     top: 5,
@@ -1707,7 +1746,9 @@ export default function Inventory() {
               handleCloseInventoryModal();
             }}
           />
-          <Typography variant="h4" textAlign="center" width="80%">{inventoryNameForDisplay}</Typography>
+          <Typography variant="h4" textAlign="center" width="80%">
+            {inventoryNameForDisplay}
+          </Typography>
           <Box
             border="1px solid black"
             borderRadius="20px"
@@ -1715,7 +1756,7 @@ export default function Inventory() {
             mb={2}
             sx={{
               background: `linear-gradient(to left, #fff, ${green_light})`,
-              width: { xs: "80%", sm: "60%" }
+              width: { xs: "80%", sm: "60%" },
             }}
           >
             <TextField
@@ -1733,101 +1774,115 @@ export default function Inventory() {
               }}
             />
           </Box>
-          <Box width="80%" maxWidth="lg"> 
-            <Grid container flexGrow={1} spacing={2} diplay="flex" justifyContent="center">
-              {filteredItems.length ? filteredItems.map((item) => (
-                <Grid item key={item.name} xs={12} md={12} lg={6}>
-                  <Stack
-                    direction="row"
-                    justifyContent="space-between"
-                    alignItems="center"
-                    borderRadius="15px"
-                    position="relative"
-                    mb={2}
-                    sx={{
-                      background: `linear-gradient(to bottom, ${green_light}, #fff)`,
-                      "&::before": {
-                        position: "absolute",
-                        content: "''",
-                        top: 0,
-                        right: 0,
-                        bottom: 0,
-                        left: 0,
-                        background: `linear-gradient(to bottom, #fff, ${green_light})`,
-                        transition: "opacity 200ms linear",
-                        opacity: 0,
-                        borderRadius: "15px",
-                      },
-                      "&:hover::before": {
-                        opacity: 1,
-                        zIndex: 1,
-                        borderRadius: "15px",
-                      },
-                    }}
-                  >
-                    <Stack direction="column" zIndex={2}>
-                      {groupMembers.map((member) => (
-                        <Chip key={member.name} label={member.name} variant="outlined" />
-                      ))}
+          <Box width="80%" maxWidth="lg">
+            <Grid
+              container
+              flexGrow={1}
+              spacing={2}
+              diplay="flex"
+              justifyContent="center"
+            >
+              {filteredItems.length ? (
+                filteredItems.map((item) => (
+                  <Grid item key={item.name} xs={12} md={12} lg={6}>
+                    <Stack
+                      direction="row"
+                      justifyContent="space-between"
+                      alignItems="center"
+                      borderRadius="15px"
+                      position="relative"
+                      mb={2}
+                      sx={{
+                        background: `linear-gradient(to bottom, ${green_light}, #fff)`,
+                        "&::before": {
+                          position: "absolute",
+                          content: "''",
+                          top: 0,
+                          right: 0,
+                          bottom: 0,
+                          left: 0,
+                          background: `linear-gradient(to bottom, #fff, ${green_light})`,
+                          transition: "opacity 200ms linear",
+                          opacity: 0,
+                          borderRadius: "15px",
+                        },
+                        "&:hover::before": {
+                          opacity: 1,
+                          zIndex: 1,
+                          borderRadius: "15px",
+                        },
+                      }}
+                    >
+                      <Stack direction="column" zIndex={2}>
+                        {groupMembers.map((member) => (
+                          <Chip
+                            key={member.name}
+                            label={member.name}
+                            variant="outlined"
+                          />
+                        ))}
+                      </Stack>
+                      <Box zIndex={2}>
+                        <Typography
+                          sx={{
+                            display: { xs: "block", sm: "inline" },
+                            pr: { xs: 0, sm: 2, md: 3, lg: 3, xl: 4 },
+                          }}
+                        >
+                          {item.name}
+                        </Typography>
+                        <Typography
+                          sx={{
+                            display: { xs: "block", sm: "inline" },
+                            pl: { xs: 0, sm: 2, md: 3, lg: 3, xl: 4 },
+                          }}
+                        >
+                          {item.quantity} {item.unit}
+                        </Typography>
+                      </Box>
+                      <Typography zIndex={2}>{item.price}</Typography>
+                      <Box zIndex={2}>
+                        <Typography
+                          sx={{
+                            display: { xs: "block", sm: "inline" },
+                            pr: { xs: 0, sm: 2, md: 3, lg: 3, xl: 4 },
+                          }}
+                        >
+                          {item.isPerishable ? "Perishable" : "Not Perishable"}
+                        </Typography>
+                        <Typography
+                          sx={{
+                            display: { xs: "block", sm: "inline" },
+                            pl: { xs: 0, sm: 2, md: 3, lg: 3, xl: 4 },
+                          }}
+                        >
+                          {item.expiryDate}
+                        </Typography>
+                      </Box>
+                      <Typography zIndex={2}>{item.notes}</Typography>
+                      <Box zIndex={2}>
+                        <TooltipIcon title="Delete" placement="top">
+                          <Box
+                            onClick={(inventoryNameForDisplay) =>
+                              deleteItem(inventoryNameForDisplay)
+                            }
+                          >
+                            <DeleteOutlineIcon />
+                          </Box>
+                        </TooltipIcon>
+                        <TooltipIcon title="-1" placement="top">
+                          <RemoveIcon sx={{ mx: { xs: 1 } }} />
+                        </TooltipIcon>
+                        <TooltipIcon title="+1" placement="top">
+                          <AddIcon sx={{ mr: 1 }} />
+                        </TooltipIcon>
+                      </Box>
                     </Stack>
-                    <Box zIndex={2}>
-                      <Typography
-                        sx={{
-                          display: { xs: "block", sm: "inline" },
-                          pr: { xs: 0, sm: 2, md: 3, lg: 3, xl: 4 },
-                        }}
-                      >
-                        {item.name}
-                      </Typography>
-                      <Typography
-                        sx={{
-                          display: { xs: "block", sm: "inline" },
-                          pl: { xs: 0, sm: 2, md: 3, lg: 3, xl: 4 },
-                        }}
-                      >
-                        {item.quantity} {item.unit}
-                      </Typography>
-                    </Box>
-                    <Typography zIndex={2}>
-                      {item.price}
-                    </Typography>
-                    <Box zIndex={2}>
-                      <Typography
-                        sx={{
-                          display: { xs: "block", sm: "inline" },
-                          pr: { xs: 0, sm: 2, md: 3, lg: 3, xl: 4 },
-                        }}
-                      >
-                        {item.isPerishable ? "Perishable" : "Not Perishable"}
-                      </Typography>
-                      <Typography
-                        sx={{
-                          display: { xs: "block", sm: "inline" },
-                          pl: { xs: 0, sm: 2, md: 3, lg: 3, xl: 4 },
-                        }}
-                      >
-                        {item.expiryDate}
-                      </Typography>
-                    </Box>
-                    <Typography zIndex={2}>
-                      {item.notes}
-                    </Typography>
-                    <Box zIndex={2}>
-                      <TooltipIcon title="Delete" placement="top">
-                        <Box onClick={(inventoryNameForDisplay) => deleteItem(inventoryNameForDisplay)}>
-                          <DeleteOutlineIcon />
-                        </Box>
-                      </TooltipIcon>
-                      <TooltipIcon title="-1" placement="top">
-                        <RemoveIcon sx={{ mx: { xs: 1 } }} />
-                      </TooltipIcon>
-                      <TooltipIcon title="+1" placement="top">
-                        <AddIcon sx={{ mr: 1 }} />
-                      </TooltipIcon>
-                    </Box>
-                  </Stack>
-                </Grid>
-              )) : <Typography textAlign="center">No Items Here</Typography>}
+                  </Grid>
+                ))
+              ) : (
+                <Typography textAlign="center">No Items Here</Typography>
+              )}
             </Grid>
           </Box>
         </Box>
