@@ -439,8 +439,6 @@ export default function Inventory() {
 	      Owe = price/#members
    */
 
-      console.log("price", passedPrice);
-
       console.log("adding expense");
 
       const groupRef = doc(collection(db, "groups"), groupID);
@@ -708,8 +706,6 @@ export default function Inventory() {
         (inventory) => inventory.name === passedInventory
       );
 
-      console.log("localInventory", localInventory);
-
       setItems(localInventory.items);
     },
     [inventories]
@@ -720,6 +716,22 @@ export default function Inventory() {
   //function to add a needed item to the inventory (1 READ, 1 WRITE operation)
   const addNeededItem = useCallback(async () => {
     console.log("adding needed item");
+
+    if (!itemName.trim()) {
+      alert("Item Name is required");
+      return;
+    }
+
+    if (!selectedInventory.trim()) {
+      alert("Inventory must be selected");
+      return;
+    }
+
+    if (!quantityNeeded || quantityNeeded <= 0) {
+      alert("Quantity must be a positive number");
+      return;
+    }
+
     const groupRef = doc(collection(db, "groups"), groupID);
     const inventoryCollection = collection(groupRef, "inventories");
 
@@ -763,6 +775,7 @@ export default function Inventory() {
     setLinksOnline([]);
     setStatus("Needed");
     setNotes("");
+    handleCloseNeededItemModal();
   }, [
     selectedInventory,
     itemName,
@@ -792,6 +805,7 @@ export default function Inventory() {
       // Collect promises if there are async operations to perform on itemsCol
       const inventoriesPromises = inventoriesSnap.docs.map(
         async (inventory) => {
+          console.log("inventory", inventory);
           const inventoryData = inventory.data();
           inventoriesList.push(inventoryData);
 
@@ -819,6 +833,7 @@ export default function Inventory() {
     try {
       if (!user) return;
       if (!groupID) return;
+
       const groupRef = doc(db, "groups", groupID);
       //READ
       const groupSnap = await getDoc(groupRef);
@@ -1257,7 +1272,13 @@ export default function Inventory() {
                 border="1px solid black"
                 inputMode="numeric"
                 value={quantity}
-                onChange={(e) => setQuantity(e.target.value)}
+                onChange={(e) => {
+                  const value = e.target.value;
+                  // Regular expression to allow only numbers and decimals
+                  if (/^\d*$/.test(value)) {
+                    setQuantity(value); // Convert the value to an integer
+                  }
+                }}
                 sx={{ bgcolor: "white", width: "50%" }}
               />
               <Typography color="black" textAlign="center">
@@ -1334,7 +1355,7 @@ export default function Inventory() {
               <TextField
                 multiline
                 fullWidth
-                placeholder="Add notes (optional)" 
+                placeholder="Add notes (optional)"
                 value={notes}
                 onChange={(e) => setNotes(e.target.value)}
               />
@@ -1342,7 +1363,6 @@ export default function Inventory() {
             <Box
               onClick={() => {
                 addNeededItem();
-                handleCloseNeededItemModal();
               }}
               display="flex"
               justifyContent="center"
