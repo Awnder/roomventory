@@ -1668,7 +1668,7 @@ export default function Inventory() {
           <Typography>{inventoryNameForDisplay}</Typography>
           <Box width="80%" maxWidth="lg"> 
             <Grid container flexGrow={1} spacing={2} diplay="flex" justifyContent="center">
-              {items.length ? items.map((item) => {
+              {filteredItems.length ? filteredItems.map((item) => {
                 <Grid item key={item.name} xs={12} md={12} lg={6}>
                   <Box
                     maxWidth="md"
@@ -1684,7 +1684,7 @@ export default function Inventory() {
                     <TextField
                       fullWidth
                       label="Search Inventory"
-                      value={inventorySearch}
+                      value={itemSearch}
                       onChange={(e) => setItemSearch(e.target.value)}
                       InputProps={{
                         endAdornment: (
