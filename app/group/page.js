@@ -86,7 +86,8 @@ export default function Inventory() {
 
   // States for handling functions
   //search function
-  const [search, setSearch] = useState("");
+  const [inventorySearch, setInventorySearch] = useState("");
+  const [itemSearch, setItemSearch] = useState("");
   //
   const [inventoryName, setInventoryName] = useState("");
   const [items, setItems] = useState([]);
@@ -159,6 +160,7 @@ export default function Inventory() {
 
   //Filtered objects
   const [filteredInventories, setFilteredInventories] = useState([]);
+  const [filteredItems, setFilteredItems] = useState([])
 
   // Get group name from URL
   const searchParams = useSearchParams();
@@ -821,10 +823,20 @@ export default function Inventory() {
     console.log("Filtering groups");
     setFilteredInventories(
       inventories.filter((inventory) =>
-        inventory.name.toLowerCase().includes(search.toLowerCase())
+        inventory.name.toLowerCase().includes(inventorySearch.toLowerCase())
       )
     );
-  }, [search, inventories]);
+  }, [inventorySearch, inventories]);
+
+  // Filtering items in an inventory based on search term
+  useEffect(() => {
+    console.log("filtering items");
+    setFilteredItems(
+      items.filter((item) =>
+        item.name.toLowerCase().includes(itemSearch.toLowerCase())
+      )
+    );
+  }, [itemSearch, items]);
 
   useEffect(() => {
     console.log("setting groupID from UseEffect");
@@ -1401,8 +1413,8 @@ export default function Inventory() {
                   <TextField
                     fullWidth
                     label="Search Inventory"
-                    value={search}
-                    onChange={(e) => setSearch(e.target.value)}
+                    value={inventorySearch}
+                    onChange={(e) => setInventorySearch(e.target.value)}
                     InputProps={{
                       endAdornment: (
                         <InputAdornment>
@@ -1658,6 +1670,31 @@ export default function Inventory() {
             <Grid container flexGrow={1} spacing={2} diplay="flex" justifyContent="center">
               {items.length ? items.map((item) => {
                 <Grid item key={item.name} xs={12} md={12} lg={6}>
+                  <Box
+                    maxWidth="md"
+                    maxHeight="90px"
+                    border="1px solid black"
+                    borderRadius="20px"
+                    p={2}
+                    mb={2}
+                    sx={{
+                      background: `linear-gradient(to left, #fff, ${green_light})`,
+                    }}
+                  >
+                    <TextField
+                      fullWidth
+                      label="Search Inventory"
+                      value={inventorySearch}
+                      onChange={(e) => setItemSearch(e.target.value)}
+                      InputProps={{
+                        endAdornment: (
+                          <InputAdornment>
+                            <SearchIcon />
+                          </InputAdornment>
+                        ),
+                      }}
+                    />
+                  </Box>
                   <Stack
                     direction="row"
                     justifyContent="space-between"
