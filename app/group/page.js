@@ -1665,36 +1665,36 @@ export default function Inventory() {
               handleCloseInventoryModal();
             }}
           />
-          <Typography>{inventoryNameForDisplay}</Typography>
+          <Typography variant="h4" textAlign="center" width="80%">Inventory: {inventoryNameForDisplay}</Typography>
+          <Box
+            border="1px solid black"
+            borderRadius="20px"
+            p={2}
+            mb={2}
+            sx={{
+              background: `linear-gradient(to left, #fff, ${green_light})`,
+              width: { xs: "80%", sm: "60%" }
+            }}
+          >
+            <TextField
+              size="small"
+              fullWidth
+              label="Search Items"
+              value={itemSearch}
+              onChange={(e) => setItemSearch(e.target.value)}
+              InputProps={{
+                endAdornment: (
+                  <InputAdornment>
+                    <SearchIcon />
+                  </InputAdornment>
+                ),
+              }}
+            />
+          </Box>
           <Box width="80%" maxWidth="lg"> 
             <Grid container flexGrow={1} spacing={2} diplay="flex" justifyContent="center">
               {filteredItems.length ? filteredItems.map((item) => {
                 <Grid item key={item.name} xs={12} md={12} lg={6}>
-                  <Box
-                    maxWidth="md"
-                    maxHeight="90px"
-                    border="1px solid black"
-                    borderRadius="20px"
-                    p={2}
-                    mb={2}
-                    sx={{
-                      background: `linear-gradient(to left, #fff, ${green_light})`,
-                    }}
-                  >
-                    <TextField
-                      fullWidth
-                      label="Search Inventory"
-                      value={itemSearch}
-                      onChange={(e) => setItemSearch(e.target.value)}
-                      InputProps={{
-                        endAdornment: (
-                          <InputAdornment>
-                            <SearchIcon />
-                          </InputAdornment>
-                        ),
-                      }}
-                    />
-                  </Box>
                   <Stack
                     direction="row"
                     justifyContent="space-between"
