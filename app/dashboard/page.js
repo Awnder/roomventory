@@ -81,12 +81,21 @@ export default function Dashboard() {
 
     const batch = writeBatch(db);
     const userDocRef = doc(collection(db, "users"), user.id);
-    const groupDocRef = doc(collection(db, "groups"), groupName);
+
+    const groupID = (user.id).slice(-5) + " " + groupName;
+
+    const groupDocRef = doc(collection(db, "groups"), groupID);
+
+    const userSnap = await getDoc(userDocRef);
+
+    if (userSnap.data().groups.includes(groupName)) {
+      alert("User already exists in this group");
+      return;
+    }
 
     try {
       // Check if user exists
       //READ
-      const userSnap = await getDoc(userDocRef);
 
       if (!userSnap.exists()) {
         // Create user if it does not exist
@@ -106,16 +115,8 @@ export default function Dashboard() {
         }
       }
 
-      // Create group if it does not exist
-      //READ
-      const groupSnap = await getDoc(groupDocRef);
-      if (!groupSnap.exists()) {
-        batch.set(groupDocRef, newGroup);
-      } else {
-        alert("Group already exists");
-        return;
-      }
-
+      batch.set(groupDocRef, newGroup);
+      
       // Commit the batch
       await batch.commit();
 
@@ -132,7 +133,10 @@ export default function Dashboard() {
   // Function to delete a group from the database (n READ, n WRITE)
   const deleteGroup = async (group, batch) => {
     console.log("Deleting group");
-    const groupRef = doc(collection(db, "groups"), group);
+
+    const groupID = (user.id).slice(-5) + " " + group;
+
+    const groupRef = doc(collection(db, "groups"), groupID);
     //READ
     const groupSnap = await getDoc(groupRef);
 
@@ -173,7 +177,9 @@ export default function Dashboard() {
 
     const userDocRef = doc(collection(db, "users"), user.id);
 
-    const groupDocRef = doc(collection(db, "groups"), groupName);
+    const groupID = (user.id).slice(-5) + " " + groupName;
+
+    const groupDocRef = doc(collection(db, "groups"), groupID);
 
     const batch = writeBatch(db);
 
@@ -239,15 +245,22 @@ export default function Dashboard() {
       const userSnap = await getDoc(userRef);
 
       if (userSnap.exists()) {
-        const groupsCol = userSnap.data().groups || [];
 
         const groupsRef = collection(db, "groups");
-        const q = query(groupsRef, where("name", "in", groupsCol));
 
         //READ
-        const querySnapshot = await getDocs(q);
+        const querySnapshot = await getDocs(groupsRef);
+        console.log("Query snapshot:", querySnapshot);
 
-        const groupObjects = querySnapshot.docs.map((doc) => doc.data());
+        const matchingDocs = querySnapshot.docs.filter(doc => {
+          const docId = doc.id;
+          console.log(docId); // Log document ID
+          return docId.includes(user.id.slice(-5));
+        });
+
+        console.log("Matching docs:", matchingDocs);
+
+        const groupObjects = matchingDocs.map((doc) => doc.data());
 
         setGroups(groupObjects);
         setFilteredGroups(groupObjects);

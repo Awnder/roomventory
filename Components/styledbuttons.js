@@ -1,6 +1,7 @@
 'use client';
 
 import { Button } from "@mui/material";
+import React from "react";
 
 //colors
 const green_light = "#D3F8CC";
@@ -35,9 +36,13 @@ export function LightButton({children, href, fullWidth, m, mt, mb, ml, mr}) {
   )
 }
 
-export function DarkButton({children, href, fullWidth, m, mt, mb, ml, mr}) {
+export const DarkButton = React.forwardRef(function DarkButton(
+  { children, href, fullWidth, m, mt, mb, ml, mr, ...rest },
+  ref
+) {
   return (
     <Button
+      ref={ref}
       variant="contained"
       sx={{
         color: `${green_light}`,
@@ -57,8 +62,9 @@ export function DarkButton({children, href, fullWidth, m, mt, mb, ml, mr}) {
       }}
       href={href}
       fullWidth={fullWidth}
+      {...rest}
     >
       {children}
     </Button>
-  )
-}
+  );
+});

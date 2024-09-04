@@ -21,9 +21,11 @@ import {
   Switch,
   Select,
   MenuItem,
+  Tooltip,
   Alert,
 } from "@mui/material";
 import TooltipIcon from "../../Components/tooltipicon";
+import DirectionsRunIcon from "@mui/icons-material/DirectionsRun";
 import SettingsIcon from "@mui/icons-material/Settings";
 import SearchIcon from "@mui/icons-material/Search";
 import ArrowDropDownIcon from "@mui/icons-material/ArrowDropDown";
@@ -65,6 +67,9 @@ export default function Inventory() {
   const { isLoaded, isSignedIn, user } = useUser();
   const router = useRouter();
 
+  //Group ID
+  const [groupID, setGroupID] = useState("");
+
   // Data to be fetched from Firebase
   const [inventories, setInventories] = useState([]);
   const [groupMembers, setGroupMembers] = useState([]);
@@ -77,23 +82,29 @@ export default function Inventory() {
   const [inventoryName, setInventoryName] = useState("");
   const [items, setItems] = useState([]);
   const [neededItems, setNeededItems] = useState([]);
-  const [itemName, setItemName] = useState("");
   const [email, setEmail] = useState("");
   const [suggestedItems, setSuggestedItems] = useState({});
   const [inventoryNameForDisplay, setInventoryNameForDisplay] = useState("");
   const [inventoryNameForDeletion, setInventoryNameForDeletion] = useState("");
 
   // Item Metadata
+  const [itemName, setItemName] = useState("");
   const [selectedInventory, setSelectedInventory] = useState("");
-  const [quantity, setQuantity] = useState(1);
   const [unit, setUnit] = useState("");
-  const [category, setCategory] = useState("");
+  const [notes, setNotes] = useState("");
+  //special item metadata
+  const [price, setPrice] = useState(0.0);
   const [expiryDate, setExpiryDate] = useState("");
   const [isPerishable, setIsPerishable] = useState(false);
-  const [notes, setNotes] = useState("");
-  const [price, setPrice] = useState(0.0);
+  const [minimumQuantity, setMinimumQuantity] = useState(0);
+  const [quantity, setQuantity] = useState(1);
+  //special needed item metadata
   const [priority, setPriority] = useState("med");
   const [assignedRoommate, setAssignedRoommate] = useState("");
+  const [linksOnline, setLinksOnline] = useState([]);
+  const [status, setStatus] = useState("Needed");
+  const [quantityNeeded, setQuantityNeeded] = useState(1);
+  
 
   //Modals
   const [openMemberModal, setOpenMemberModal] = useState(false);
@@ -103,6 +114,7 @@ export default function Inventory() {
   const [openInventoryModal, setOpenInventoryModal] = useState(false);
   const [openDeleteInventoryModal, setOpenDeleteInventoryModal] =
     useState(false);
+  const [openLeaveGroupModal, setOpenLeaveGroupModal] = useState(false);
 
   //Modals open/close
   const handleOpenMemberModal = () => setOpenMemberModal(true);
@@ -126,6 +138,8 @@ export default function Inventory() {
     setOpenDeleteInventoryModal(false);
     deleteInventory(inventoryName);
   };
+  const handleOpenLeaveGroupModal = () => setOpenLeaveGroupModal(true);
+  const handleCloseLeaveGroupModal = () => setOpenLeaveGroupModal(false);
 
   //Filtered objects
   const [filteredInventories, setFilteredInventories] = useState([]);
@@ -170,7 +184,7 @@ export default function Inventory() {
     if (!isLeader) {
       alert("You must be the leader of the group to kick members");
     }
-    const groupRef = doc(collection(db, "groups"), groupName);
+    const groupRef = doc(collection(db, "groups"), groupID);
     //READ
     const groupSnap = await getDoc(groupRef);
 
@@ -206,11 +220,49 @@ export default function Inventory() {
     }
   };
 
+  // Function to delete a group from the database (n READ, n WRITE)
+  const deleteGroup = async (group, batch) => {
+    console.log("Deleting group");
+    const groupRef = doc(collection(db, "groups"), group);
+    //READ
+    const groupSnap = await getDoc(groupRef);
+
+    // Get inventories collection
+    const inventoriesCollection = collection(
+      db,
+      "groups",
+      group,
+      "inventories"
+    );
+    //READ
+    const inventoriesSnap = await getDocs(inventoriesCollection);
+
+    if (groupSnap.exists() && inventoriesSnap.size > 0) {
+      // Process inventories
+      const inventoryPromises = inventoriesSnap.docs.map(async (inventory) => {
+        const inventoryName = inventory.data().name;
+        const inventoryRef = doc(inventoriesCollection, inventoryName);
+        //READ
+        const inventorySnap = await getDoc(inventoryRef);
+
+        //DELETE
+        batch.delete(inventoryRef);
+      });
+
+      // Wait for all inventory deletions to be scheduled
+      await Promise.all(inventoryPromises);
+    }
+
+    // Finally, delete the group
+    batch.delete(groupRef);
+  };
+
   // Function to leave the group (1 READ, 1 WRITE, 1 DELETE operation)
   const leaveGroup = async () => {
+    console.log("leaving group");
     const userDocRef = doc(collection(db, "users"), user.id);
 
-    const groupDocRef = doc(collection(db, "groups"), groupName);
+    const groupDocRef = doc(collection(db, "groups"), groupID);
 
     const batch = writeBatch(db);
 
@@ -246,7 +298,7 @@ export default function Inventory() {
 
         if (newMembers.length === 0) {
           //DELETE
-          await deleteGroup(groupName, batch);
+          await deleteGroup(groupID, batch);
         } else {
           newMembers[0].leader = true;
           batch.update(groupDocRef, {
@@ -299,7 +351,7 @@ export default function Inventory() {
 
     const batch = writeBatch(db);
 
-    const groupRef = doc(collection(db, "groups"), groupName);
+    const groupRef = doc(collection(db, "groups"), groupID);
     const inventoryCollection = collection(groupRef, "inventories");
 
     const inventoryRef = doc(inventoryCollection, inventoryName);
@@ -327,7 +379,9 @@ export default function Inventory() {
     async (inventoryName) => {
       console.log("deleting inventory");
       try {
-        const groupRef = doc(collection(db, "groups"), groupName);
+        console.log("inventoryName", inventoryName);
+        const groupRef = doc(collection(db, "groups"), groupID);
+        console.log("groupRef", groupRef);
         const inventoryCollection = collection(groupRef, "inventories");
 
         const inventoryRef = doc(inventoryCollection, inventoryName); //inventory should be dynamically selected
@@ -362,7 +416,7 @@ export default function Inventory() {
 
     console.log("adding expense");
     const examplePrice = 10;
-    const groupRef = doc(collection(db, "groups"), groupName);
+    const groupRef = doc(collection(db, "groups"), groupID);
     //READ
     const groupSnap = await getDoc(groupRef);
     const members = groupSnap.data().members;
@@ -387,7 +441,7 @@ export default function Inventory() {
 
   // Function to clear expenses for the group (1 READ, 1 WRITE operation)
   const clearExpenses = async () => {
-    const groupRef = doc(collection(db, "groups"), groupName);
+    const groupRef = doc(collection(db, "groups"), groupID);
     //READ
     const groupSnap = await getDoc(groupRef);
     const members = groupSnap.data().members;
@@ -409,7 +463,7 @@ export default function Inventory() {
   //function to add an item to the inventory (1 READ, 1 WRITE operation)
   const addItem = useCallback(async () => {
     console.log("adding item");
-    const groupRef = doc(collection(db, "groups"), groupName);
+    const groupRef = doc(collection(db, "groups"), groupID);
 
     const inventoryCollection = collection(groupRef, "inventories");
 
@@ -431,7 +485,6 @@ export default function Inventory() {
         unit: unit, // allow user to adjust unit (default to null)
         price: price, // allow user to adjust price (default to 0)
         addedBy: userName, // automatically set to the user's full name
-        Category: category, // allow user to adjust category (default to null)
         expiryDate: expiryDate, // allow  user to adjust expiry date (default to null)
         dateAdded: new Date(), // default to time now
         lastUpdated: new Date(), // default to date added
@@ -452,28 +505,27 @@ export default function Inventory() {
     setItemName("");
     setQuantity(1);
     setSelectedInventory("");
-    setUnit(null);
-    setCategory(null);
-    setExpiryDate(null);
+    setUnit("");
+    setExpiryDate("");
     setIsPerishable(false);
+    setMinimumQuantity(0);
     setNotes("");
-    handleCloseItemModal(false);
   }, [
     selectedInventory,
     itemName,
     quantity,
     unit,
-    category,
     expiryDate,
     isPerishable,
     notes,
     price,
+    minimumQuantity
   ]);
 
   //function to delete an item from the inventory (1 READ, 1 WRITE operation)
   const deleteItem = useCallback(async () => {
     console.log("deleting item");
-    const groupRef = doc(collection(db, "groups"), groupName);
+    const groupRef = doc(collection(db, "groups"), groupID);
     const inventoryCollection = collection(groupRef, "inventories");
 
     const inventoryRef = doc(inventoryCollection, exampleInventory); //inventory should be dynamically selected
@@ -502,7 +554,7 @@ export default function Inventory() {
   const buyItem = useCallback(async (purchasedItemName) => {
     console.log("Buying item");
 
-    const groupRef = doc(collection(db, "groups"), groupName);
+    const groupRef = doc(collection(db, "groups"), groupID);
     const inventoryCollection = collection(groupRef, "inventories");
 
     const inventoryRef = doc(inventoryCollection, exampleInventory); //inventory should be dynamically selected
@@ -533,7 +585,6 @@ export default function Inventory() {
         unit: newItem.unit, // allow user to adjust unit (default to null)
         price: 0, // allow user to input price (default to 0)
         addedBy: userName, // automatically set to the user's full name
-        Category: category, // allow user to adjust category (default to null)
         expiryDate: expiryDate, // allow  user to adjust expiry date (default to null)
         dateAdded: new Date(), // default to time now
         lastUpdated: new Date(), // default to date added
@@ -563,7 +614,7 @@ export default function Inventory() {
   //function to add a needed item to the inventory (1 READ, 1 WRITE operation)
   const addNeededItem = useCallback(async () => {
     console.log("adding needed item");
-    const groupRef = doc(collection(db, "groups"), groupName);
+    const groupRef = doc(collection(db, "groups"), groupID);
     const inventoryCollection = collection(groupRef, "inventories");
 
     console.log("selectedInventory", selectedInventory);
@@ -580,7 +631,7 @@ export default function Inventory() {
 
       const newNeededItem = {
         name: itemName, // require user to give name
-        quantityNeeded: quantity, // allow user to adjust quantity (default to 1)
+        quantityNeeded: quantityNeeded, // allow user to adjust quantity (default to 1)
         unit: unit, // allow user to adjust unit (default to null)
         inventory: selectedInventory, // automatically selected based on the inventory selected
         priority: priority, // allow user to adjust priority (default to Low)
@@ -600,6 +651,14 @@ export default function Inventory() {
       fetchInventories();
     }
     setItemName("");
+    setQuantityNeeded(1);
+    setUnit("");
+    setSelectedInventory("");
+    setPriority("med");
+    setAssignedRoommate("");
+    setLinksOnline([]);
+    setStatus("Needed");
+    setNotes("");
   }, [
     selectedInventory,
     itemName,
@@ -617,8 +676,10 @@ export default function Inventory() {
     console.log("fetching inventories from DB");
     try {
       if (!user) return;
+      if (!groupID) return;
 
-      const inventoriesCol = collection(db, "groups", groupName, "inventories");
+      const inventoriesCol = collection(db, "groups", groupID, "inventories");
+      console.log("inventoriesCol", inventoriesCol);
 
       //READ
       const inventoriesSnap = await getDocs(inventoriesCol);
@@ -640,21 +701,23 @@ export default function Inventory() {
 
       setInventories(inventoriesList);
     } catch (error) {
-      console.error("Error fetching data:", error);
+      console.error("Error fetching inventories from DB:", error);
     }
-  }, [user, groupName]);
+  }, [user, groupName, groupID]);
 
   useEffect(() => {
     console.log("fetching inventories from UseEffect");
     fetchInventories();
     console.log("inventories", inventories);
-  }, [user, groupName]);
+  }, [user, groupName, groupID]);
 
   // Fetching group data (1 READ operation)
   const fetchGroups = useCallback(async () => {
     console.log("fetching group & user from DB");
     try {
-      const groupRef = doc(db, "groups", groupName);
+      if (!user) return;
+      if (!groupID) return;
+      const groupRef = doc(db, "groups", groupID);
       //READ
       const groupSnap = await getDoc(groupRef);
 
@@ -670,16 +733,16 @@ export default function Inventory() {
         console.log("No such document!");
       }
     } catch (error) {
-      console.error("Error fetching data:", error);
+      console.error("Error fetching groups from DB:", error);
     }
-  }, [user, groupName]);
+  }, [user, groupName, groupID]);
 
   // Fetching group data (1 READ operation)
   useEffect(() => {
     console.log("fetching groups from UseEffect");
     fetchGroups();
     console.log("groupMembers", groupMembers);
-  }, [user, groupName]);
+  }, [user, groupName, groupID]);
 
   // Filtering inventories based on search term
   useEffect(() => {
@@ -690,6 +753,17 @@ export default function Inventory() {
       )
     );
   }, [search, inventories]);
+
+  useEffect(() => {
+    console.log("setting groupID from UseEffect");
+    if (user) {
+      setGroupID(user.id.slice(-5) + " " + groupName);
+    }
+  }, [user, groupName]);
+
+  useEffect(() => {
+    console.log("groupID", groupID);
+  }, [groupID]);
 
   return (
     <Stack direction="column" alignItems="center" minHeight="100vh">
@@ -969,6 +1043,7 @@ export default function Inventory() {
             <Box
               onClick={() => {
                 addItem();
+                handleCloseItemModal();
               }}
             >
               <DarkButton>Add New Item</DarkButton>
@@ -1125,6 +1200,7 @@ export default function Inventory() {
             <Box
               onClick={() => {
                 addNeededItem();
+                handleCloseNeededItemModal();
               }}
               display="flex"
               justifyContent="center"
@@ -1284,6 +1360,16 @@ export default function Inventory() {
               handleCloseMemberModal();
             }}
           />
+          <Tooltip title="Leave Group">
+            <DarkButton
+              mr={-50}
+              onClick={() => {
+                handleOpenLeaveGroupModal();
+              }}
+            >
+              <DirectionsRunIcon />
+            </DarkButton>
+          </Tooltip>
           <Typography variant="h5" textAlign="center">
             Edit Group
           </Typography>
@@ -1296,9 +1382,11 @@ export default function Inventory() {
                 alignItems="center"
               >
                 <Chip label={member.name} variant="filled" />
-                <TooltipIcon title="Remove" placement="top">
-                  <DeleteOutlineIcon />
-                </TooltipIcon>
+                {isLeader && member.name !== userName ? (
+                  <TooltipIcon title="Remove" placement="top">
+                    <DeleteOutlineIcon />
+                  </TooltipIcon>
+                ) : null}
               </Stack>
             ))}
           </Stack>
@@ -1488,6 +1576,61 @@ export default function Inventory() {
             }
           >
             <DarkButton>Delete</DarkButton>
+          </Box>
+        </Box>
+      </Modal>
+      {/* Modal for Leaving Group */}
+      <Modal open={openLeaveGroupModal}>
+        <Box
+          position="absolute"
+          top="50%"
+          left="50%"
+          bgcolor={green_light}
+          border="2px solid #000"
+          borderRadius="20px"
+          p={2}
+          display="flex"
+          flexDirection="column"
+          justifyContent="center"
+          alignItems="center"
+          gap={3}
+          sx={{
+            transform: "translate(-50%,-50%)",
+            width: { xs: "80%", sm: "60%" },
+            maxWidth: "small",
+          }}
+        >
+          <CloseIcon
+            sx={{
+              position: "absolute",
+              top: 5,
+              left: 5,
+              fontSize: 40,
+              color: `${green_dark}`,
+              transition: "200ms",
+              "&:hover": {
+                cursor: "pointer",
+                transform: "rotate(180deg) scale(1.05)",
+              },
+            }}
+            onClick={() => {
+              handleCloseDeleteInventoryModal();
+            }}
+          />
+          <Typography variant="h4" width="80%" textAlign="center">
+            Goodbye!!
+          </Typography>
+          <Typography width="80%" textAlign="center">
+            Are you sure you want to leave your lovely {groupName} and all your
+            friends?
+          </Typography>
+          <Box
+            onClick={() => {
+              leaveGroup();
+              handleCloseLeaveGroupModal();
+            }}
+          >
+            <DarkButton>Leave</DarkButton>
           </Box>
         </Box>
       </Modal>

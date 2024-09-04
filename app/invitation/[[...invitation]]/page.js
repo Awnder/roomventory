@@ -76,11 +76,14 @@ export default function Page() {
     console.log("Invitation inside add user:", invitation);
 
     const groupName = invitation.publicMetadata.group;
+
+    const groupID = user.id.slice(-5) + " " + groupName;
+
     console.log("Group Name:", groupName);
 
     const batch = writeBatch(db);
     const userDocRef = doc(collection(db, "users"), user.id);
-    const groupDocRef = doc(collection(db, "groups"), groupName);
+    const groupDocRef = doc(collection(db, "groups"), groupID);
 
     try {
       // Check if user exists
