@@ -400,13 +400,13 @@ export default function Inventory() {
 
   //function to delete an inventory in a group from the database (1 READ, 1 DELETE operation)
   const deleteInventory = useCallback(
-    async (inventoryName) => {
+    async () => {
       console.log("deleting inventory");
       try {
         const groupRef = doc(collection(db, "groups"), groupID);
         const inventoryCollection = collection(groupRef, "inventories");
 
-        const inventoryRef = doc(inventoryCollection, inventoryName); //inventory should be dynamically selected
+        const inventoryRef = doc(inventoryCollection, inventoryNameForDeletion); //inventory should be dynamically selected
 
         //READ
         const inventorySnap = await getDoc(inventoryRef);
@@ -423,7 +423,7 @@ export default function Inventory() {
       fetchInventories();
       setInventoryName("");
     },
-    [inventoryName]
+    [inventoryNameForDeletion]
   );
 
   /****************************************************** Expense Tracking ******************************************************/
@@ -658,12 +658,15 @@ export default function Inventory() {
     }
   }, []);
 
-  const fetchItemsFromInventory = useCallback(async (selectedInventory) => {
+  const fetchItemsFromInventory = useCallback(async (passedInventory) => {
+    console.log('setting items');
+    
+    /*
     const groupRef = doc(collection(db, "groups"), groupID);
 
     const inventoryCollection = collection(groupRef, "inventories");
 
-    const inventoryRef = doc(inventoryCollection, selectedInventory);
+    const inventoryRef = doc(inventoryCollection, passedInventory);
 
     //READ
     const inventorySnap = await getDoc(inventoryRef);
@@ -674,7 +677,14 @@ export default function Inventory() {
     } else {
       setItems(inventorySnap.data().items);
     }
-  }, []);
+      */
+    const localInventory = inventories.find(inventory => inventory.name === passedInventory);
+
+    console.log('localInventory', localInventory);
+
+    setItems(localInventory.items);
+
+  }, [inventories]);
 
   /****************************************************** Needed Items Functions ******************************************************/
 
@@ -837,6 +847,10 @@ export default function Inventory() {
       )
     );
   }, [itemSearch, items]);
+
+  useEffect(() => {
+    console.log('filtered items from useffect', filteredItems)
+  }, [filteredItems]);
 
   useEffect(() => {
     console.log("setting groupID from UseEffect");
@@ -1665,7 +1679,7 @@ export default function Inventory() {
               handleCloseInventoryModal();
             }}
           />
-          <Typography variant="h4" textAlign="center" width="80%">Inventory: {inventoryNameForDisplay}</Typography>
+          <Typography variant="h4" textAlign="center" width="80%">{inventoryNameForDisplay}</Typography>
           <Box
             border="1px solid black"
             borderRadius="20px"
@@ -1693,7 +1707,7 @@ export default function Inventory() {
           </Box>
           <Box width="80%" maxWidth="lg"> 
             <Grid container flexGrow={1} spacing={2} diplay="flex" justifyContent="center">
-              {filteredItems.length ? filteredItems.map((item) => {
+              {filteredItems.length ? filteredItems.map((item) => (
                 <Grid item key={item.name} xs={12} md={12} lg={6}>
                   <Stack
                     direction="row"
@@ -1785,7 +1799,7 @@ export default function Inventory() {
                     </Box>
                   </Stack>
                 </Grid>
-              }) : <Typography textAlign="center">No Items Here</Typography>}
+              )) : <Typography textAlign="center">No Items Here</Typography>}
             </Grid>
           </Box>
         </Box>
