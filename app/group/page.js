@@ -6,21 +6,22 @@ import {
   Typography,
   Modal,
   Stack,
-  Button,
   TextField,
   InputAdornment,
+  InputLabel,
   Accordion,
   AccordionDetails,
   AccordionSummary,
   Chip,
-  Tooltip,
   FormControl,
   FormControlLabel,
   FormLabel,
   RadioGroup,
   Radio,
+  Switch,
   Select,
   MenuItem,
+  Alert,
 } from "@mui/material";
 import TooltipIcon from "../../Components/tooltipicon";
 import SettingsIcon from "@mui/icons-material/Settings";
@@ -77,6 +78,8 @@ export default function Inventory() {
   const [itemName, setItemName] = useState("");
   const [email, setEmail] = useState("");
   const [suggestedItems, setSuggestedItems] = useState({});
+  const [inventoryNameForDisplay, setInventoryNameForDisplay] = useState("");
+  const [inventoryNameForDeletion, setInventoryNameForDeletion] = useState("");
 
   // Item Metadata
   const [selectedInventory, setSelectedInventory] = useState("");
@@ -87,7 +90,7 @@ export default function Inventory() {
   const [isPerishable, setIsPerishable] = useState(false);
   const [notes, setNotes] = useState("");
   const [price, setPrice] = useState(0.0);
-  const [priority, setPriority] = useState(null);
+  const [priority, setPriority] = useState("med");
   const [assignedRoommate, setAssignedRoommate] = useState("");
 
   //Modals
@@ -95,16 +98,31 @@ export default function Inventory() {
   const [openNewInventoryModal, setOpenNewInventoryModal] = useState(false);
   const [openAddItemModal, setOpenAddItemModal] = useState(false);
   const [openNeededItemModal, setOpenNeededItemModal] = useState(false);
+  const [openInventoryModal, setOpenInventoryModal] = useState(false);
+  const [openDeleteInventoryModal, setOpenDeleteInventoryModal] = useState(false);
 
   //Modals open/close
   const handleOpenMemberModal = () => setOpenMemberModal(true);
   const handleCloseMemberModal = () => setOpenMemberModal(false);
-  const handleOpenInventoryModal = () => setOpenNewInventoryModal(true);
-  const handleCloseInventoryModal = () => setOpenNewInventoryModal(false);
+  const handleOpenNewInventoryModal = () => setOpenNewInventoryModal(true);
+  const handleCloseNewInventoryModal = () => setOpenNewInventoryModal(false);
   const handleOpenItemModal = () => setOpenAddItemModal(true);
   const handleCloseItemModal = () => setOpenAddItemModal(false);
   const handleOpenNeededItemModal = () => setOpenNeededItemModal(true);
   const handleCloseNeededItemModal = () => setOpenNeededItemModal(false);
+  const handleOpenInventoryModal = (inventoryName) => {
+    setInventoryNameForDisplay(inventoryName);
+    setOpenInventoryModal(true);
+  };
+  const handleCloseInventoryModal = () => setOpenInventoryModal(false);
+  const handleOpenDeleteInventoryModal = (inventoryName) => {
+    setInventoryNameForDeletion(inventoryName);
+    setOpenDeleteInventoryModal(true);
+  };
+  const handleCloseDeleteInventoryModal = (inventoryName) => {
+    setOpenDeleteInventoryModal(false);
+    deleteInventory(inventoryName);
+  };
 
   //Filtered objects
   const [filteredInventories, setFilteredInventories] = useState([]);
@@ -298,17 +316,17 @@ export default function Inventory() {
       fetchInventories();
     }
     setInventoryName("");
-    handleCloseInventoryModal();
+    handleCloseNewInventoryModal();
   }, [inventoryName]);
 
   //function to delete an inventory in a group from the database (1 READ, 1 DELETE operation)
-  const deleteInventory = useCallback(async () => {
+  const deleteInventory = useCallback(async (inventoryName) => {
     console.log("deleting inventory");
     try {
       const groupRef = doc(collection(db, "groups"), groupName);
       const inventoryCollection = collection(groupRef, "inventories");
 
-      const inventoryRef = doc(inventoryCollection, exampleInventory); //inventory should be dynamically selected
+      const inventoryRef = doc(inventoryCollection, inventoryName); //inventory should be dynamically selected
 
       //READ
       const inventorySnap = await getDoc(inventoryRef);
@@ -324,7 +342,7 @@ export default function Inventory() {
     }
     fetchInventories();
     setInventoryName("");
-  }, [exampleInventory]);
+  }, [inventoryName]);
 
   /****************************************************** Expense Tracking ******************************************************/
 
@@ -695,7 +713,7 @@ export default function Inventory() {
         </Box>
 
         {/* Modal for creating new inventories */}
-        <Modal open={openNewInventoryModal} onOpen={handleOpenInventoryModal}>
+        <Modal open={openNewInventoryModal}>
           <Box
             position="absolute"
             top="50%"
@@ -704,6 +722,7 @@ export default function Inventory() {
             maxWidth="sm"
             bgcolor={green_light}
             border="2px solid #000"
+            borderRadius="20px"
             p={2}
             display="flex"
             flexDirection="column"
@@ -728,21 +747,20 @@ export default function Inventory() {
                 },
               }}
               onClick={(e) => {
-                handleCloseInventoryModal(false);
+                handleCloseNewInventoryModal(false);
               }}
             />
             <Typography variant="h5" textAlign="center" width="80%">
               Create New Inventory
             </Typography>
-            <Box bgcolor="white" border="1px solid black" borderRadius="5px">
-              <TextField
-                size="small"
-                placeholder="Ex. Bathroom, Kitchen"
-                border="1px solid black"
-                value={inventoryName}
-                onChange={(e) => setInventoryName(e.target.value)}
-              />
-            </Box>
+            <TextField
+              size="small"
+              placeholder="Ex. Bathroom, Kitchen"
+              border="1px solid black"
+              value={inventoryName}
+              onChange={(e) => setInventoryName(e.target.value)}
+              sx={{ bgcolor: "white" }}
+            />
             <Box onClick={createInventory}>
               <DarkButton>Create</DarkButton>
             </Box>
@@ -750,7 +768,7 @@ export default function Inventory() {
         </Modal>
 
         {/* Modal for adding new items */}
-        <Modal open={openAddItemModal} onOpen={handleOpenItemModal}>
+        <Modal open={openAddItemModal}>
           <Stack
             position="absolute"
             top="50%"
@@ -804,6 +822,7 @@ export default function Inventory() {
               alignItems="center"
               width="80%"
             >
+              <Typography>Quantity:</Typography>
               <TextField
                 size="small"
                 placeholder="Quantity"
@@ -813,7 +832,7 @@ export default function Inventory() {
                 onChange={(e) => setQuantity(e.target.value)}
                 sx={{ bgcolor: "white", width: "50%" }}
               />
-              <Typography color="black" textAlign="center">
+              <Typography textAlign="center">
                 X
               </Typography>
               <TextField
@@ -827,9 +846,7 @@ export default function Inventory() {
               />
             </Stack>
             <Stack direction="row" justifyContent="center" alignItems="center" width="80%">
-              <Typography color="black" textAlign="center" mr={1} width="20%">
-                Total Cost:
-              </Typography>
+              <Typography color="black" mr={1} width="20%">Price:</Typography>
               <TextField
                 size="small"
                 border="1px solid black"
@@ -844,73 +861,50 @@ export default function Inventory() {
                 sx={{ bgcolor: "white", width: "80%" }}
               />
             </Stack>
-            <Stack direction="row" spacing={2} alignItems="center">
-              <Box
-                width="100px"
-                bgcolor="white"
-                border="1px solid black"
-                borderRadius="5px"
-              >
-                <TextField
-                  size="small"
-                  placeholder="Category"
-                  border="1px solid black"
-                  value={category}
-                  onChange={(e) => setCategory(e.target.value)}
-                />
-              </Box>
-            </Stack>
-            <Stack direction="row" spacing={2} alignItems="center">
-              <FormControl>
-                <FormLabel textAlign="center">Perishable Item?</FormLabel>
+            <Stack direction="row" spacing={2} alignItems="center" width="80%">
+              <FormControl sx={{ display: "flex", flexDirection: "row", justifyContent: "center", alignItems: "center" }}>
+                <FormLabel sx={{ textAlign: "center" }}>Perishable?</FormLabel>
                 <RadioGroup
-                  row
                   defaultValue="No"
                   value={isPerishable}
                   onChange={(e) => setIsPerishable(e.target.value)}
+                  sx={{ ml: 2 }}
                 >
-                  <FormControlLabel
-                    value={false}
-                    control={<Radio size="small" />}
-                    label="No"
-                  />
                   <FormControlLabel
                     value={true}
                     control={<Radio size="small" />}
                     label="Yes"
                   />
+                  <FormControlLabel
+                    value={false}
+                    control={<Radio size="small" />}
+                    label="No"
+                  />
                 </RadioGroup>
               </FormControl>
-              <Box
-                height="100%"
-                width="100px"
-                bgcolor="white"
+              <TextField
+                size="small"
+                placeholder="Exp. Date"
                 border="1px solid black"
-                borderRadius="5px"
-              >
-                <TextField
-                  size="small"
-                  placeholder="Exp. Date"
-                  border="1px solid black"
-                  inputMode="numeric"
-                  value={expiryDate}
-                  onChange={(e) => setExpiryDate(e.target.value)}
-                />
-              </Box>
+                inputMode="numeric"
+                value={expiryDate}
+                onChange={(e) => setExpiryDate(e.target.value)}
+                sx={{ bgcolor: "white", width: "60%" }}
+              />
             </Stack>
             <Stack
               direction="row"
               spacing={2}
               alignItems="center"
               justifyContent="center"
+              width="80%"
             >
-              <Typography color="black">Select Inventory:</Typography>
-              <Box bgcolor="white" color="black" width="150px">
-                <FormControl fullWidth>
+              <Typography color="black" width="40%">Select Inventory:</Typography>
+              <Box bgcolor="white" color="black" width="60%">
+                <FormControl fullWidth InputLabelProps={{shrink: false}}>
                   <Select
                     size="small"
                     value={selectedInventory}
-                    label="Inventory"
                     sx={{ color: "black" }}
                     onChange={(e) => setSelectedInventory(e.target.value)}
                   >
@@ -923,37 +917,37 @@ export default function Inventory() {
                 </FormControl>
               </Box>
             </Stack>
-            <Box bgcolor="white" width="60%">
-              <TextField
-                multiline
-                fullWidth
-                placeholder="Add notes"
-                value={notes}
-                onChange={(e) => setNotes(e.target.value)}
-              />
-            </Box>
+            <TextField
+              multiline
+              placeholder="Add notes"
+              value={notes}
+              onChange={(e) => setNotes(e.target.value)}
+              sx={{ bgcolor: "white", width: "80%" }}
+            />
 
-            <Box onClick={addItem} display="flex" justifyContent="center">
-              <DarkButton>Add</DarkButton>
+            <Box onClick={addItem}>
+              <DarkButton>Add New Item</DarkButton>
             </Box>
           </Stack>
         </Modal>
 
         {/* Modal for adding needed items */}
-        <Modal open={openNeededItemModal} onOpen={handleOpenNeededItemModal}>
+        <Modal open={openNeededItemModal}>
           <Box
             position="absolute"
             top="50%"
             left="50%"
-            width={500}
+            width="80%"
+            maxWidth="sm"
             bgcolor={green_light}
             border="2px solid #000"
+            borderRadius="20px"
             p={2}
             display="flex"
             flexDirection="column"
             justifyContent="center"
             alignItems="center"
-            gap={3}
+            gap={2}
             sx={{
               transform: "translate(-50%,-50%)",
             }}
@@ -976,130 +970,98 @@ export default function Inventory() {
               }}
             />
             <Typography variant="h5" textAlign="center">
-              Add Needed Item
+              Add to Shopping List
             </Typography>
-            <Stack direction="row" spacing={2}>
-              <Box bgcolor="white" border="1px solid black" borderRadius="5px">
-                <TextField
-                  placeholder="Item Name"
-                  border="1px solid black"
-                  value={itemName}
-                  onChange={(e) => setItemName(e.target.value)}
-                />
-              </Box>
-              <Box
-                onClick={addNeededItem}
-                display="flex"
-                justifyContent="center"
-              >
-              </Box>
-            </Stack>
+            
+            <TextField
+              size="small"
+              placeholder="Name"
+              fullWidth
+              value={itemName}
+              onChange={(e) => setItemName(e.target.value)}
+              sx={{ bgcolor: "white", width: "80%" }}
+            />
             <Stack
               direction="row"
               spacing={2}
               justifyContent="center"
               alignItems="center"
+              width="80%"
             >
-              <Typography color="black" textAlign="center">
-                Quantity Needed:
-              </Typography>
-              <Box
-                width="75px"
-                bgcolor="white"
+              <Typography>Quantity:</Typography>
+              <TextField
+                size="small"
+                placeholder="Quantity"
                 border="1px solid black"
-                borderRadius="5px"
-              >
-                <TextField
-                  size="small"
-                  placeholder="Qty."
-                  border="1px solid black"
-                  inputMode="numeric"
-                  value={quantity}
-                  onChange={(e) => setQuantity(e.target.value)}
-                />
-              </Box>
+                inputMode="numeric"
+                value={quantity}
+                onChange={(e) => setQuantity(e.target.value)}
+                sx={{ bgcolor: "white", width: "50%" }}
+              />
               <Typography color="black" textAlign="center">
                 X
               </Typography>
-              <Box
-                width="75px"
-                bgcolor="white"
+              <TextField
+                size="small"
+                placeholder="Unit"
                 border="1px solid black"
-                borderRadius="5px"
-              >
-                <TextField
-                  size="small"
-                  placeholder="Unit"
-                  border="1px solid black"
-                  inputMode="numeric"
-                  value={unit}
-                  onChange={(e) => setUnit(e.target.value)}
-                />
-              </Box>
+                inputMode="numeric"
+                value={unit}
+                onChange={(e) => setUnit(e.target.value)}
+                sx={{ bgcolor: "white", width: "50%" }}
+              />
             </Stack>
             <Stack
               direction="row"
               spacing={2}
-              justifyContent="center"
               alignItems="center"
+              width="80%"
             >
-              <Stack direction="row" alignItems="center">
-                <Typography color="black" textAlign="center">
-                  Price:
-                </Typography>
-                <Typography color="black" textAlign="center" mx={1}>
-                  $
-                </Typography>
-                <Box
-                  width="75px"
-                  bgcolor="white"
-                  border="1px solid black"
-                  borderRadius="5px"
-                >
-                  <TextField
-                    size="small"
-                    border="1px solid black"
-                    inputMode="decimal"
-                    value={price}
-                    onChange={(e) => setPrice(e.target.value)}
-                  />
-                </Box>
-              </Stack>
+              <Typography color="black" mr={1}>Price:</Typography>
+              <TextField
+                size="small"
+                border="1px solid black"
+                inputMode="decimal"
+                value={price}
+                onChange={(e) => setPrice(e.target.value)}
+                InputProps={{
+                  startAdornment: (
+                    <InputAdornment sx={{ mr: 1 }}>$</InputAdornment>
+                  ),
+                }}
+                sx={{ bgcolor: "white", width: "60%" }}
+              />
+
               <Stack direction="row" alignItems="center">
                 <Typography color="black" textAlign="center" mx={1}>
                   Priority:
                 </Typography>
-                <Box
-                  width="100px"
-                  bgcolor="white"
-                  border="1px solid black"
-                  borderRadius="5px"
-                >
-                  <TextField
-                    size="small"
-                    border="1px solid black"
-                    placeholder="Ex. Low"
-                    value={priority}
-                    onChange={(e) => setPriority(e.target.value)}
-                  />
-
+                <Box bgcolor="white" width="60%">
+                  <FormControl fullWidth InputLabelProps={{shrink: false}}>
+                    <Select
+                      size="small"
+                      value={priority}
+                      onChange={(e) => setPriority(e.target.value)}
+                    >
+                      <MenuItem value={"high"}>High</MenuItem>
+                      <MenuItem value={"med"}>Med</MenuItem>
+                      <MenuItem value={"low"}>Low</MenuItem>
+                    </Select>
+                  </FormControl>
                 </Box>
               </Stack>
             </Stack>
             <Stack
               direction="row"
-              spacing={2}
               alignItems="center"
-              justifyContent="center"
+              width="80%"
             >
-              <Typography color="black">Select Inventory:</Typography>
-              <Box bgcolor="white" color="black" width="150px">
-                <FormControl fullWidth>
+              <Typography width="30%">Select Inventory:</Typography>
+              <Box bgcolor="white" color="black" width="70%">
+                <FormControl fullWidth InputLabelProps={{shrink: false}}>
                   <Select
                     size="small"
                     value={selectedInventory}
-                    label="Inventory"
-                    sx={{ color: "black" }}
                     onChange={(e) => setSelectedInventory(e.target.value)}
                   >
                     {inventories.map((inventory) => (
@@ -1110,34 +1072,18 @@ export default function Inventory() {
                   </Select>
                 </FormControl>
               </Box>
-              <Box
-                width="100px"
-                bgcolor="white"
-                border="1px solid black"
-                borderRadius="5px"
-              >
-                <TextField
-                  size="small"
-                  placeholder="Category"
-                  border="1px solid black"
-                  value={category}
-                  onChange={(e) => setCategory(e.target.value)}
-                />
-              </Box>
             </Stack>
             <Stack
               direction="row"
-              spacing={2}
               alignItems="center"
-              justifyContent="center"
+              width="80%"
             >
-              <Typography color="black">Assign To:</Typography>
-              <Box bgcolor="white" color="black" width="200px">
-                <FormControl fullWidth>
+              <Typography width="30%">Assign To:</Typography>
+              <Box bgcolor="white" color="black" width="70%">
+                <FormControl fullWidth InputLabelProps={{shrink: false}}>
                   <Select
                     size="small"
                     value={assignedRoommate}
-                    label="Select Roommate"
                     sx={{ color: "black" }}
                     onChange={(e) => setAssignedRoommate(e.target.value)}
                   >
@@ -1157,7 +1103,9 @@ export default function Inventory() {
                 onChange={(e) => setNotes(e.target.value)}
               />
             </Box>
-            <DarkButton>Add</DarkButton>
+            <Box onClick={addNeededItem} display="flex" justifyContent="center" width="30%">
+              <DarkButton>Add to List</DarkButton>
+            </Box>
           </Box>
         </Modal>
 
@@ -1167,7 +1115,7 @@ export default function Inventory() {
             <Grid item xs={12} md={6}>
               <Stack
                 direction="column"
-                justifyContent="space-between"
+                justifyContent="space-around"
                 alignItems="center"
                 height="100%"
                 bgcolor={green_dark}
@@ -1224,7 +1172,7 @@ export default function Inventory() {
                 >
                   <TextField
                     fullWidth
-                    label="Search"
+                    label="Search Inventory"
                     value={search}
                     onChange={(e) => setSearch(e.target.value)}
                     InputProps={{
@@ -1242,26 +1190,14 @@ export default function Inventory() {
                   spacing={2}
                   justifyContent="center"
                 >
-                  <Box
-                    onClick={(e) => {
-                      handleOpenInventoryModal();
-                    }}
-                  >
+                  <Box onClick={(e) => {handleOpenNewInventoryModal();}}>
                     <DarkButton>Create Inventory</DarkButton>
                   </Box>
-                  <Box
-                    onClick={(e) => {
-                      handleOpenItemModal();
-                    }}
-                  >
+                  <Box onClick={(e) => {handleOpenItemModal();}}>
                     <DarkButton>Add Item</DarkButton>
                   </Box>
-                  <Box
-                    onClick={(e) => {
-                      handleOpenNeededItemModal();
-                    }}
-                  >
-                    <DarkButton>Add Needed Item</DarkButton>
+                  <Box onClick={(e) => {handleOpenNeededItemModal();}}>
+                    <DarkButton>Add To Shopping List</DarkButton>
                   </Box>
                 </Stack>
               </Box>
@@ -1271,7 +1207,7 @@ export default function Inventory() {
       </Stack>
 
       {/* Modal for adding new members */}
-      <Modal open={openMemberModal} onOpen={handleOpenMemberModal}>
+      <Modal open={openMemberModal}>
         <Box
           position="absolute"
           top="50%"
@@ -1289,12 +1225,34 @@ export default function Inventory() {
             transform: "translate(-50%,-50%)",
           }}
         >
+          <CloseIcon
+            sx={{
+              position: "absolute",
+              top: 5,
+              left: 5,
+              fontSize: 40,
+              color: `${green_dark}`,
+              transition: "200ms",
+              "&:hover": {
+                cursor: "pointer",
+                transform: "rotate(180deg) scale(1.05)",
+              },
+            }}
+            onClick={() => {
+              handleCloseMemberModal();
+            }}
+          />
           <Typography variant="h5" textAlign="center">
             Edit Group
           </Typography>
           <Stack direction="column" spacing={1}>
             {groupMembers.map((member) => (
-              <Chip key={member.name} label={member.name} variant="filled" />
+              <Stack key={member.name} direction="row" spacing={1} alignItems="center">
+                <Chip label={member.name} variant="filled" />
+                <TooltipIcon title="Remove" placement="top">
+                  <DeleteOutlineIcon />
+                </TooltipIcon>
+              </Stack>
             ))}
           </Stack>
           <Stack direction="row" spacing={2}>
@@ -1303,6 +1261,7 @@ export default function Inventory() {
               inputRef={textInput}
               value={email}
               onChange={(e) => setEmail(e.target.value)}
+              sx={{ bgcolor: "white" }}
             />
             <Box
               onClick={(e) => {
@@ -1315,28 +1274,168 @@ export default function Inventory() {
               <DarkButton>Invite</DarkButton>
             </Box>
           </Stack>
-          <Box
-            onClick={() => {
-              handleCloseMemberModal();
-            }}
-          >
-            <DarkButton>Close</DarkButton>
-          </Box>
         </Box>
       </Modal>
 
       {/* Inventory Area */}
-      <Box width="80%" maxWidth="xl" flexGrow={1}>
+      <Box width="80%" maxWidth="lg" flexGrow={1}>
         <Grid
           container
           spacing={2}
           mb={8}
-          justifyContent={"center"}
-          alignItems="center"
         >
           {filteredInventories.map((inventory) => (
-            <Grid item key={inventory.name} xs={12} sm={12} md={12} lg={6} xl={6}>
-              <Accordion>
+            <Grid item key={inventory.name} xs={12} sm={6} md={4}>
+              <Box
+                position="relative"
+                height="100%"
+                display="flex"
+                justifyContent="center"
+                alignItems="center"
+                borderRadius={"15px"}
+                minHeight="200px"
+                bgcolor={green_light}
+                color={green_dark}
+                boxShadow="0 0 5px black"
+                border={`2px solid ${green_dark}`}
+                onClick={(e) => {handleOpenInventoryModal(inventory.name); e.stopPropagation();}}
+                sx={{
+                  transition: "500ms",
+                  "&:hover": {
+                    transform: "scale(1.02)",
+                    bgcolor: `${green_dark}`,
+                    color: `${green_light}`,
+                    cursor: "pointer",
+                    "& .deleteIconInventory": {
+                      color: `${green_light}`,
+                    },
+                  },
+                }}
+              >
+                <CloseIcon
+                  className="deleteIconInventory"
+                  sx={{
+                    position: "absolute",
+                    top: 5,
+                    left: 5,
+                    fontSize: 40,
+                    color: `${green_dark}`,
+                    transition: "200ms",
+                    "&:hover": {
+                      cursor: "pointer",
+                      color: `${green_light}`,
+                      transform: "rotate(180deg) scale(1.05)",
+                    },
+                  }}
+                  onClick={() => {
+                    handleOpenDeleteInventoryModal(inventory.name);
+                  }}
+                />
+                <Typography
+                  variant="h6"
+                  maxHeight="100%"
+                  width="90%"
+                  overflow="auto"
+                  textAlign="center"
+                  sx={{ overflowWrap: "break-word", '&:hover': { cursor: "pointer" }}}
+                >
+                  {inventory.name}
+                </Typography>
+                
+              </Box>
+            </Grid>
+          ))}
+        </Grid>
+      </Box>
+
+      {/* Modal that display's inventory items */}
+      <Modal open={openInventoryModal}>
+        <Box
+          position="absolute"
+          top="50%"
+          left="50%"
+          width="80%"
+          maxWidth="md"
+          bgcolor={green_light}
+          border="2px solid #000"
+          p={2}
+          display="flex"
+          flexDirection="column"
+          justifyContent="center"
+          alignItems="center"
+          gap={3}
+          sx={{
+            transform: "translate(-50%,-50%)",
+          }}
+        >
+          <CloseIcon
+            sx={{
+              position: "absolute",
+              top: 5,
+              left: 5,
+              fontSize: 40,
+              color: `${green_dark}`,
+              transition: "200ms",
+              "&:hover": {
+                cursor: "pointer",
+                transform: "rotate(180deg) scale(1.05)",
+              },
+            }}
+            onClick={() => {
+              handleCloseInventoryModal();
+            }}
+          />
+          <Typography>{inventoryNameForDisplay}</Typography>
+        </Box>
+      </Modal>
+      
+      {/* Modal for Inventory Deletion */}
+      <Modal open={openDeleteInventoryModal}>
+        <Box
+          position="absolute"
+          top="50%"
+          left="50%"
+          bgcolor={green_light}
+          border="2px solid #000"
+          borderRadius="20px"
+          p={2}
+          display="flex"
+          flexDirection="column"
+          justifyContent="center"
+          alignItems="center"
+          gap={3}
+          sx={{
+            transform: "translate(-50%,-50%)",
+            width: {xs: "80%", sm: "60%"},
+            maxWidth: "md"
+          }}
+        >
+          <CloseIcon
+            sx={{
+              position: "absolute",
+              top: 5,
+              left: 5,
+              fontSize: 40,
+              color: `${green_dark}`,
+              transition: "200ms",
+              "&:hover": {
+                cursor: "pointer",
+                transform: "rotate(180deg) scale(1.05)",
+              },
+            }}
+            onClick={() => {
+              setOpenDeleteInventoryModal(false);
+            }}
+          />
+          <Typography variant="h4" width="80%" textAlign="center">Inventory Deletion</Typography>
+          <Typography width="80%" textAlign="center">Are you sure you want to delete {inventoryNameForDeletion} and all its contents?</Typography>
+          <Box onClick={() => handleCloseDeleteInventoryModal(inventoryNameForDeletion)}>
+            <DarkButton>Delete</DarkButton>
+          </Box>
+        </Box>
+      </Modal>
+
+        {/* <Accordion>
                 <AccordionSummary
                   expandIcon={<ArrowDropDownIcon />}
                   aria-controls="index number"
@@ -1347,7 +1446,7 @@ export default function Inventory() {
                     textOverflow: "ellipsis",
                   }}
                 >
-                  {/* You can use inventory.name*/}
+                  // You can use inventory.name
                   <Typography
                     color="black"
                     textAlign="center"
@@ -1359,7 +1458,7 @@ export default function Inventory() {
                 </AccordionSummary>
                 <AccordionDetails>
                   <Stack direction="column">
-                    {/* below is an inventory item */}
+                     below is an inventory item 
                     <Stack
                       direction="row"
                       justifyContent="space-between"
@@ -1388,7 +1487,7 @@ export default function Inventory() {
                         },
                       }}
                     >
-                      {/* You can use groupMembers here*/}
+                      {/* You can use groupMembers here
                       <Stack direction="column" zIndex={2}>
                         <Chip
                           label="Andrew"
@@ -1412,7 +1511,7 @@ export default function Inventory() {
                         />
                       </Stack>
                       <Box zIndex={2}>
-                        {/* You can use inventory.items.name here*/}
+                        {/* You can use inventory.items.name here
                         <Typography
                           sx={{
                             display: { xs: "block", sm: "inline" },
@@ -1421,7 +1520,7 @@ export default function Inventory() {
                         >
                           Name of item
                         </Typography>
-                        {/* You can use inventory.items.quantity here*/}
+                        {/* You can use inventory.items.quantity here
                         <Typography
                           sx={{
                             display: { xs: "block", sm: "inline" },
@@ -1433,7 +1532,7 @@ export default function Inventory() {
                       </Box>
                       <Box zIndex={2}>
                         <TooltipIcon title="Delete" placement="top">
-                          {/* You can use deleteItem here (probably pass item.name as parameter)*/}
+                          {/* You can use deleteItem here (probably pass item.name as parameter)
                           <DeleteOutlineIcon />
                         </TooltipIcon>
                         <TooltipIcon title="-1" placement="top">
@@ -1446,19 +1545,7 @@ export default function Inventory() {
                     </Stack>
                   </Stack>
                 </AccordionDetails>
-              </Accordion>
-            </Grid>
-          ))}
-        </Grid>
-        {/* <Box>
-          <TextField
-            label="input"
-            value={itemName}
-            onChange={(e) => setItemName(e.target.value)}
-          />
-          <Button onClick={() => {addItem}}>Test Function</Button>
-        </Box> */}
-      </Box>
+              </Accordion> */}
     </Stack>
   );
 }
