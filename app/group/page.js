@@ -9,21 +9,16 @@ import {
   Stack,
   TextField,
   InputAdornment,
-  InputLabel,
-  Accordion,
-  AccordionDetails,
-  AccordionSummary,
   Chip,
   FormControl,
   FormControlLabel,
   FormLabel,
   RadioGroup,
   Radio,
-  Switch,
   Select,
   MenuItem,
   Tooltip,
-  Alert,
+  Paper,
 } from "@mui/material";
 import TooltipIcon from "../../Components/tooltipicon";
 import ShoppingCartOutlinedIcon from "@mui/icons-material/ShoppingCartOutlined";
@@ -31,7 +26,6 @@ import PaidIcon from "@mui/icons-material/Paid";
 import DirectionsRunIcon from "@mui/icons-material/DirectionsRun";
 import SettingsIcon from "@mui/icons-material/Settings";
 import SearchIcon from "@mui/icons-material/Search";
-import ArrowDropDownIcon from "@mui/icons-material/ArrowDropDown";
 import AddIcon from "@mui/icons-material/Add";
 import RemoveIcon from "@mui/icons-material/Remove";
 import StarsSharpIcon from "@mui/icons-material/StarsSharp";
@@ -352,9 +346,9 @@ export default function Inventory() {
   const exampleInventory = "Bathroom";
 
   // Function to get suggestions from the AI
-  const getSuggestions = async () => {
+  const getSuggestions = async (inventoryName) => {
     const selectedInventory = inventories.find(
-      (inventory) => inventory.name === exampleInventory
+      (inventory) => inventory.name === inventoryName
     );
 
     await fetch("/api/generate", {
@@ -366,8 +360,9 @@ export default function Inventory() {
     })
       .then((response) => response.json())
       .then((data) => {
-        setSuggestedItems({ inventory: exampleInventory, items: data });
+        setSuggestedItems({ inventory: inventoryName, items: data });
       });
+    console.log(suggestedItems)
   };
 
   /****************************************************** Inventory Functions ******************************************************/
@@ -1701,32 +1696,6 @@ export default function Inventory() {
                     </DarkButton>
                   </Box>
                 </TooltipIcon>
-                <TooltipIcon title="AI Suggestions" placement="top">
-                  <Box
-                    sx={{
-                      position: "absolute",
-                      bottom: 5,
-                      right: 5,
-                      fontSize: 40,
-                      color: `${green_dark}`,
-                      transition: "200ms",
-                      "&:hover": {
-                        cursor: "pointer",
-                        color: `${green_light}`,
-                        transform: "scale(1.05)",
-                      },
-                    }}
-                    onClick={(event) => {
-                      // setInventoryNameForShopping(inventory.name);
-                      // handleOpenShoppingListModal();
-                      event.stopPropagation();
-                    }}
-                  >
-                    <DarkButton>
-                      <AutoAwesomeIcon />
-                    </DarkButton>
-                  </Box>
-                </TooltipIcon>
                 <Typography
                   variant="h6"
                   maxHeight="100%"
@@ -1793,7 +1762,6 @@ export default function Inventory() {
             border="1px solid black"
             borderRadius="20px"
             p={2}
-            mb={2}
             sx={{
               background: `linear-gradient(to left, #fff, ${green_light})`,
               width: { xs: "80%", sm: "60%" },
@@ -1814,6 +1782,41 @@ export default function Inventory() {
               }}
             />
           </Box>
+          <TooltipIcon title="AI Suggestions" placement="top">
+            <Box
+              sx={{
+                fontSize: 40,
+                color: `${green_dark}`,
+                transition: "200ms",
+                "&:hover": {
+                  cursor: "pointer",
+                  color: `${green_light}`,
+                  transform: "scale(1.05)",
+                },
+              }}
+              onClick={() => {
+                getSuggestions(inventoryNameForDisplay)
+              }}
+            >
+              <DarkButton>
+                <Typography mr={1}>Generate Suggestions</Typography>
+                <AutoAwesomeIcon />
+              </DarkButton>
+            </Box>
+          </TooltipIcon>
+          {suggestedItems.length > 0 ? (
+            <Paper square={false}>
+            {suggestedItems.map((item) => (
+              <Box key={item.name}>
+                <Typography>{item.name}</Typography>
+              </Box>
+            ))}
+          </Paper>
+          ) : (
+            <></>
+          )}
+          
+          {/* Item Display */}
           <Box width="80%" maxWidth="lg" overflow="auto">
             <Grid
               container
