@@ -37,6 +37,7 @@ import RemoveIcon from "@mui/icons-material/Remove";
 import StarsSharpIcon from "@mui/icons-material/StarsSharp";
 import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
 import CloseIcon from "@mui/icons-material/Close";
+import AutoAwesomeIcon from '@mui/icons-material/AutoAwesome';
 import { DarkButton, LightButton } from "../../Components/styledbuttons";
 import { Category, Opacity, Search } from "@mui/icons-material";
 import { useRouter } from "next/navigation";
@@ -1674,30 +1675,58 @@ export default function Inventory() {
                     event.stopPropagation();
                   }}
                 />
-                <Box
-                  sx={{
-                    position: "absolute",
-                    top: 5,
-                    right: 5,
-                    fontSize: 40,
-                    color: `${green_dark}`,
-                    transition: "200ms",
-                    "&:hover": {
-                      cursor: "pointer",
-                      color: `${green_light}`,
-                      transform: "scale(1.05)",
-                    },
-                  }}
-                  onClick={(event) => {
-                    setInventoryNameForShopping(inventory.name);
-                    handleOpenShoppingListModal();
-                    event.stopPropagation();
-                  }}
-                >
-                  <DarkButton>
-                    <ShoppingCartOutlinedIcon />
-                  </DarkButton>
-                </Box>
+                <TooltipIcon title="Shopping List" placement="top">
+                  <Box
+                    sx={{
+                      position: "absolute",
+                      top: 0,
+                      right: 5,
+                      fontSize: 40,
+                      color: `${green_dark}`,
+                      transition: "200ms",
+                      "&:hover": {
+                        cursor: "pointer",
+                        color: `${green_light}`,
+                        transform: "scale(1.05)",
+                      },
+                    }}
+                    onClick={(event) => {
+                      setInventoryNameForShopping(inventory.name);
+                      handleOpenShoppingListModal();
+                      event.stopPropagation();
+                    }}
+                  >
+                    <DarkButton>
+                      <ShoppingCartOutlinedIcon />
+                    </DarkButton>
+                  </Box>
+                </TooltipIcon>
+                <TooltipIcon title="AI Suggestions" placement="top">
+                  <Box
+                    sx={{
+                      position: "absolute",
+                      bottom: 5,
+                      right: 5,
+                      fontSize: 40,
+                      color: `${green_dark}`,
+                      transition: "200ms",
+                      "&:hover": {
+                        cursor: "pointer",
+                        color: `${green_light}`,
+                        transform: "scale(1.05)",
+                      },
+                    }}
+                    onClick={(event) => {
+                      // setInventoryNameForShopping(inventory.name);
+                      // handleOpenShoppingListModal();
+                      event.stopPropagation();
+                    }}
+                  >
+                    <DarkButton>
+                      <AutoAwesomeIcon />
+                    </DarkButton>
+                  </Box>
+                </TooltipIcon>
                 <Typography
                   variant="h6"
                   maxHeight="100%"
@@ -2199,9 +2228,18 @@ export default function Inventory() {
           <Typography variant="h4" width="80%" textAlign="center">
             {inventoryNameForShopping} Shopping List
           </Typography>
+          <Stack direction="column" justifyContent="center" alignItems="center">
+            {neededItems.length > 0 ? (<Typography>no items</Typography>) : <Typography>items exist</Typography>}
+            {neededItems.map((neededItem) => (
+              <Box key={neededItem.name}>
+                <Typography>{neededItem.name}</Typography>
+              </Box>
+            ))}
+          </Stack>
         </Box>
       </Modal>
 
+      
       {/* <Accordion>
                 <AccordionSummary
                   expandIcon={<ArrowDropDownIcon />}
