@@ -10,6 +10,7 @@ import {
   InputAdornment,
   TextField,
 } from "@mui/material";
+import TooltipIcon from "../../Components/tooltipicon";
 import AddCircleOutlineIcon from "@mui/icons-material/AddCircleOutline";
 import SearchIcon from "@mui/icons-material/Search";
 import { DarkButton } from "../../Components/styledbuttons"
@@ -330,12 +331,12 @@ export default function Dashboard() {
             ) : null}
         </Box>
       </Box>
-      <Box
+      <Stack width="100%" direction="row" spacing={2} justifyContent="center" mt={4}>
+        <Box
           width="60%"
           maxWidth="md"
           border="1px solid black"
           borderRadius="20px"
-          mt={4}
           p={2}
           sx={{ background: `linear-gradient(to left, #fff, ${green_light})` }}
         >
@@ -353,6 +354,26 @@ export default function Dashboard() {
             }}
           />
         </Box>
+        <Box
+          display="flex"
+          alignItems="center"
+          justifyContent="center"
+        >
+          <TooltipIcon title="Create Inventory" placement="top">
+            <AddCircleOutlineIcon
+              onClick={() => setAddInventoryModal(true)}
+              color="success"
+              sx={{
+                fontSize: 70,
+                transition: "200ms",
+                "&:hover": {
+                  transform: "rotate(180deg) scale(1.05)",
+                },
+              }}
+            />
+          </TooltipIcon>
+        </Box>
+      </Stack>
       <Box width="80%" maxWidth="lg" my={5}>
         <Grid container flexGrow={1} spacing={2}>
           {filteredGroups.map((group) => (
@@ -365,7 +386,7 @@ export default function Dashboard() {
                 borderRadius={"15px"}
                 minHeight="200px"
                 bgcolor={green_light}
-                color={green_dark}
+                color="black"
                 boxShadow="0 0 5px black"
                 border={`2px solid ${green_dark}`}
                 onClick={() => handleGroupClick(group.name)}
@@ -393,24 +414,6 @@ export default function Dashboard() {
             </Grid>
           ))}
         </Grid>
-      </Box>
-      <Box
-        width="80%"
-        maxWidth="lg"
-        display="flex"
-        justifyContent="flex-end"
-      >
-        <AddCircleOutlineIcon
-          onClick={() => setAddInventoryModal(true)}
-          color="success"
-          sx={{
-            fontSize: 70,
-            transition: "200ms",
-            "&:hover": {
-              transform: "rotate(180deg) scale(1.05)",
-            },
-          }}
-        />
       </Box>
 
       <Modal
