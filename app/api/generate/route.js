@@ -23,7 +23,7 @@ Inventory Object Structure:
     - quantityNeeded (number): The quantity needed (default: 1).
     - unit (string or null): The unit of measurement for the needed item (user-adjustable, default: null).
     - inventory (string): The inventory name (automatically set to match the inventory selected).
-    - priority (string): The priority level (user-adjustable, default: "Low").
+    - priority (string): The priority level (user-adjustable, default: "Medium"). (Possible values: "Low", "Medium", "High")
     - addedBy (string): The name of the user who added the item (automatically set to the user's full name).
     - status (string): The status of the item (automatically set to "Needed").
     - dateAdded (date): The date the item was added (automatically set to the current date).

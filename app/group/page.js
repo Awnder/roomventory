@@ -96,7 +96,6 @@ export default function Inventory() {
   const [inventoryNameForDeletion, setInventoryNameForDeletion] = useState("");
   const [kickedMember, setKickedMember] = useState("");
   const [inventoryNameForShopping, setInventoryNameForShopping] = useState("");
-  const [displayedInventory, setDisplayedInventory] = useState("");
 
   // Item Metadata
   const [itemName, setItemName] = useState("");
@@ -110,7 +109,7 @@ export default function Inventory() {
   const [minimumQuantity, setMinimumQuantity] = useState(0);
   const [quantity, setQuantity] = useState(1);
   //special needed item metadata
-  const [priority, setPriority] = useState("med");
+  const [priority, setPriority] = useState("Medium");
   const [assignedRoommate, setAssignedRoommate] = useState("");
   const [linksOnline, setLinksOnline] = useState([]);
   const [status, setStatus] = useState("Needed");
@@ -344,12 +343,11 @@ export default function Inventory() {
 
   /****************************************************** AI Suggestions ******************************************************/
 
-  //just for testing (change it to be dynamic later)
-  const exampleInventory = "Bathroom";
-
   // Function to get suggestions from the AI
   const getSuggestions = async (inventoryName) => {
-    const selectedInventory = inventories.find(
+    console.log('getting suggestions');
+
+    const localInventory = inventories.find(
       (inventory) => inventory.name === inventoryName
     );
 
@@ -358,7 +356,7 @@ export default function Inventory() {
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({ selectedInventory }),
+      body: JSON.stringify({ localInventory }),
     })
       .then((response) => response.json())
       .then((data) => {
@@ -825,7 +823,7 @@ export default function Inventory() {
     setQuantityNeeded(1);
     setUnit("");
     setSelectedInventory("");
-    setPriority("med");
+    setPriority("Medium");
     setAssignedRoommate("");
     setLinksOnline([]);
     setStatus("Needed");
@@ -1382,7 +1380,7 @@ export default function Inventory() {
                       onChange={(e) => setPriority(e.target.value)}
                     >
                       <MenuItem value={"high"}>High</MenuItem>
-                      <MenuItem value={"med"}>Med</MenuItem>
+                      <MenuItem value={"Medium"}>Medium</MenuItem>
                       <MenuItem value={"low"}>Low</MenuItem>
                     </Select>
                   </FormControl>
@@ -1728,7 +1726,7 @@ export default function Inventory() {
                 boxShadow="0 0 5px black"
                 border={`2px solid ${green_dark}`}
                 onClick={(event) => {
-                  setDisplayedInventory(inventory.name);
+                  setInventoryNameForDisplay(inventory.name);
                   handleOpenInventoryModal(inventory.name);
                 }}
                 sx={{
@@ -1850,7 +1848,7 @@ export default function Inventory() {
             }}
           />
           <Typography variant="h4" textAlign="center" width="80%">
-            {displayedInventory}
+            {inventoryNameForDisplay}
           </Typography>
           <Box
             border="1px solid black"
@@ -1876,143 +1874,7 @@ export default function Inventory() {
               }}
             />
           </Box>
-          {/* Display AI Suggestions */}
-          <TooltipIcon title="AI Suggestions" placement="top">
-            <Box
-              sx={{
-                fontSize: 40,
-                color: `${green_dark}`,
-                transition: "200ms",
-                "&:hover": {
-                  cursor: "pointer",
-                  color: `${green_light}`,
-                  transform: "scale(1.05)",
-                },
-              }}
-              onClick={() => {
-                getSuggestions(inventoryNameForDisplay);
-              }}
-            >
-              <DarkButton>
-                <Typography mr={1}>Generate Suggestions</Typography>
-                <AutoAwesomeIcon />
-              </DarkButton>
-            </Box>
-          </TooltipIcon>
-          {/* <Paper square={false} width="80%" maxWidth="lg" height="50%" maxHeight="md" overflow="auto">
-             {suggestedItems[inventoryNameForDisplay].map((item) => (
-              <Stack
-                key={item.name} 
-                direction="column"
-                alignItems="center"
-                width="100%"
-                borderRadius="15px"
-                border="2px solid black"
-                spacing={2}
-                py={1}
-                position="relative"
-                mb={2}
-                sx={{
-                  background: `linear-gradient(to bottom, ${green_light}, #fff)`,
-                  "&::before": {
-                    position: "absolute",
-                    content: "''",
-                    top: 0,
-                    right: 0,
-                    bottom: 0,
-                    left: 0,
-                    background: `linear-gradient(to bottom, #fff, ${green_light})`,
-                    transition: "opacity 200ms linear",
-                    opacity: 0,
-                    borderRadius: "15px",
-                  },
-                  "&:hover::before": {
-                    opacity: 1,
-                    zIndex: 1,
-                    borderRadius: "15px",
-                  },
-                }}
-              >
-                <Stack
-                  sx={{
-                    flexDirection: { xs: "column", md: "row"},
-                  }}
-                  spacing={2}
-                  width="100%"
-                  px={2}
-                  justifyContent="center"
-                  alignItems="center"
-                >
-                  <Box
-                    zIndex={2}
-                    display="flex"
-                    flexDirection="row"
-                    justifyContent="center"
-                    alignItems="center"
-                    sx={{ width: { xs: "50%", md: "15%" }}}
-                  >
-                    <Typography
-                      textAlign="center"
-                      fontWeight="bold"
-                    >
-                      {item.name}
-                    </Typography>
-                  </Box>
-                  <Box zIndex={2} sx={{ width: { xs: "50%", md: "12%" }}} display="flex" justifyContent="center" alignItems="center">
-                    <Typography>
-                      Qty. {item.quantity} {item.unit}
-                    </Typography>
-                  </Box>
-                  <Typography zIndex={2} sx={{ width: { xs: "50%", md: "10%" }}} display="flex" justifyContent="center" alignItems="center">${item.price}</Typography>
-                  <Box 
-                    display="flex"
-                    justifyContent="center"
-                    alignItems="center"
-                    zIndex={2}
-                    sx={{ width: { xs: "50%", md: "20%"}}}
-                  >
-                    <Typography
-                      textAlign="center"
-                    >
-                      {item.isPerishable ? "Perishable" : "Not Perishable"}
-                    </Typography>
-                    <Typography
-                      sx={{
-                        display: { xs: "block", sm: "inline" },
-                        pl: { xs: 0, sm: 2, md: 3, lg: 3, xl: 4 },
-                      }}
-                    >
-                      {item.expiryDate}
-                    </Typography>
-                  </Box>
-                  <Box zIndex={2} display="flex" width="15%" justifyContent="center" alignItems="center">
-                    <TooltipIcon title="Delete" placement="top">
-                      <Box
-                        onClick={(inventoryNameForDisplay) =>
-                          deleteItem(inventoryNameForDisplay)
-                        }
-                      >
-                        <DeleteOutlineIcon sx={{ '&:hover': { cursor: "pointer" } }}/>
-                      </Box>
-                    </TooltipIcon>
-                    <TooltipIcon title="-1" placement="top">
-                      <RemoveIcon sx={{ mx: { xs: 1 }, '&:hover': { cursor: "pointer" }}} />
-                    </TooltipIcon>
-                    <TooltipIcon title="+1" placement="top">
-                      <AddIcon sx={{ mr: 1, '&:hover': { cursor: "pointer" }}} />
-                    </TooltipIcon>
-                  </Box>
-                </Stack>
-                <Typography zIndex={2} textAlign="center" width="50%">{item.notes ? `"${item.notes}"` : ""}</Typography>
-              </Stack>
-            ))}
-          </Paper> */}
-          {/* {suggestedItems.length > 0 ? (
-            
-          ) : (
-            <></>
-          )}
-           */}
+  
           {/* Item Display */}
           <Box width="80%" maxWidth="lg" overflow="auto">
             <Grid
@@ -2454,6 +2316,143 @@ export default function Inventory() {
           <Typography variant="h4" width="80%" textAlign="center">
             {inventoryNameForShopping} Shopping List
           </Typography>
+             {/* Display AI Suggestions */}
+             <TooltipIcon title="AI Suggestions" placement="top">
+            <Box
+              sx={{
+                fontSize: 40,
+                color: `${green_dark}`,
+                transition: "200ms",
+                "&:hover": {
+                  cursor: "pointer",
+                  color: `${green_light}`,
+                  transform: "scale(1.05)",
+                },
+              }}
+              onClick={() => {
+                getSuggestions(inventoryNameForDisplay);
+              }}
+            >
+              <DarkButton>
+                <Typography mr={1}>Generate Suggestions</Typography>
+                <AutoAwesomeIcon />
+              </DarkButton>
+            </Box>
+          </TooltipIcon>
+          {/* <Paper square={false} width="80%" maxWidth="lg" height="50%" maxHeight="md" overflow="auto">
+             {suggestedItems[inventoryNameForDisplay].map((item) => (
+              <Stack
+                key={item.name} 
+                direction="column"
+                alignItems="center"
+                width="100%"
+                borderRadius="15px"
+                border="2px solid black"
+                spacing={2}
+                py={1}
+                position="relative"
+                mb={2}
+                sx={{
+                  background: `linear-gradient(to bottom, ${green_light}, #fff)`,
+                  "&::before": {
+                    position: "absolute",
+                    content: "''",
+                    top: 0,
+                    right: 0,
+                    bottom: 0,
+                    left: 0,
+                    background: `linear-gradient(to bottom, #fff, ${green_light})`,
+                    transition: "opacity 200ms linear",
+                    opacity: 0,
+                    borderRadius: "15px",
+                  },
+                  "&:hover::before": {
+                    opacity: 1,
+                    zIndex: 1,
+                    borderRadius: "15px",
+                  },
+                }}
+              >
+                <Stack
+                  sx={{
+                    flexDirection: { xs: "column", md: "row"},
+                  }}
+                  spacing={2}
+                  width="100%"
+                  px={2}
+                  justifyContent="center"
+                  alignItems="center"
+                >
+                  <Box
+                    zIndex={2}
+                    display="flex"
+                    flexDirection="row"
+                    justifyContent="center"
+                    alignItems="center"
+                    sx={{ width: { xs: "50%", md: "15%" }}}
+                  >
+                    <Typography
+                      textAlign="center"
+                      fontWeight="bold"
+                    >
+                      {item.name}
+                    </Typography>
+                  </Box>
+                  <Box zIndex={2} sx={{ width: { xs: "50%", md: "12%" }}} display="flex" justifyContent="center" alignItems="center">
+                    <Typography>
+                      Qty. {item.quantity} {item.unit}
+                    </Typography>
+                  </Box>
+                  <Typography zIndex={2} sx={{ width: { xs: "50%", md: "10%" }}} display="flex" justifyContent="center" alignItems="center">${item.price}</Typography>
+                  <Box 
+                    display="flex"
+                    justifyContent="center"
+                    alignItems="center"
+                    zIndex={2}
+                    sx={{ width: { xs: "50%", md: "20%"}}}
+                  >
+                    <Typography
+                      textAlign="center"
+                    >
+                      {item.isPerishable ? "Perishable" : "Not Perishable"}
+                    </Typography>
+                    <Typography
+                      sx={{
+                        display: { xs: "block", sm: "inline" },
+                        pl: { xs: 0, sm: 2, md: 3, lg: 3, xl: 4 },
+                      }}
+                    >
+                      {item.expiryDate}
+                    </Typography>
+                  </Box>
+                  <Box zIndex={2} display="flex" width="15%" justifyContent="center" alignItems="center">
+                    <TooltipIcon title="Delete" placement="top">
+                      <Box
+                        onClick={(inventoryNameForDisplay) =>
+                          deleteItem(inventoryNameForDisplay)
+                        }
+                      >
+                        <DeleteOutlineIcon sx={{ '&:hover': { cursor: "pointer" } }}/>
+                      </Box>
+                    </TooltipIcon>
+                    <TooltipIcon title="-1" placement="top">
+                      <RemoveIcon sx={{ mx: { xs: 1 }, '&:hover': { cursor: "pointer" }}} />
+                    </TooltipIcon>
+                    <TooltipIcon title="+1" placement="top">
+                      <AddIcon sx={{ mr: 1, '&:hover': { cursor: "pointer" }}} />
+                    </TooltipIcon>
+                  </Box>
+                </Stack>
+                <Typography zIndex={2} textAlign="center" width="50%">{item.notes ? `"${item.notes}"` : ""}</Typography>
+              </Stack>
+            ))}
+          </Paper> */}
+          {/* {suggestedItems.length > 0 ? (
+            
+          ) : (
+            <></>
+          )}
+           */}
           {neededItems.length > 0 ? (
             <Typography>no items</Typography>
           ) : (
