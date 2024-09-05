@@ -1782,6 +1782,7 @@ export default function Inventory() {
               }}
             />
           </Box>
+          {/* Display AI Suggestions */}
           <TooltipIcon title="AI Suggestions" placement="top">
             <Box
               sx={{
@@ -1807,9 +1808,110 @@ export default function Inventory() {
           {suggestedItems.length > 0 ? (
             <Paper square={false}>
             {suggestedItems.map((item) => (
-              <Box key={item.name}>
-                <Typography>{item.name}</Typography>
-              </Box>
+              <Stack
+                key={item.name} 
+                direction="column"
+                alignItems="center"
+                borderRadius="15px"
+                border = "2px solid black"
+                spacing={2}
+                py={1}
+                position="relative"
+                mb={2}
+                sx={{
+                  background: `linear-gradient(to bottom, ${green_light}, #fff)`,
+                  "&::before": {
+                    position: "absolute",
+                    content: "''",
+                    top: 0,
+                    right: 0,
+                    bottom: 0,
+                    left: 0,
+                    background: `linear-gradient(to bottom, #fff, ${green_light})`,
+                    transition: "opacity 200ms linear",
+                    opacity: 0,
+                    borderRadius: "15px",
+                  },
+                  "&:hover::before": {
+                    opacity: 1,
+                    zIndex: 1,
+                    borderRadius: "15px",
+                  },
+                }}
+              >
+                <Stack
+                  sx={{
+                    flexDirection: { xs: "column", md: "row"},
+                  }}
+                  spacing={2}
+                  width="100%"
+                  px={2}
+                  justifyContent="center"
+                  alignItems="center"
+                >
+                  <Box
+                    zIndex={2}
+                    display="flex"
+                    flexDirection="row"
+                    justifyContent="center"
+                    alignItems="center"
+                    sx={{ width: { xs: "50%", md: "15%" }}}
+                  >
+                    <Typography
+                      textAlign="center"
+                      fontWeight="bold"
+                    >
+                      {item.name}
+                    </Typography>
+                  </Box>
+                  <Box zIndex={2} sx={{ width: { xs: "50%", md: "12%" }}} display="flex" justifyContent="center" alignItems="center">
+                    <Typography>
+                      Qty. {item.quantity} {item.unit}
+                    </Typography>
+                  </Box>
+                  <Typography zIndex={2} sx={{ width: { xs: "50%", md: "10%" }}} display="flex" justifyContent="center" alignItems="center">${item.price}</Typography>
+                  <Box 
+                    display="flex"
+                    justifyContent="center"
+                    alignItems="center"
+                    zIndex={2}
+                    sx={{ width: { xs: "50%", md: "20%"}}}
+                  >
+                    <Typography
+                      textAlign="center"
+                    >
+                      {item.isPerishable ? "Perishable" : "Not Perishable"}
+                    </Typography>
+                    <Typography
+                      sx={{
+                        display: { xs: "block", sm: "inline" },
+                        pl: { xs: 0, sm: 2, md: 3, lg: 3, xl: 4 },
+                      }}
+                    >
+                      {item.expiryDate}
+                    </Typography>
+                  </Box>
+                  <Box zIndex={2} display="flex" width="15%" justifyContent="center" alignItems="center">
+                    <TooltipIcon title="Delete" placement="top">
+                      <Box
+                        onClick={(inventoryNameForDisplay) =>
+                          deleteItem(inventoryNameForDisplay)
+                        }
+                      >
+                        <DeleteOutlineIcon sx={{ '&:hover': { cursor: "pointer" } }}/>
+                      </Box>
+                    </TooltipIcon>
+                    <TooltipIcon title="-1" placement="top">
+                      <RemoveIcon sx={{ mx: { xs: 1 }, '&:hover': { cursor: "pointer" }}} />
+                    </TooltipIcon>
+                    <TooltipIcon title="+1" placement="top">
+                      <AddIcon sx={{ mr: 1, '&:hover': { cursor: "pointer" }}} />
+                    </TooltipIcon>
+                  </Box>
+                </Stack>
+                <Typography zIndex={2} textAlign="center" width="50%">{item.notes ? `"${item.notes}"` : ""}</Typography>
+                
+              </Stack>
             ))}
           </Paper>
           ) : (
@@ -1890,21 +1992,12 @@ export default function Inventory() {
                           <Typography
                             textAlign="center"
                             fontWeight="bold"
-                            // sx={{
-                            //   display: { xs: "block", sm: "inline" },
-                            //   pr: { xs: 0, sm: 2, md: 3, lg: 3, xl: 4 },
-                            // }}
                           >
                             {item.name}
                           </Typography>
                         </Box>
                         <Box zIndex={2} sx={{ width: { xs: "50%", md: "12%" }}} display="flex" justifyContent="center" alignItems="center">
-                          <Typography
-                            // sx={{
-                            //   display: { xs: "block", sm: "inline" },
-                            //   pl: { xs: 0, sm: 2, md: 3, lg: 3, xl: 4 },
-                            // }}
-                          >
+                          <Typography>
                             Qty. {item.quantity} {item.unit}
                           </Typography>
                         </Box>
@@ -1918,10 +2011,6 @@ export default function Inventory() {
                         >
                           <Typography
                             textAlign="center"
-                            // sx={{
-                            //   display: { xs: "block", sm: "inline" },
-                            //   pr: { xs: 0, sm: 2, md: 3, lg: 3, xl: 4 },
-                            // }}
                           >
                             {item.isPerishable ? "Perishable" : "Not Perishable"}
                           </Typography>
@@ -2231,14 +2320,117 @@ export default function Inventory() {
           <Typography variant="h4" width="80%" textAlign="center">
             {inventoryNameForShopping} Shopping List
           </Typography>
-          <Stack direction="column" justifyContent="center" alignItems="center">
-            {neededItems.length > 0 ? (<Typography>no items</Typography>) : <Typography>items exist</Typography>}
-            {neededItems.map((neededItem) => (
-              <Box key={neededItem.name}>
-                <Typography>{neededItem.name}</Typography>
-              </Box>
-            ))}
-          </Stack>
+          {neededItems.length > 0 ? (<Typography>no items</Typography>) : <Typography>items exist</Typography>}
+          {neededItems.map((item) => (
+            <Stack
+              key={item.name}
+              direction="column"
+              alignItems="center"
+              borderRadius="15px"
+              border = "2px solid black"
+              spacing={2}
+              py={1}
+              position="relative"
+              mb={2}
+              sx={{
+                background: `linear-gradient(to bottom, ${green_light}, #fff)`,
+                "&::before": {
+                  position: "absolute",
+                  content: "''",
+                  top: 0,
+                  right: 0,
+                  bottom: 0,
+                  left: 0,
+                  background: `linear-gradient(to bottom, #fff, ${green_light})`,
+                  transition: "opacity 200ms linear",
+                  opacity: 0,
+                  borderRadius: "15px",
+                },
+                "&:hover::before": {
+                  opacity: 1,
+                  zIndex: 1,
+                  borderRadius: "15px",
+                },
+              }}
+            >
+              <Stack
+                sx={{
+                  flexDirection: { xs: "column", md: "row"},
+                }}
+                spacing={2}
+                width="100%"
+                px={2}
+                justifyContent="center"
+                alignItems="center"
+              >
+                <Typography
+                  textAlign="center"
+                >
+                  Assigned To: {item.assignTo}
+                </Typography>
+                <Box
+                  zIndex={2}
+                  display="flex"
+                  flexDirection="row"
+                  justifyContent="center"
+                  alignItems="center"
+                  sx={{ width: { xs: "50%", md: "15%" }}}
+                >
+                  <Typography
+                    textAlign="center"
+                    fontWeight="bold"
+                  >
+                    {item.name}
+                  </Typography>
+                </Box>
+                <Box zIndex={2} sx={{ width: { xs: "50%", md: "12%" }}} display="flex" justifyContent="center" alignItems="center">
+                  <Typography>
+                    Qty. {item.quantity} {item.unit}
+                  </Typography>
+                </Box>
+                <Typography zIndex={2} sx={{ width: { xs: "50%", md: "10%" }}} display="flex" justifyContent="center" alignItems="center">${item.price}</Typography>
+                <Box 
+                  display="flex"
+                  justifyContent="center"
+                  alignItems="center"
+                  zIndex={2}
+                  sx={{ width: { xs: "50%", md: "20%"}}}
+                >
+                  <Typography
+                    textAlign="center"
+                  >
+                    {item.isPerishable ? "Perishable" : "Not Perishable"}
+                  </Typography>
+                  <Typography
+                    sx={{
+                      display: { xs: "block", sm: "inline" },
+                      pl: { xs: 0, sm: 2, md: 3, lg: 3, xl: 4 },
+                    }}
+                  >
+                    {item.expiryDate}
+                  </Typography>
+                </Box>
+                <Box zIndex={2} display="flex" width="15%" justifyContent="center" alignItems="center">
+                  <TooltipIcon title="Delete" placement="top">
+                    <Box
+                      onClick={(inventoryNameForDisplay) =>
+                        deleteItem(inventoryNameForDisplay)
+                      }
+                    >
+                      <DeleteOutlineIcon sx={{ '&:hover': { cursor: "pointer" } }}/>
+                    </Box>
+                  </TooltipIcon>
+                  <TooltipIcon title="-1" placement="top">
+                    <RemoveIcon sx={{ mx: { xs: 1 }, '&:hover': { cursor: "pointer" }}} />
+                  </TooltipIcon>
+                  <TooltipIcon title="+1" placement="top">
+                    <AddIcon sx={{ mr: 1, '&:hover': { cursor: "pointer" }}} />
+                  </TooltipIcon>
+                </Box>
+              </Stack>
+              <Typography zIndex={2} textAlign="center" width="50%">{item.notes ? `"${item.notes}"` : ""}</Typography>
+            </Stack>
+          ))}
         </Box>
       </Modal>
 
