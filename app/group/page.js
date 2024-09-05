@@ -1911,7 +1911,6 @@ export default function Inventory() {
                   </Box>
                 </Stack>
                 <Typography zIndex={2} textAlign="center" width="50%">{item.notes ? `"${item.notes}"` : ""}</Typography>
-                
               </Stack>
             ))}
           </Paper>
@@ -2430,6 +2429,9 @@ export default function Inventory() {
                 </Box>
               </Stack>
               <Typography zIndex={2} textAlign="center" width="50%">{item.notes ? `"${item.notes}"` : ""}</Typography>
+              <Box onClick={() => buyItem(item.name)}>
+                <DarkButton>Add to Shopping List</DarkButton>
+              </Box>
             </Stack>
           ))}
         </Box>
