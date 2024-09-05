@@ -1052,7 +1052,7 @@ export default function Inventory() {
               fullWidth
               value={itemName}
               onChange={(e) => setItemName(e.target.value)}
-              sx={{ bgcolor: "white", width: "80%" }}
+              sx={{ bgcolor: "white", width: "80%", border: "1px solid black" }}
               required
             />
             <Stack
@@ -1066,7 +1066,6 @@ export default function Inventory() {
               <TextField
                 size="small"
                 placeholder="Quantity"
-                border="1px solid black"
                 inputMode="numeric"
                 value={quantity}
                 onChange={(e) => {
@@ -1076,7 +1075,7 @@ export default function Inventory() {
                     setQuantity(value); // Convert the value to an integer
                   }
                 }}
-                sx={{ bgcolor: "white", width: "50%" }}
+                sx={{ bgcolor: "white", width: "50%", color: "black", border: "1px solid black"}}
               />
               <Typography textAlign="center">X</Typography>
               <TextField
@@ -1086,7 +1085,7 @@ export default function Inventory() {
                 inputMode="numeric"
                 value={unit}
                 onChange={(e) => setUnit(e.target.value)}
-                sx={{ bgcolor: "white", width: "50%" }}
+                sx={{ bgcolor: "white", width: "50%", border: "1px solid black" }}
               />
             </Stack>
             <Stack
@@ -1115,7 +1114,7 @@ export default function Inventory() {
                     <InputAdornment sx={{ mr: 1 }}>$</InputAdornment>
                   ),
                 }}
-                sx={{ bgcolor: "white", width: "80%" }}
+                sx={{ bgcolor: "white", width: "80%", border: "1px solid black" }}
               />
             </Stack>
             <Stack direction="row" spacing={2} alignItems="center" width="80%">
@@ -1127,9 +1126,10 @@ export default function Inventory() {
                   alignItems: "center",
                 }}
               >
-                <FormLabel sx={{ textAlign: "center" }}>Perishable?</FormLabel>
+                <FormLabel sx={{ color: "black", textAlign: "center" }}>Perishable?</FormLabel>
                 <RadioGroup
                   defaultValue="No"
+                  row
                   value={isPerishable}
                   onChange={(e) => setIsPerishable(e.target.value)}
                   sx={{ ml: 2 }}
@@ -1173,7 +1173,7 @@ export default function Inventory() {
                   <Select
                     size="small"
                     value={selectedInventory}
-                    sx={{ color: "black" }}
+                    sx={{ color: "black", border: "1px solid black" }}
                     onChange={(e) => setSelectedInventory(e.target.value)}
                   >
                     {inventories.map((inventory) => (
@@ -1190,7 +1190,7 @@ export default function Inventory() {
               placeholder="Add notes (optional)"
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
-              sx={{ bgcolor: "white", width: "80%" }}
+              sx={{ bgcolor: "white", width: "80%", border: "1px solid black" }}
             />
 
             <Box
@@ -1252,7 +1252,7 @@ export default function Inventory() {
               fullWidth
               value={itemName}
               onChange={(e) => setItemName(e.target.value)}
-              sx={{ bgcolor: "white", width: "80%" }}
+              sx={{ bgcolor: "white", width: "80%", border: "1px solid black" }}
             />
             <Stack
               direction="row"
@@ -1275,7 +1275,7 @@ export default function Inventory() {
                     setQuantity(value); // Convert the value to an integer
                   }
                 }}
-                sx={{ bgcolor: "white", width: "50%" }}
+                sx={{ bgcolor: "white", width: "50%", border: "1px solid black" }}
               />
               <Typography color="black" textAlign="center">
                 X
@@ -1287,12 +1287,12 @@ export default function Inventory() {
                 inputMode="numeric"
                 value={unit}
                 onChange={(e) => setUnit(e.target.value)}
-                sx={{ bgcolor: "white", width: "50%" }}
+                sx={{ bgcolor: "white", width: "50%", border: "1px solid black" }}
               />
             </Stack>
             <Stack direction="row" spacing={2} alignItems="center" width="80%">
               <Stack direction="row" alignItems="center">
-                <Typography color="black" textAlign="center" mx={1}>
+                <Typography color="black" textAlign="center" mr={3}>
                   Priority:
                 </Typography>
                 <Box bgcolor="white" width="60%">
@@ -1300,6 +1300,7 @@ export default function Inventory() {
                     <Select
                       size="small"
                       value={priority}
+                      sx={{ border: "1px solid black" }}
                       onChange={(e) => setPriority(e.target.value)}
                     >
                       <MenuItem value={"high"}>High</MenuItem>
@@ -1317,6 +1318,7 @@ export default function Inventory() {
                   <Select
                     size="small"
                     value={selectedInventory}
+                    sx={{ border: "1px solid black" }}
                     onChange={(e) => setSelectedInventory(e.target.value)}
                   >
                     {inventories.map((inventory) => (
@@ -1335,7 +1337,7 @@ export default function Inventory() {
                   <Select
                     size="small"
                     value={assignedRoommate}
-                    sx={{ color: "black" }}
+                    sx={{ color: "black", border: "1px solid black" }}
                     onChange={(e) => setAssignedRoommate(e.target.value)}
                   >
                     {groupMembers.map((member) => (
@@ -1347,12 +1349,13 @@ export default function Inventory() {
                 </FormControl>
               </Box>
             </Stack>
-            <Box bgcolor="white" width="60%">
+            <Box bgcolor="white" width="80%">
               <TextField
                 multiline
                 fullWidth
                 placeholder="Add notes (optional)"
                 value={notes}
+                sx={{ border: "1px solid black" }}
                 onChange={(e) => setNotes(e.target.value)}
               />
             </Box>
