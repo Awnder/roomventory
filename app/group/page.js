@@ -62,6 +62,7 @@ import Image from "next/image";
 // colors
 const green_white = "#F3F6F9";
 const green_light = "#D3F8CC";
+const green_extra_light = "#e9fce6";
 const green_dark = "#4E826B";
 const gray_dark = "#1C2025";
 
@@ -951,7 +952,7 @@ export default function Inventory() {
             left="50%"
             width="80%"
             maxWidth="sm"
-            bgcolor={green_light}
+            bgcolor={green_extra_light}
             border="2px solid #000"
             borderRadius="20px"
             p={2}
@@ -1006,7 +1007,7 @@ export default function Inventory() {
             left="50%"
             width="80%"
             maxWidth="sm"
-            bgcolor={green_light}
+            bgcolor={green_extra_light}
             border="2px solid #000"
             borderRadius="20px"
             p={2}
@@ -1204,7 +1205,7 @@ export default function Inventory() {
             left="50%"
             width="80%"
             maxWidth="sm"
-            bgcolor={green_light}
+            bgcolor={green_extra_light}
             border="2px solid #000"
             borderRadius="20px"
             p={2}
@@ -1531,7 +1532,7 @@ export default function Inventory() {
           top="50%"
           left="50%"
           width={500}
-          bgcolor={green_light}
+          bgcolor={green_extra_light}
           border="2px solid #000"
           p={2}
           display="flex"
@@ -1726,7 +1727,7 @@ export default function Inventory() {
           maxWidth="lg"
           minHeight="50%"
           maxHeight="80%"
-          bgcolor={green_light}
+          bgcolor={green_extra_light}
           border="2px solid #000"
           borderRadius="20px"
           p={2}
@@ -1828,7 +1829,7 @@ export default function Inventory() {
                     >
                       <Stack
                         sx={{
-                          direction: { xs: "column", md: "row"},
+                          flexDirection: { xs: "column", md: "row"},
                         }}
                         spacing={2}
                         width="100%"
@@ -1836,7 +1837,7 @@ export default function Inventory() {
                         justifyContent="center"
                         alignItems="center"
                       >
-                        <Stack direction="column" justifyContent="center" zIndex={2} width="20%">
+                        <Stack display="flex" direction="column" justifyContent="center" alignItems="center" zIndex={2} sx={{ width: { xs: "50%", md: "20%"}}}>
                           {groupMembers.map((member) => (
                             <Chip
                               key={member.name}
@@ -1852,7 +1853,7 @@ export default function Inventory() {
                           flexDirection="row"
                           justifyContent="center"
                           alignItems="center"
-                          width="15%"
+                          sx={{ width: { xs: "50%", md: "15%" }}}
                         >
                           <Typography
                             textAlign="center"
@@ -1865,7 +1866,7 @@ export default function Inventory() {
                             {item.name}
                           </Typography>
                         </Box>
-                        <Box zIndex={2} width="12%" display="flex" justifyContent="center" alignItems="center">
+                        <Box zIndex={2} sx={{ width: { xs: "50%", md: "12%" }}} display="flex" justifyContent="center" alignItems="center">
                           <Typography
                             // sx={{
                             //   display: { xs: "block", sm: "inline" },
@@ -1875,12 +1876,13 @@ export default function Inventory() {
                             Qty. {item.quantity} {item.unit}
                           </Typography>
                         </Box>
-                        <Typography zIndex={2} width="10%" display="flex" justifyContent="center" alignItems="center">${item.price}</Typography>
+                        <Typography zIndex={2} sx={{ width: { xs: "50%", md: "10%" }}} display="flex" justifyContent="center" alignItems="center">${item.price}</Typography>
                         <Box 
                           display="flex"
                           justifyContent="center"
                           alignItems="center"
                           zIndex={2}
+                          sx={{ width: { xs: "50%", md: "20%"}}}
                         >
                           <Typography
                             textAlign="center"
@@ -1936,7 +1938,7 @@ export default function Inventory() {
           position="absolute"
           top="50%"
           left="50%"
-          bgcolor={green_light}
+          bgcolor={green_extra_light}
           border="2px solid #000"
           borderRadius="20px"
           p={2}
@@ -1991,7 +1993,7 @@ export default function Inventory() {
           position="absolute"
           top="50%"
           left="50%"
-          bgcolor={green_light}
+          bgcolor={green_extra_light}
           border="2px solid #000"
           borderRadius="20px"
           p={2}
@@ -2047,7 +2049,7 @@ export default function Inventory() {
           position="absolute"
           top="50%"
           left="50%"
-          bgcolor={green_light}
+          bgcolor={green_extra_light}
           border="2px solid #000"
           borderRadius="20px"
           p={2}
@@ -2107,7 +2109,7 @@ export default function Inventory() {
           position="absolute"
           top="50%"
           left="50%"
-          bgcolor={green_light}
+          bgcolor={green_extra_light}
           border="2px solid #000"
           borderRadius="20px"
           p={2}
@@ -2162,7 +2164,7 @@ export default function Inventory() {
           position="absolute"
           top="50%"
           left="50%"
-          bgcolor={green_light}
+          bgcolor={green_extra_light}
           border="2px solid #000"
           borderRadius="20px"
           p={2}
