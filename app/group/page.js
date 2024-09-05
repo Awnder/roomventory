@@ -1780,6 +1780,8 @@ export default function Inventory() {
                     }}
                     onClick={(event) => {
                       setInventoryNameForShopping(inventory.name);
+                      setSelectedInventory(inventory.name);
+                      setNeededItems(inventory.neededItems);
                       handleOpenShoppingListModal();
                       event.stopPropagation();
                     }}
@@ -1898,121 +1900,8 @@ export default function Inventory() {
               </DarkButton>
             </Box>
           </TooltipIcon>
-          {/* <Paper square={false} width="80%" maxWidth="lg" height="50%" maxHeight="md" overflow="auto">
-             {suggestedItems[inventoryNameForDisplay].map((item) => (
-              <Stack
-                key={item.name} 
-                direction="column"
-                alignItems="center"
-                width="100%"
-                borderRadius="15px"
-                border="2px solid black"
-                spacing={2}
-                py={1}
-                position="relative"
-                mb={2}
-                sx={{
-                  background: `linear-gradient(to bottom, ${green_light}, #fff)`,
-                  "&::before": {
-                    position: "absolute",
-                    content: "''",
-                    top: 0,
-                    right: 0,
-                    bottom: 0,
-                    left: 0,
-                    background: `linear-gradient(to bottom, #fff, ${green_light})`,
-                    transition: "opacity 200ms linear",
-                    opacity: 0,
-                    borderRadius: "15px",
-                  },
-                  "&:hover::before": {
-                    opacity: 1,
-                    zIndex: 1,
-                    borderRadius: "15px",
-                  },
-                }}
-              >
-                <Stack
-                  sx={{
-                    flexDirection: { xs: "column", md: "row"},
-                  }}
-                  spacing={2}
-                  width="100%"
-                  px={2}
-                  justifyContent="center"
-                  alignItems="center"
-                >
-                  <Box
-                    zIndex={2}
-                    display="flex"
-                    flexDirection="row"
-                    justifyContent="center"
-                    alignItems="center"
-                    sx={{ width: { xs: "50%", md: "15%" }}}
-                  >
-                    <Typography
-                      textAlign="center"
-                      fontWeight="bold"
-                    >
-                      {item.name}
-                    </Typography>
-                  </Box>
-                  <Box zIndex={2} sx={{ width: { xs: "50%", md: "12%" }}} display="flex" justifyContent="center" alignItems="center">
-                    <Typography>
-                      Qty. {item.quantity} {item.unit}
-                    </Typography>
-                  </Box>
-                  <Typography zIndex={2} sx={{ width: { xs: "50%", md: "10%" }}} display="flex" justifyContent="center" alignItems="center">${item.price}</Typography>
-                  <Box 
-                    display="flex"
-                    justifyContent="center"
-                    alignItems="center"
-                    zIndex={2}
-                    sx={{ width: { xs: "50%", md: "20%"}}}
-                  >
-                    <Typography
-                      textAlign="center"
-                    >
-                      {item.isPerishable ? "Perishable" : "Not Perishable"}
-                    </Typography>
-                    <Typography
-                      sx={{
-                        display: { xs: "block", sm: "inline" },
-                        pl: { xs: 0, sm: 2, md: 3, lg: 3, xl: 4 },
-                      }}
-                    >
-                      {item.expiryDate}
-                    </Typography>
-                  </Box>
-                  <Box zIndex={2} display="flex" width="15%" justifyContent="center" alignItems="center">
-                    <TooltipIcon title="Delete" placement="top">
-                      <Box
-                        onClick={(inventoryNameForDisplay) =>
-                          deleteItem(inventoryNameForDisplay)
-                        }
-                      >
-                        <DeleteOutlineIcon sx={{ '&:hover': { cursor: "pointer" } }}/>
-                      </Box>
-                    </TooltipIcon>
-                    <TooltipIcon title="-1" placement="top">
-                      <RemoveIcon sx={{ mx: { xs: 1 }, '&:hover': { cursor: "pointer" }}} />
-                    </TooltipIcon>
-                    <TooltipIcon title="+1" placement="top">
-                      <AddIcon sx={{ mr: 1, '&:hover': { cursor: "pointer" }}} />
-                    </TooltipIcon>
-                  </Box>
-                </Stack>
-                <Typography zIndex={2} textAlign="center" width="50%">{item.notes ? `"${item.notes}"` : ""}</Typography>
-              </Stack>
-            ))}
-          </Paper> */}
-          {/* {suggestedItems.length > 0 ? (
-            
-          ) : (
-            <></>
-          )}
-           */}
-          {/* Item Display */}
+          
+          {/* Modal for Item Display */}
           <Box width="80%" maxWidth="lg" overflow="auto">
             <Grid
               container
@@ -2357,6 +2246,7 @@ export default function Inventory() {
           </Box>
         </Box>
       </Modal>
+
       {/* Modal for Inventory Deletion */}
       <Modal open={openDeleteInventoryModal}>
         <Box
@@ -2414,7 +2304,7 @@ export default function Inventory() {
 
       {/* Modal for showing shopping list*/}
       <Modal open={openShoppingListModal}>
-        <Box
+        {/* <Box
           position="absolute"
           top="50%"
           left="50%"
@@ -2590,6 +2480,227 @@ export default function Inventory() {
               </Box>
             </Stack>
           ))}
+        </Box> */}
+        <Box
+          position="absolute"
+          top="50%"
+          left="50%"
+          width="90%"
+          maxWidth="lg"
+          minHeight="50%"
+          maxHeight="80%"
+          bgcolor="white"
+          border="2px solid #000"
+          borderRadius="20px"
+          p={2}
+          display="flex"
+          flexDirection="column"
+          justifyContent="center"
+          alignItems="center"
+          gap={3}
+          sx={{
+            transform: "translate(-50%,-50%)",
+          }}
+        >
+          <CloseIcon
+            sx={{
+              position: "absolute",
+              top: 5,
+              left: 5,
+              fontSize: 40,
+              color: `${green_dark}`,
+              transition: "200ms",
+              "&:hover": {
+                cursor: "pointer",
+                transform: "rotate(180deg) scale(1.05)",
+              },
+            }}
+            onClick={() => {
+              handleCloseShoppingListModal();
+            }}
+          />
+          <Typography variant="h4" textAlign="center" width="80%">
+            {selectedInventory} Shopping List
+          </Typography>
+          <Box
+            border="1px solid black"
+            borderRadius="20px"
+            p={2}
+            sx={{
+              background: `linear-gradient(to left, #fff, ${green_light})`,
+              width: { xs: "80%", sm: "60%" },
+            }}
+          >
+            <TextField
+              size="small"
+              fullWidth
+              label="Search Items"
+              value={itemSearch}
+              onChange={(e) => setItemSearch(e.target.value)}
+              InputProps={{
+                endAdornment: (
+                  <InputAdornment>
+                    <SearchIcon />
+                  </InputAdornment>
+                ),
+              }}
+            />
+          </Box>
+          
+          {/* Item Display */}
+          <Box width="80%" maxWidth="lg" overflow="auto">
+            <Grid
+              container
+              flexGrow={1}
+              spacing={2}
+              diplay="flex"
+              justifyContent="center"
+            >
+              {neededItems.length ? (
+                neededItems.map((item) => (
+                  <Grid item key={item.name} xs={12} md={12} lg={12}>
+                    <Stack
+                      direction="column"
+                      // justifyContent="space-between"
+                      alignItems="center"
+                      borderRadius="15px"
+                      border="2px solid black"
+                      spacing={2}
+                      py={1}
+                      position="relative"
+                      mb={2}
+                      sx={{
+                        background: `linear-gradient(to bottom, ${green_light}, #fff)`,
+                        "&::before": {
+                          position: "absolute",
+                          content: "''",
+                          top: 0,
+                          right: 0,
+                          bottom: 0,
+                          left: 0,
+                          background: `linear-gradient(to bottom, #fff, ${green_light})`,
+                          transition: "opacity 200ms linear",
+                          opacity: 0,
+                          borderRadius: "15px",
+                        },
+                        "&:hover::before": {
+                          opacity: 1,
+                          zIndex: 1,
+                          borderRadius: "15px",
+                        },
+                      }}
+                    >
+                      <Stack
+                        sx={{
+                          flexDirection: { xs: "column", md: "row" },
+                        }}
+                        spacing={2}
+                        width="100%"
+                        px={2}
+                        justifyContent="center"
+                        alignItems="center"
+                      >
+                        <Box
+                          zIndex={2}
+                          display="flex"
+                          justifyContent="center"
+                          alignItems="center"
+                          sx={{ width: { xs: "50%", md: "35%" } }}
+                        >
+                          <Typography textAlign="center" justifyContent="center" alignItems="center">
+                            Assigned To: <strong>{item.assignTo}</strong>
+                          </Typography>
+                        </Box>
+                        <Box
+                          zIndex={2}
+                          display="flex"
+                          flexDirection="row"
+                          justifyContent="center"
+                          alignItems="center"
+                          sx={{ width: { xs: "50%", md: "15%" } }}
+                        >
+                          <Typography textAlign="center" fontWeight="bold">
+                            {item.name}
+                          </Typography>
+                        </Box>
+                        <Box
+                          zIndex={2}
+                          sx={{ width: { xs: "50%", md: "12%" } }}
+                          display="flex"
+                          justifyContent="center"
+                          alignItems="center"
+                        >
+                          <Typography>
+                            Qty. {item.quantityNeeded} {item.unit}
+                          </Typography>
+                        </Box>
+                        <Stack
+                          direction="row"
+                          display="flex"
+                          justifyContent="center"
+                          alignItems="center"
+                          zIndex={2}
+                          spacing={1}
+                          sx={{ width: { xs: "50%", md: "20%" } }}
+                        >
+                          <Typography textAlign="center">
+                            Priority: 
+                          </Typography>
+                          <Typography
+                            textAlign="center"
+                            color={item.priority === "med" ? "#B5A642" : item.priority === "low" ? green_dark : "#7B2C31"}
+                          >
+                             {item.priority === "med" ? "Medium" : item.priority === "low" ? "Low" : "High"}
+                          </Typography>
+                        </Stack>
+                        <Box
+                          zIndex={2}
+                          display="flex"
+                          width="15%"
+                          justifyContent="center"
+                          alignItems="center"
+                        >
+                          <TooltipIcon title="Delete" placement="top">
+                            <Box
+                              // onClick={(e) => {
+                              //   deleteItem(item.inventory, item.name);
+                              // }}
+                            >
+                              <DeleteOutlineIcon
+                                sx={{ "&:hover": { cursor: "pointer" } }}
+                              />
+                            </Box>
+                          </TooltipIcon>
+                          <TooltipIcon title="-1" placement="top">
+                            <RemoveIcon
+                              sx={{
+                                mx: { xs: 1 },
+                                "&:hover": { cursor: "pointer" },
+                              }}
+                              // onClick={() => {editQuantity(item.inventory, item.name, -1)}}
+                            />
+                          </TooltipIcon>
+                          <TooltipIcon title="+1" placement="top">
+                            <AddIcon
+                              sx={{ mr: 1, "&:hover": { cursor: "pointer" } }}
+                              // onClick={() => {editQuantity(item.inventory, item.name, 1)}}
+                            />
+                          </TooltipIcon>
+                        </Box>
+                      </Stack>
+                      <Typography zIndex={2} textAlign="center" width="50%">
+                        {item.notes ? `"${item.notes}"` : ""}
+                      </Typography>
+                    </Stack>
+                  </Grid>
+                ))
+              ) : (
+                <Typography textAlign="center" mt={3}>
+                  No Items Here
+                </Typography>
+              )}
+            </Grid>
+          </Box>
         </Box>
       </Modal>
 
