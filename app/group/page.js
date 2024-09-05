@@ -96,6 +96,7 @@ export default function Inventory() {
   const [inventoryNameForDeletion, setInventoryNameForDeletion] = useState("");
   const [kickedMember, setKickedMember] = useState("");
   const [inventoryNameForShopping, setInventoryNameForShopping] = useState("");
+  const [displayedInventory, setDisplayedInventory] = useState("");
 
   // Item Metadata
   const [itemName, setItemName] = useState("");
@@ -1727,7 +1728,7 @@ export default function Inventory() {
                 boxShadow="0 0 5px black"
                 border={`2px solid ${green_dark}`}
                 onClick={(event) => {
-                  setSelectedInventory(inventory.name);
+                  setDisplayedInventory(inventory.name);
                   handleOpenInventoryModal(inventory.name);
                 }}
                 sx={{
@@ -1849,7 +1850,7 @@ export default function Inventory() {
             }}
           />
           <Typography variant="h4" textAlign="center" width="80%">
-            {selectedInventory}
+            {displayedInventory}
           </Typography>
           <Box
             border="1px solid black"
