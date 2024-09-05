@@ -368,8 +368,7 @@ export default function Inventory() {
       .then((data) => {
         setSuggestedItems({ inventory: inventoryName, items: data });
       });
-    console.log("suggesteditems in page.js");
-    console.log(suggestedItems);
+    console.log("suggesteditems in page.js", suggestedItems);
   };
 
   /****************************************************** Inventory Functions ******************************************************/
@@ -698,10 +697,12 @@ export default function Inventory() {
           neededItems: newNeededItems,
         });
 
+        setNeededItems(newNeededItems);
+
         fetchInventories();
       }
     },
-    [groupID]
+    [groupID, neededItems, items, inventories]
   );
 
   const fetchItemsFromInventory = useCallback(
