@@ -1724,7 +1724,7 @@ export default function Inventory() {
           left="50%"
           width="90%"
           maxWidth="lg"
-          height="50%"
+          minHeight="50%"
           maxHeight="80%"
           bgcolor={green_light}
           border="2px solid #000"
@@ -1827,14 +1827,14 @@ export default function Inventory() {
                       }}
                     >
                       <Stack
+                        sx={{
+                          direction: { xs: "column", md: "row"},
+                        }}
                         spacing={2}
                         width="100%"
                         px={2}
                         justifyContent="center"
                         alignItems="center"
-                        sx={{
-                          direction: { xs: "column", md: "row"},
-                        }}
                       >
                         <Stack direction="column" justifyContent="center" zIndex={2} width="20%">
                           {groupMembers.map((member) => (
