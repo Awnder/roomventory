@@ -57,6 +57,7 @@ import banner from "../../public/banner.png";
 
 import { useState, useEffect, useRef, useCallback } from "react";
 import Image from "next/image";
+import { isEmptyObj } from "openai/core";
 
 // colors
 const green_white = "#F3F6F9";
@@ -162,7 +163,7 @@ export default function Inventory() {
   const handleOpenExpenseModal = () => setOpenExpenseModal(true);
   const handleCloseExpenseModal = () => setOpenExpenseModal(false);
   const handleOpenShoppingListModal = () => setOpenShoppingListModal(true);
-  const handleCloseShoppingListModal = () => setOpenShoppingListModal(false);
+  const handleCloseShoppingListModal = () => {setSuggestedItems({}); setOpenShoppingListModal(false)};
 
   //Filtered objects
   const [filteredInventories, setFilteredInventories] = useState([]);
@@ -2431,7 +2432,7 @@ export default function Inventory() {
             </Box>
           </TooltipIcon>
           <Box width="80%" maxWidth="lg" height="100%" maxHeight="md">
-             {suggestedItems.length > 0 ? (
+             {!isEmptyObj(suggestedItems) ? (
               <Box border="1px solid black" borderRadius="20px" textAlign="center" px={2}>
                 {suggestedItems.items.map((item) => (
                   <Stack
@@ -2507,8 +2508,8 @@ export default function Inventory() {
                         <Typography mr={1}>
                           Priority:
                         </Typography>
-                        <Typography color={item.priority === "low" ? green_dark : item.priority === "med" ? "#B5A642" : "#A52A2A"}>
-                          {item.priority === "low" ? "Low" : item.priority === "med" ? "Medium" : "High"}
+                        <Typography color={item.priority === "Low" ? green_dark : item.priority === "Medium" ? "#B5A642" : "#A52A2A"}>
+                          {item.priority}
                         </Typography>
                       </Box>
                     </Stack>
