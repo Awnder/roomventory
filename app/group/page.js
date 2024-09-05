@@ -745,7 +745,6 @@ export default function Inventory() {
                 return item;
               }
               return { ...item, quantity: item.quantity + amount };
-
             } else {
               return item;
             }
@@ -2008,15 +2007,10 @@ export default function Inventory() {
                           alignItems="center"
                         >
                           <TooltipIcon title="Delete" placement="top">
-                            <Box
-                              onClick={() => {
-                                deleteItem(item.inventory, item.name);
-                              }}
-                            >
-                              <DeleteOutlineIcon
-                                sx={{ "&:hover": { cursor: "pointer" } }}
-                              />
-                            </Box>
+                            <DeleteOutlineIcon
+                              sx={{ "&:hover": { cursor: "pointer" } }}
+                              onClick={() => {deleteItem(item.inventory, item.name);}}
+                            />
                           </TooltipIcon>
                           <TooltipIcon title="-1" placement="top">
                             <RemoveIcon
@@ -2585,7 +2579,9 @@ export default function Inventory() {
                   >
                     <TooltipIcon title="Delete" placement="top">
                       <DeleteOutlineIcon
-                        sx={{ "&:hover": { cursor: "pointer" } }}
+                        sx={{
+                          "&:hover": { cursor: "pointer" }
+                        }}
                         onClick={() => {deleteItem(item.inventory, item.name);}}
                       />
                     </TooltipIcon>
