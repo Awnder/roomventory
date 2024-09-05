@@ -1408,7 +1408,7 @@ export default function Inventory() {
                       spacing={1}
                       alignItems="center"
                     >
-                      <Tooltip title="press to show debt">
+                      <Tooltip title="Press to show debt">
                         <Typography
                           textAlign="center"
                           color={member.expanded ? "yellow" : "white"} // Change text color on click
@@ -1798,6 +1798,8 @@ export default function Inventory() {
                       justifyContent="space-between"
                       alignItems="center"
                       borderRadius="15px"
+                      border = "2px solid black"
+                      px={1}
                       position="relative"
                       mb={2}
                       sx={{
@@ -2046,7 +2048,7 @@ export default function Inventory() {
             }}
           />
           <Typography variant="h4" width="80%" textAlign="center">
-            {groupName} expenses
+            {groupName} Expenses
           </Typography>
           <Typography width="80%" textAlign="center">
             You know how much everyone owes (hint: press on a roommate's name).
