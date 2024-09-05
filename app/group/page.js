@@ -363,6 +363,7 @@ export default function Inventory() {
       .then((data) => {
         setSuggestedItems({ inventory: inventoryName, items: data });
       });
+    console.log('suggesteditems in page.js')
     console.log(suggestedItems)
   };
 
@@ -1544,6 +1545,7 @@ export default function Inventory() {
           width={500}
           bgcolor="white"
           border="2px solid #000"
+          borderRadius="20px"
           p={2}
           display="flex"
           flexDirection="column"
@@ -1820,15 +1822,15 @@ export default function Inventory() {
               </DarkButton>
             </Box>
           </TooltipIcon>
-          {suggestedItems.length > 0 ? (
-            <Paper square={false}>
-            {suggestedItems.map((item) => (
+          {/* <Paper square={false} width="80%" maxWidth="lg" height="50%" maxHeight="md" overflow="auto">
+             {suggestedItems[inventoryNameForDisplay].map((item) => (
               <Stack
                 key={item.name} 
                 direction="column"
                 alignItems="center"
+                width="100%"
                 borderRadius="15px"
-                border = "2px solid black"
+                border="2px solid black"
                 spacing={2}
                 py={1}
                 position="relative"
@@ -1927,11 +1929,13 @@ export default function Inventory() {
                 <Typography zIndex={2} textAlign="center" width="50%">{item.notes ? `"${item.notes}"` : ""}</Typography>
               </Stack>
             ))}
-          </Paper>
+          </Paper> */}
+          {/* {suggestedItems.length > 0 ? (
+            
           ) : (
             <></>
           )}
-          
+           */}
           {/* Item Display */}
           <Box width="80%" maxWidth="lg" overflow="auto">
             <Grid

@@ -79,7 +79,7 @@ export async function POST(req) {
 
   const suggestedItems = JSON.parse(completion.choices[0].message.content);
 
-  console.log('suggestedItems', suggestedItems);
+  console.log('suggestedItems in api:', suggestedItems);
 
   return NextResponse.json(suggestedItems);
 }
