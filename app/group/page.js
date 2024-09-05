@@ -625,6 +625,7 @@ export default function Inventory() {
     setItemName("");
   }, [selectedInventory]);
 
+
   // This function moves the item from the neededItems array to the items array (1 WRITE operation)
   const buyItem = useCallback(async (purchasedItemName) => {
     console.log("Buying item");
@@ -1947,13 +1948,13 @@ export default function Inventory() {
                         </Box>
                         <Box zIndex={2} display="flex" width="15%" justifyContent="center" alignItems="center">
                           <TooltipIcon title="Delete" placement="top">
-                            <DarkButton
+                            <Box
                               onClick={(e) => {
                                 deleteItem(item.name)
                               }}
                             >
                               <DeleteOutlineIcon sx={{ '&:hover': { cursor: "pointer" } }}/>
-                            </DarkButton>
+                            </Box>
                           </TooltipIcon>
                           <TooltipIcon title="-1" placement="top">
                             <RemoveIcon sx={{ mx: { xs: 1 }, '&:hover': { cursor: "pointer" }}} />
