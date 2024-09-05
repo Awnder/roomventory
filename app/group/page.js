@@ -630,16 +630,16 @@ export default function Inventory() {
 
   // This function moves the item from the neededItems array to the items array (1 WRITE operation)
   const buyItem = useCallback(
-    async (purchasedItemName) => {
+    async (purchasedItemInventory, purchasedItemName) => {
       console.log("Buying item");
 
       const groupRef = doc(collection(db, "groups"), groupID);
       const inventoryCollection = collection(groupRef, "inventories");
 
-      const inventoryRef = doc(inventoryCollection, exampleInventory); //inventory should be dynamically selected
+      const inventoryRef = doc(inventoryCollection, purchasedItemInventory); //inventory should be dynamically selected
 
       const localInventory = inventories.find(
-        (inventory) => inventory.name === exampleInventory
+        (inventory) => inventory.name === purchasedItemInventory
       );
 
       if (!localInventory) {
@@ -2009,7 +2009,7 @@ export default function Inventory() {
                         >
                           <TooltipIcon title="Delete" placement="top">
                             <Box
-                              onClick={(e) => {
+                              onClick={() => {
                                 deleteItem(item.inventory, item.name);
                               }}
                             >
@@ -2584,30 +2584,29 @@ export default function Inventory() {
                     alignItems="center"
                   >
                     <TooltipIcon title="Delete" placement="top">
-                      <Box
-                        onClick={(inventoryNameForDisplay) =>
-                          deleteItem(inventoryNameForDisplay)
-                        }
-                      >
-                        <DeleteOutlineIcon
-                          sx={{ "&:hover": { cursor: "pointer" } }}
-                        />
-                      </Box>
+                      <DeleteOutlineIcon
+                        sx={{ "&:hover": { cursor: "pointer" } }}
+                        onClick={() => {deleteItem(item.inventory, item.name);}}
+                      />
                     </TooltipIcon>
                     <TooltipIcon title="-1" placement="top">
                       <RemoveIcon
                         sx={{ mx: { xs: 1 }, "&:hover": { cursor: "pointer" } }}
+                        onClick={() => {editQuantity(item.inventory, item.name, -1)}}
                       />
                     </TooltipIcon>
                     <TooltipIcon title="+1" placement="top">
-                      <AddIcon sx={{ mr: 1, "&:hover": { cursor: "pointer" } }} />
+                      <AddIcon 
+                        sx={{ mr: 1, "&:hover": { cursor: "pointer" } }}    
+                        onClick={() => {editQuantity(item.inventory, item.name, 1)}}
+                      />
                     </TooltipIcon>
                   </Box>
                 </Stack>
                 <Typography zIndex={2} textAlign="center" width="50%">
                   {item.notes ? `"${item.notes}"` : ""}
                 </Typography>
-                <Box zIndex={2} onClick={() => buyItem(item.name)}>
+                <Box zIndex={2} onClick={() => buyItem(inventoryNameForShopping, item.name)}>
                   <DarkButtonSimple>Add to Shopping List</DarkButtonSimple>
                 </Box>
               </Stack>
@@ -2615,118 +2614,6 @@ export default function Inventory() {
           </Box> 
         </Box>
       </Modal>
-
-      {/* <Accordion>
-                <AccordionSummary
-                  expandIcon={<ArrowDropDownIcon />}
-                  aria-controls="index number"
-                  id="index number"
-                  sx={{
-                    width: "100%",
-                    maxWidth: "100%",
-                    textOverflow: "ellipsis",
-                  }}
-                >
-                  // You can use inventory.name
-                  <Typography
-                    color="black"
-                    textAlign="center"
-                    width="100%"
-                    sx={{ typography: { xs: "h6", sm: "h5" } }}
-                  >
-                    {inventory.name}
-                  </Typography>
-                </AccordionSummary>
-                <AccordionDetails>
-                  <Stack direction="column">
-                     below is an inventory item 
-                    <Stack
-                      direction="row"
-                      justifyContent="space-between"
-                      alignItems="center"
-                      borderRadius="15px"
-                      position="relative"
-                      mb={2}
-                      sx={{
-                        background: `linear-gradient(to bottom, ${green_light}, #fff)`,
-                        "&::before": {
-                          position: "absolute",
-                          content: "''",
-                          top: 0,
-                          right: 0,
-                          bottom: 0,
-                          left: 0,
-                          background: `linear-gradient(to bottom, #fff, ${green_light})`,
-                          transition: "opacity 200ms linear",
-                          opacity: 0,
-                          borderRadius: "15px",
-                        },
-                        "&:hover::before": {
-                          opacity: 1,
-                          zIndex: 1,
-                          borderRadius: "15px",
-                        },
-                      }}
-                    >
-                      {/* You can use groupMembers here
-                      <Stack direction="column" zIndex={2}>
-                        <Chip
-                          label="Andrew"
-                          variant="outlined"
-                          size="small"
-                          sx={{
-                            ml: 1,
-                            my: 1,
-                            background: `linear-gradient(to bottom, lightblue, white)`,
-                          }}
-                        />
-                        <Chip
-                          label="Rafik"
-                          variant="outlined"
-                          size="small"
-                          sx={{
-                            ml: 1,
-                            mb: 1,
-                            background: `linear-gradient(to bottom, yellow, white)`,
-                          }}
-                        />
-                      </Stack>
-                      <Box zIndex={2}>
-                        {/* You can use inventory.items.name here
-                        <Typography
-                          sx={{
-                            display: { xs: "block", sm: "inline" },
-                            pr: { xs: 0, sm: 2, md: 3, lg: 3, xl: 4 },
-                          }}
-                        >
-                          Name of item
-                        </Typography>
-                        {/* You can use inventory.items.quantity here
-                        <Typography
-                          sx={{
-                            display: { xs: "block", sm: "inline" },
-                            pl: { xs: 0, sm: 2, md: 3, lg: 3, xl: 4 },
-                          }}
-                        >
-                          # of item
-                        </Typography>
-                      </Box>
-                      <Box zIndex={2}>
-                        <TooltipIcon title="Delete" placement="top">
-                          {/* You can use deleteItem here (probably pass item.name as parameter)
-                          <DeleteOutlineIcon />
-                        </TooltipIcon>
-                        <TooltipIcon title="-1" placement="top">
-                          <RemoveIcon sx={{ mx: { xs: 1 } }} />
-                        </TooltipIcon>
-                        <TooltipIcon title="+1" placement="top">
-                          <AddIcon sx={{ mr: 1 }} />
-                        </TooltipIcon>
-                      </Box>
-                    </Stack>
-                  </Stack>
-                </AccordionDetails>
-              </Accordion> */}
     </Stack>
   );
 }
