@@ -1670,32 +1670,30 @@ export default function Inventory() {
                     event.stopPropagation();
                   }}
                 />
-                <TooltipIcon title="Shopping List" placement="top">
-                  <Box
-                    sx={{
-                      position: "absolute",
-                      top: 0,
-                      right: 5,
-                      fontSize: 40,
-                      color: `${green_dark}`,
-                      transition: "200ms",
-                      "&:hover": {
-                        cursor: "pointer",
-                        color: `${green_light}`,
-                        transform: "scale(1.05)",
-                      },
-                    }}
-                    onClick={(event) => {
-                      setInventoryNameForShopping(inventory.name);
-                      handleOpenShoppingListModal();
-                      event.stopPropagation();
-                    }}
-                  >
-                    <DarkButton>
-                      <ShoppingCartOutlinedIcon />
-                    </DarkButton>
-                  </Box>
-                </TooltipIcon>
+                <Box
+                  sx={{
+                    position: "absolute",
+                    top: 5,
+                    right: 5,
+                    fontSize: 40,
+                    color: `${green_dark}`,
+                    transition: "200ms",
+                    "&:hover": {
+                      cursor: "pointer",
+                      color: `${green_light}`,
+                      transform: "scale(1.05)",
+                    },
+                  }}
+                  onClick={(event) => {
+                    setInventoryNameForShopping(inventory.name);
+                    handleOpenShoppingListModal();
+                    event.stopPropagation();
+                  }}
+                >
+                  <DarkButton>
+                    <ShoppingCartOutlinedIcon />
+                  </DarkButton>
+                </Box>
                 <Typography
                   variant="h6"
                   maxHeight="100%"
