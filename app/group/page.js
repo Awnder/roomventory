@@ -1724,6 +1724,8 @@ export default function Inventory() {
           left="50%"
           width="90%"
           maxWidth="lg"
+          minHeight="50%"
+          maxHeight="80%"
           bgcolor={green_light}
           border="2px solid #000"
           borderRadius="20px"
@@ -1782,7 +1784,7 @@ export default function Inventory() {
               }}
             />
           </Box>
-          <Box width="80%" maxWidth="lg">
+          <Box width="80%" maxWidth="lg" overflow="auto">
             <Grid
               container
               flexGrow={1}
@@ -1792,14 +1794,15 @@ export default function Inventory() {
             >
               {filteredItems.length ? (
                 filteredItems.map((item) => (
-                  <Grid item key={item.name} xs={12} md={12} lg={6}>
+                  <Grid item key={item.name} xs={12} md={12} lg={12}>
                     <Stack
-                      direction="row"
-                      justifyContent="space-between"
+                      direction="column"
+                      // justifyContent="space-between"
                       alignItems="center"
                       borderRadius="15px"
                       border = "2px solid black"
-                      px={1}
+                      spacing={2}
+                      py={1}
                       position="relative"
                       mb={2}
                       sx={{
@@ -1823,70 +1826,99 @@ export default function Inventory() {
                         },
                       }}
                     >
-                      <Stack direction="column" zIndex={2}>
-                        {groupMembers.map((member) => (
-                          <Chip
-                            key={member.name}
-                            label={member.name}
-                            variant="outlined"
-                          />
-                        ))}
-                      </Stack>
-                      <Box zIndex={2}>
-                        <Typography
-                          sx={{
-                            display: { xs: "block", sm: "inline" },
-                            pr: { xs: 0, sm: 2, md: 3, lg: 3, xl: 4 },
-                          }}
+                      <Stack
+                        sx={{
+                          direction: { xs: "column", md: "row"},
+                        }}
+                        spacing={2}
+                        width="100%"
+                        px={2}
+                        justifyContent="center"
+                        alignItems="center"
+                      >
+                        <Stack direction="column" justifyContent="center" zIndex={2} width="20%">
+                          {groupMembers.map((member) => (
+                            <Chip
+                              key={member.name}
+                              label={member.name}
+                              variant="outlined"
+                              sx={{ border: "1px solid black" }}
+                            />
+                          ))}
+                        </Stack>
+                        <Box
+                          zIndex={2}
+                          display="flex"
+                          flexDirection="row"
+                          justifyContent="center"
+                          alignItems="center"
+                          width="15%"
                         >
-                          {item.name}
-                        </Typography>
-                        <Typography
-                          sx={{
-                            display: { xs: "block", sm: "inline" },
-                            pl: { xs: 0, sm: 2, md: 3, lg: 3, xl: 4 },
-                          }}
-                        >
-                          {item.quantity} {item.unit}
-                        </Typography>
-                      </Box>
-                      <Typography zIndex={2}>{item.price}</Typography>
-                      <Box zIndex={2}>
-                        <Typography
-                          sx={{
-                            display: { xs: "block", sm: "inline" },
-                            pr: { xs: 0, sm: 2, md: 3, lg: 3, xl: 4 },
-                          }}
-                        >
-                          {item.isPerishable ? "Perishable" : "Not Perishable"}
-                        </Typography>
-                        <Typography
-                          sx={{
-                            display: { xs: "block", sm: "inline" },
-                            pl: { xs: 0, sm: 2, md: 3, lg: 3, xl: 4 },
-                          }}
-                        >
-                          {item.expiryDate}
-                        </Typography>
-                      </Box>
-                      <Typography zIndex={2}>{item.notes}</Typography>
-                      <Box zIndex={2}>
-                        <TooltipIcon title="Delete" placement="top">
-                          <Box
-                            onClick={(inventoryNameForDisplay) =>
-                              deleteItem(inventoryNameForDisplay)
-                            }
+                          <Typography
+                            textAlign="center"
+                            fontWeight="bold"
+                            // sx={{
+                            //   display: { xs: "block", sm: "inline" },
+                            //   pr: { xs: 0, sm: 2, md: 3, lg: 3, xl: 4 },
+                            // }}
                           >
-                            <DeleteOutlineIcon />
-                          </Box>
-                        </TooltipIcon>
-                        <TooltipIcon title="-1" placement="top">
-                          <RemoveIcon sx={{ mx: { xs: 1 } }} />
-                        </TooltipIcon>
-                        <TooltipIcon title="+1" placement="top">
-                          <AddIcon sx={{ mr: 1 }} />
-                        </TooltipIcon>
-                      </Box>
+                            {item.name}
+                          </Typography>
+                        </Box>
+                        <Box zIndex={2} width="12%" display="flex" justifyContent="center" alignItems="center">
+                          <Typography
+                            // sx={{
+                            //   display: { xs: "block", sm: "inline" },
+                            //   pl: { xs: 0, sm: 2, md: 3, lg: 3, xl: 4 },
+                            // }}
+                          >
+                            Qty. {item.quantity} {item.unit}
+                          </Typography>
+                        </Box>
+                        <Typography zIndex={2} width="10%" display="flex" justifyContent="center" alignItems="center">${item.price}</Typography>
+                        <Box 
+                          display="flex"
+                          justifyContent="center"
+                          alignItems="center"
+                          zIndex={2}
+                        >
+                          <Typography
+                            textAlign="center"
+                            // sx={{
+                            //   display: { xs: "block", sm: "inline" },
+                            //   pr: { xs: 0, sm: 2, md: 3, lg: 3, xl: 4 },
+                            // }}
+                          >
+                            {item.isPerishable ? "Perishable" : "Not Perishable"}
+                          </Typography>
+                          <Typography
+                            sx={{
+                              display: { xs: "block", sm: "inline" },
+                              pl: { xs: 0, sm: 2, md: 3, lg: 3, xl: 4 },
+                            }}
+                          >
+                            {item.expiryDate}
+                          </Typography>
+                        </Box>
+                        <Box zIndex={2} display="flex" width="15%" justifyContent="center" alignItems="center">
+                          <TooltipIcon title="Delete" placement="top">
+                            <Box
+                              onClick={(inventoryNameForDisplay) =>
+                                deleteItem(inventoryNameForDisplay)
+                              }
+                            >
+                              <DeleteOutlineIcon sx={{ '&:hover': { cursor: "pointer" } }}/>
+                            </Box>
+                          </TooltipIcon>
+                          <TooltipIcon title="-1" placement="top">
+                            <RemoveIcon sx={{ mx: { xs: 1 }, '&:hover': { cursor: "pointer" }}} />
+                          </TooltipIcon>
+                          <TooltipIcon title="+1" placement="top">
+                            <AddIcon sx={{ mr: 1, '&:hover': { cursor: "pointer" }}} />
+                          </TooltipIcon>
+                        </Box>
+                      </Stack>
+                      <Typography zIndex={2} textAlign="center" width="50%">{item.notes ? `"${item.notes}"` : ""}</Typography>
                     </Stack>
                   </Grid>
                 ))
