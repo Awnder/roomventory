@@ -88,6 +88,7 @@ export default function Inventory() {
   //
   const [inventoryName, setInventoryName] = useState("");
   const [items, setItems] = useState([]);
+  const [itemList, setItemList] = useState([]);
   const [neededItems, setNeededItems] = useState([]);
   const [email, setEmail] = useState("");
   const [suggestedItems, setSuggestedItems] = useState({});
@@ -592,32 +593,37 @@ export default function Inventory() {
   ]);
 
   //function to delete an item from the inventory (1 READ, 1 WRITE operation)
-  const deleteItem = useCallback(async (selectedInventory) => {
+  const deleteItem = useCallback(async (itemName) => {
     console.log("deleting item");
-    const groupRef = doc(collection(db, "groups"), groupID);
-    const inventoryCollection = collection(groupRef, "inventories");
+    try {
+      const groupRef = doc(collection(db, "groups"), groupID);
+      const inventoryCollection = collection(groupRef, "inventories");
 
-    const inventoryRef = doc(inventoryCollection, selectedInventory); //inventory should be dynamically selected
+      const inventoryRef = doc(inventoryCollection, selectedInventory); //inventory should be dynamically selected
 
-    //READ
-    const inventorySnap = await getDoc(inventoryRef);
+      //READ
+      const inventorySnap = await getDoc(inventoryRef);
 
-    if (!inventorySnap.exists()) {
-      alert("Inventory does not exist");
-      return;
-    } else {
-      const items = inventorySnap.data().items;
+      if (!inventorySnap.exists()) {
+        alert("Inventory does not exist");
+        return;
+      } else {
+        const items = inventorySnap.data().items;
 
-      const newItems = items.filter((item) => item.name !== itemName);
-      //WRITE
-      await updateDoc(inventoryRef, {
-        neededItems: newItems,
-      });
-
-      fetchInventories();
+        const newItems = items.filter((item) => item.name !== itemName);
+        //WRITE
+        await updateDoc(inventoryRef, {
+          items: newItems,
+        });
+        setItemList(newItems);
+        // fetchInventories();
+      }
+    } catch (error) {
+      console.error("Error deleting item: ", error);
     }
+    fetchInventories();
     setItemName("");
-  }, []);
+  }, [selectedInventory]);
 
   // This function moves the item from the neededItems array to the items array (1 WRITE operation)
   const buyItem = useCallback(async (purchasedItemName) => {
@@ -884,6 +890,10 @@ export default function Inventory() {
       )
     );
   }, [itemSearch, items]);
+
+  useEffect(() => {
+    setFilteredItems(itemList);
+  }, [itemList]);
 
   useEffect(() => {
     console.log("setting groupID from UseEffect");
@@ -1757,7 +1767,7 @@ export default function Inventory() {
             }}
           />
           <Typography variant="h4" textAlign="center" width="80%">
-            {inventoryNameForDisplay}
+            {selectedInventory}
           </Typography>
           <Box
             border="1px solid black"
@@ -2027,7 +2037,7 @@ export default function Inventory() {
                           <TooltipIcon title="Delete" placement="top">
                             <DarkButton
                               onClick={(e) => {
-                                deleteItem(inventoryNameForDisplay)
+                                deleteItem(item.name)
                               }}
                             >
                               <DeleteOutlineIcon sx={{ '&:hover': { cursor: "pointer" } }}/>
@@ -2046,7 +2056,7 @@ export default function Inventory() {
                   </Grid>
                 ))
               ) : (
-                <Typography textAlign="center">No Items Here</Typography>
+                <Typography textAlign="center" mt={3}>No Items Here</Typography>
               )}
             </Grid>
           </Box>
