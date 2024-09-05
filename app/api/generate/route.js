@@ -51,7 +51,7 @@ the suggested items should be in the following format:
 }
 
 You will NOT wrap the response within JSON md markers.
-You will NOT add any text outside of the JSON object.
+You will NOT add ANY text AT ALL outside of the JSON object.
 
 `;
 

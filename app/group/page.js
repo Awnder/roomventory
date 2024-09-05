@@ -350,26 +350,29 @@ export default function Inventory() {
   // Function to get suggestions from the AI
   const getSuggestions = async (passedInventory) => {
     console.log("getting suggestions");
-
+  
     const localInventory = inventories.find(
       (inventory) => inventory.name === passedInventory
     );
-
+  
     console.log("localInventory", localInventory);
-
-    await fetch("/api/generate", {
+  
+    const response = await fetch("/api/generate", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({ localInventory }),
-    })
-      .then((response) => response.json())
-      .then((data) => {
-        setSuggestedItems({ inventory: inventoryName, items: data });
-      });
-    console.log("suggesteditems in page.js", suggestedItems);
+    });
+  
+    const data = await response.json();
+    setSuggestedItems({ inventory: passedInventory, items: data });
   };
+  
+  // Use useEffect to observe suggestedItems after it's updated
+  useEffect(() => {
+    console.log("suggesteditems in page.js", suggestedItems);
+  }, [suggestedItems]);
 
   /****************************************************** Inventory Functions ******************************************************/
 
