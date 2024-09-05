@@ -948,7 +948,7 @@ export default function Inventory() {
             left="50%"
             width="80%"
             maxWidth="sm"
-            bgcolor={green_extra_light}
+            bgcolor="white"
             border="2px solid #000"
             borderRadius="20px"
             p={2}
@@ -1003,7 +1003,7 @@ export default function Inventory() {
             left="50%"
             width="80%"
             maxWidth="sm"
-            bgcolor={green_extra_light}
+            bgcolor="white"
             border="2px solid #000"
             borderRadius="20px"
             p={2}
@@ -1201,7 +1201,7 @@ export default function Inventory() {
             left="50%"
             width="80%"
             maxWidth="sm"
-            bgcolor={green_extra_light}
+            bgcolor="white"
             border="2px solid #000"
             borderRadius="20px"
             p={2}
@@ -1528,7 +1528,7 @@ export default function Inventory() {
           top="50%"
           left="50%"
           width={500}
-          bgcolor={green_extra_light}
+          bgcolor="white"
           border="2px solid #000"
           p={2}
           display="flex"
@@ -1635,6 +1635,7 @@ export default function Inventory() {
                 boxShadow="0 0 5px black"
                 border={`2px solid ${green_dark}`}
                 onClick={(event) => {
+                  setSelectedInventory(inventory.name);
                   handleOpenInventoryModal(inventory.name);
                 }}
                 sx={{
@@ -1725,7 +1726,7 @@ export default function Inventory() {
           maxWidth="lg"
           minHeight="50%"
           maxHeight="80%"
-          bgcolor={green_extra_light}
+          bgcolor="white"
           border="2px solid #000"
           borderRadius="20px"
           p={2}
@@ -1936,13 +1937,13 @@ export default function Inventory() {
                         </Box>
                         <Box zIndex={2} display="flex" width="15%" justifyContent="center" alignItems="center">
                           <TooltipIcon title="Delete" placement="top">
-                            <Box
-                              onClick={(inventoryNameForDisplay) =>
+                            <DarkButton
+                              onClick={(e) => {
                                 deleteItem(inventoryNameForDisplay)
-                              }
+                              }}
                             >
                               <DeleteOutlineIcon sx={{ '&:hover': { cursor: "pointer" } }}/>
-                            </Box>
+                            </DarkButton>
                           </TooltipIcon>
                           <TooltipIcon title="-1" placement="top">
                             <RemoveIcon sx={{ mx: { xs: 1 }, '&:hover': { cursor: "pointer" }}} />
@@ -1970,7 +1971,7 @@ export default function Inventory() {
           position="absolute"
           top="50%"
           left="50%"
-          bgcolor={green_extra_light}
+          bgcolor="white"
           border="2px solid #000"
           borderRadius="20px"
           p={2}
@@ -2025,7 +2026,7 @@ export default function Inventory() {
           position="absolute"
           top="50%"
           left="50%"
-          bgcolor={green_extra_light}
+          bgcolor="white"
           border="2px solid #000"
           borderRadius="20px"
           p={2}
@@ -2081,7 +2082,7 @@ export default function Inventory() {
           position="absolute"
           top="50%"
           left="50%"
-          bgcolor={green_extra_light}
+          bgcolor="white"
           border="2px solid #000"
           borderRadius="20px"
           p={2}
@@ -2141,7 +2142,7 @@ export default function Inventory() {
           position="absolute"
           top="50%"
           left="50%"
-          bgcolor={green_extra_light}
+          bgcolor="white"
           border="2px solid #000"
           borderRadius="20px"
           p={2}
@@ -2196,7 +2197,7 @@ export default function Inventory() {
           position="absolute"
           top="50%"
           left="50%"
-          bgcolor={green_extra_light}
+          bgcolor="white"
           border="2px solid #000"
           borderRadius="20px"
           p={2}
