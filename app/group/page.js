@@ -31,7 +31,7 @@ import RemoveIcon from "@mui/icons-material/Remove";
 import StarsSharpIcon from "@mui/icons-material/StarsSharp";
 import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
 import CloseIcon from "@mui/icons-material/Close";
-import AutoAwesomeIcon from '@mui/icons-material/AutoAwesome';
+import AutoAwesomeIcon from "@mui/icons-material/AutoAwesome";
 import { DarkButton, LightButton } from "../../Components/styledbuttons";
 import { Category, Opacity, Search } from "@mui/icons-material";
 import { useRouter } from "next/navigation";
@@ -363,8 +363,8 @@ export default function Inventory() {
       .then((data) => {
         setSuggestedItems({ inventory: inventoryName, items: data });
       });
-    console.log('suggesteditems in page.js')
-    console.log(suggestedItems)
+    console.log("suggesteditems in page.js");
+    console.log(suggestedItems);
   };
 
   /****************************************************** Inventory Functions ******************************************************/
@@ -400,7 +400,7 @@ export default function Inventory() {
     }
     setInventoryName("");
     handleCloseNewInventoryModal();
-  }, [inventoryName]);
+  }, [inventoryName, groupID]);
 
   //function to delete an inventory in a group from the database (1 READ, 1 DELETE operation)
   const deleteInventory = useCallback(async () => {
@@ -425,7 +425,7 @@ export default function Inventory() {
     }
     fetchInventories();
     setInventoryName("");
-  }, [inventoryNameForDeletion]);
+  }, [inventoryNameForDeletion, groupID]);
 
   /****************************************************** Expense Tracking ******************************************************/
 
@@ -465,7 +465,7 @@ export default function Inventory() {
 
       setGroupMembers(updatedMembers);
     },
-    [price, groupMembers]
+    [price, groupMembers, groupID]
   );
 
   // Function to clear expenses for the group (1 READ, 1 WRITE operation)
@@ -517,7 +517,6 @@ export default function Inventory() {
       return;
     }
 
-    console.log("price", price);
     if (price < 0) {
       alert("Price must be a non-negative number");
       return;
@@ -591,100 +590,106 @@ export default function Inventory() {
     notes,
     price,
     minimumQuantity,
+    groupID,
   ]);
 
   //function to delete an item from the inventory (1 READ, 1 WRITE operation)
-  const deleteItem = useCallback(async (itemName) => {
-    console.log("deleting item");
-    try {
+  const deleteItem = useCallback(
+    async (passedInventory, passedItem) => {
+      console.log("deleting item");
+      try {
+        const groupRef = doc(collection(db, "groups"), groupID);
+        const inventoryCollection = collection(groupRef, "inventories");
+
+        const inventoryRef = doc(inventoryCollection, passedInventory); //inventory should be dynamically selected
+
+        //READ
+        const inventorySnap = await getDoc(inventoryRef);
+
+        if (!inventorySnap.exists()) {
+          alert("Inventory does not exist");
+          return;
+        } else {
+          const items = inventorySnap.data().items;
+
+          const newItems = items.filter((item) => item.name !== passedItem);
+          //WRITE
+          await updateDoc(inventoryRef, {
+            items: newItems,
+          });
+          setItemList(newItems);
+          // fetchInventories();
+        }
+      } catch (error) {
+        console.error("Error deleting item: ", error);
+      }
+      fetchInventories();
+      setItemName("");
+    },
+    [groupID]
+  );
+
+  // This function moves the item from the neededItems array to the items array (1 WRITE operation)
+  const buyItem = useCallback(
+    async (purchasedItemName) => {
+      console.log("Buying item");
+
       const groupRef = doc(collection(db, "groups"), groupID);
       const inventoryCollection = collection(groupRef, "inventories");
 
-      const inventoryRef = doc(inventoryCollection, selectedInventory); //inventory should be dynamically selected
+      const inventoryRef = doc(inventoryCollection, exampleInventory); //inventory should be dynamically selected
 
-      //READ
-      const inventorySnap = await getDoc(inventoryRef);
+      const localInventory = inventories.find(
+        (inventory) => inventory.name === exampleInventory
+      );
 
-      if (!inventorySnap.exists()) {
+      if (!localInventory) {
         alert("Inventory does not exist");
         return;
       } else {
-        const items = inventorySnap.data().items;
+        let newItem = localInventory.neededItems.find(
+          (item) => item.name === purchasedItemName
+        );
 
-        const newItems = items.filter((item) => item.name !== itemName);
+        if (!newItem) {
+          alert("Item not found in shopping list");
+          return;
+        }
+
+        const items = localInventory.items;
+
+        newItem = {
+          name: newItem.name, // require user to give name
+          quantity: newItem.quantityNeeded, //allow user to adjust quantity (default to 1)
+          inventory: newItem.inventory, // automatically selected based on the inventory selected
+          unit: newItem.unit, // allow user to adjust unit (default to null)
+          price: 0, // allow user to input price (default to 0)
+          addedBy: userName, // automatically set to the user's full name
+          expiryDate: expiryDate, // allow  user to adjust expiry date (default to null)
+          dateAdded: new Date(), // default to time now
+          lastUpdated: new Date(), // default to date added
+          isPerishable: isPerishable, // allow user to adjust (default to false)
+          minimumQuantity: 0, // allow user to specify (default to 0)
+          notes: notes, // allow user to add notes (default to empty string)
+        };
+        const newItems = [...items, newItem];
+        const newNeededItems = neededItems.filter(
+          (neededItem) => neededItem.name !== purchasedItemName
+        );
+
+        addExpense(newItem.price);
+
         //WRITE
         await updateDoc(inventoryRef, {
           items: newItems,
+          neededItems: newNeededItems,
         });
-        setItemList(newItems);
-        // fetchInventories();
+
+        fetchInventories();
       }
-    } catch (error) {
-      console.error("Error deleting item: ", error);
-    }
-    fetchInventories();
-    setItemName("");
-  }, [selectedInventory]);
-
-
-  // This function moves the item from the neededItems array to the items array (1 WRITE operation)
-  const buyItem = useCallback(async (purchasedItemName) => {
-    console.log("Buying item");
-
-    const groupRef = doc(collection(db, "groups"), groupID);
-    const inventoryCollection = collection(groupRef, "inventories");
-
-    const inventoryRef = doc(inventoryCollection, exampleInventory); //inventory should be dynamically selected
-
-    const localInventory = inventories.find(
-      (inventory) => inventory.name === exampleInventory
-    );
-
-    if (!localInventory) {
-      alert("Inventory does not exist");
-      return;
-    } else {
-      let newItem = localInventory.neededItems.find(
-        (item) => item.name === purchasedItemName
-      );
-
-      if (!newItem) {
-        alert("Item not found in shopping list");
-        return;
-      }
-
-      const items = localInventory.items;
-
-      newItem = {
-        name: newItem.name, // require user to give name
-        quantity: newItem.quantityNeeded, //allow user to adjust quantity (default to 1)
-        inventory: newItem.inventory, // automatically selected based on the inventory selected
-        unit: newItem.unit, // allow user to adjust unit (default to null)
-        price: 0, // allow user to input price (default to 0)
-        addedBy: userName, // automatically set to the user's full name
-        expiryDate: expiryDate, // allow  user to adjust expiry date (default to null)
-        dateAdded: new Date(), // default to time now
-        lastUpdated: new Date(), // default to date added
-        isPerishable: isPerishable, // allow user to adjust (default to false)
-        minimumQuantity: 0, // allow user to specify (default to 0)
-        notes: notes, // allow user to add notes (default to empty string)
-      };
-      const newItems = [...items, newItem];
-      const newNeededItems = neededItems.filter(
-        (neededItem) => neededItem.name !== purchasedItemName
-      );
-
-      addExpense(newItem.price);
-
-      //WRITE
-      await updateDoc(inventoryRef, {
-        items: newItems,
-        neededItems: newNeededItems,
-      });
-
-      fetchInventories();
-    }
-  }, []);
+    },
+    [groupID]
+  );
 
   const fetchItemsFromInventory = useCallback(
     async (passedInventory) => {
@@ -713,9 +718,53 @@ export default function Inventory() {
 
       setItems(localInventory.items);
     },
-    [inventories]
+    [inventories, groupID]
   );
 
+  const editQuantity = useCallback(
+    async (passedInventory, passedItem, amount) => {
+      console.log("increasing quantity");
+      try {
+        const groupRef = doc(collection(db, "groups"), groupID);
+        const inventoryCollection = collection(groupRef, "inventories");
+
+        const inventoryRef = doc(inventoryCollection, passedInventory); //inventory should be dynamically selected
+
+        //READ
+        const inventorySnap = await getDoc(inventoryRef);
+
+        if (!inventorySnap.exists()) {
+          alert("Inventory does not exist");
+          return;
+        } else {
+          const items = inventorySnap.data().items;
+
+          const newItems = items.map((item) => {
+            if (item.name === passedItem) {
+              if (item.quantity + amount < 0) {
+                alert("Quantity cannot be negative");
+                return item;
+              }
+              return { ...item, quantity: item.quantity + amount };
+
+            } else {
+              return item;
+            }
+          });
+          //WRITE
+          await updateDoc(inventoryRef, {
+            items: newItems,
+          });
+          setItemList(newItems);
+          // fetchInventories();
+        }
+      } catch (error) {
+        console.error("Error increasing quantity: ", error);
+      }
+      fetchInventories();
+    },
+    [groupID]
+  );
   /****************************************************** Needed Items Functions ******************************************************/
 
   //function to add a needed item to the inventory (1 READ, 1 WRITE operation)
@@ -789,6 +838,7 @@ export default function Inventory() {
     priority,
     assignedRoommate,
     notes,
+    groupID,
   ]);
 
   /****************************************************** Use Effects ******************************************************/
@@ -810,7 +860,6 @@ export default function Inventory() {
       // Collect promises if there are async operations to perform on itemsCol
       const inventoriesPromises = inventoriesSnap.docs.map(
         async (inventory) => {
-          console.log("inventory", inventory);
           const inventoryData = inventory.data();
           inventoriesList.push(inventoryData);
 
@@ -898,11 +947,15 @@ export default function Inventory() {
   }, [itemList]);
 
   useEffect(() => {
-    console.log("setting groupID from UseEffect");
     if (user) {
-      setGroupID(user.id.slice(-5) + " " + groupName);
+      // Generate groupID only if `groupName` is available
+      const groupIDValue = `${user.id.slice(-5)} ${groupName}`;
+      setGroupID(groupIDValue);
+      console.log("groupID from useEffect:", groupIDValue); // Log for debugging
+    } else {
+      console.warn("groupName or user is undefined");
     }
-  }, [user, groupName]);
+  }, [user, groupName]); // Re-run the effect when `user` or `groupName` changes
 
   return (
     <Stack direction="column" alignItems="center" minHeight="100vh">
@@ -1076,7 +1129,12 @@ export default function Inventory() {
                     setQuantity(value); // Convert the value to an integer
                   }
                 }}
-                sx={{ bgcolor: "white", width: "50%", color: "black", border: "1px solid black"}}
+                sx={{
+                  bgcolor: "white",
+                  width: "50%",
+                  color: "black",
+                  border: "1px solid black",
+                }}
               />
               <Typography textAlign="center">X</Typography>
               <TextField
@@ -1086,7 +1144,11 @@ export default function Inventory() {
                 inputMode="numeric"
                 value={unit}
                 onChange={(e) => setUnit(e.target.value)}
-                sx={{ bgcolor: "white", width: "50%", border: "1px solid black" }}
+                sx={{
+                  bgcolor: "white",
+                  width: "50%",
+                  border: "1px solid black",
+                }}
               />
             </Stack>
             <Stack
@@ -1115,7 +1177,11 @@ export default function Inventory() {
                     <InputAdornment sx={{ mr: 1 }}>$</InputAdornment>
                   ),
                 }}
-                sx={{ bgcolor: "white", width: "80%", border: "1px solid black" }}
+                sx={{
+                  bgcolor: "white",
+                  width: "80%",
+                  border: "1px solid black",
+                }}
               />
             </Stack>
             <Stack direction="row" spacing={2} alignItems="center" width="80%">
@@ -1127,7 +1193,9 @@ export default function Inventory() {
                   alignItems: "center",
                 }}
               >
-                <FormLabel sx={{ color: "black", textAlign: "center" }}>Perishable?</FormLabel>
+                <FormLabel sx={{ color: "black", textAlign: "center" }}>
+                  Perishable?
+                </FormLabel>
                 <RadioGroup
                   defaultValue="No"
                   row
@@ -1276,7 +1344,11 @@ export default function Inventory() {
                     setQuantity(value); // Convert the value to an integer
                   }
                 }}
-                sx={{ bgcolor: "white", width: "50%", border: "1px solid black" }}
+                sx={{
+                  bgcolor: "white",
+                  width: "50%",
+                  border: "1px solid black",
+                }}
               />
               <Typography color="black" textAlign="center">
                 X
@@ -1288,7 +1360,11 @@ export default function Inventory() {
                 inputMode="numeric"
                 value={unit}
                 onChange={(e) => setUnit(e.target.value)}
-                sx={{ bgcolor: "white", width: "50%", border: "1px solid black" }}
+                sx={{
+                  bgcolor: "white",
+                  width: "50%",
+                  border: "1px solid black",
+                }}
               />
             </Stack>
             <Stack direction="row" spacing={2} alignItems="center" width="80%">
@@ -1813,7 +1889,7 @@ export default function Inventory() {
                 },
               }}
               onClick={() => {
-                getSuggestions(inventoryNameForDisplay)
+                getSuggestions(inventoryNameForDisplay);
               }}
             >
               <DarkButton>
@@ -1953,7 +2029,7 @@ export default function Inventory() {
                       // justifyContent="space-between"
                       alignItems="center"
                       borderRadius="15px"
-                      border = "2px solid black"
+                      border="2px solid black"
                       spacing={2}
                       py={1}
                       position="relative"
@@ -1981,7 +2057,7 @@ export default function Inventory() {
                     >
                       <Stack
                         sx={{
-                          flexDirection: { xs: "column", md: "row"},
+                          flexDirection: { xs: "column", md: "row" },
                         }}
                         spacing={2}
                         width="100%"
@@ -1989,7 +2065,14 @@ export default function Inventory() {
                         justifyContent="center"
                         alignItems="center"
                       >
-                        <Stack display="flex" direction="column" justifyContent="center" alignItems="center" zIndex={2} sx={{ width: { xs: "50%", md: "20%"}}}>
+                        <Stack
+                          display="flex"
+                          direction="column"
+                          justifyContent="center"
+                          alignItems="center"
+                          zIndex={2}
+                          sx={{ width: { xs: "50%", md: "20%" } }}
+                        >
                           {groupMembers.map((member) => (
                             <Chip
                               key={member.name}
@@ -2005,32 +2088,43 @@ export default function Inventory() {
                           flexDirection="row"
                           justifyContent="center"
                           alignItems="center"
-                          sx={{ width: { xs: "50%", md: "15%" }}}
+                          sx={{ width: { xs: "50%", md: "15%" } }}
                         >
-                          <Typography
-                            textAlign="center"
-                            fontWeight="bold"
-                          >
+                          <Typography textAlign="center" fontWeight="bold">
                             {item.name}
                           </Typography>
                         </Box>
-                        <Box zIndex={2} sx={{ width: { xs: "50%", md: "12%" }}} display="flex" justifyContent="center" alignItems="center">
+                        <Box
+                          zIndex={2}
+                          sx={{ width: { xs: "50%", md: "12%" } }}
+                          display="flex"
+                          justifyContent="center"
+                          alignItems="center"
+                        >
                           <Typography>
                             Qty. {item.quantity} {item.unit}
                           </Typography>
                         </Box>
-                        <Typography zIndex={2} sx={{ width: { xs: "50%", md: "10%" }}} display="flex" justifyContent="center" alignItems="center">${item.price}</Typography>
-                        <Box 
+                        <Typography
+                          zIndex={2}
+                          sx={{ width: { xs: "50%", md: "10%" } }}
+                          display="flex"
+                          justifyContent="center"
+                          alignItems="center"
+                        >
+                          ${item.price}
+                        </Typography>
+                        <Box
                           display="flex"
                           justifyContent="center"
                           alignItems="center"
                           zIndex={2}
-                          sx={{ width: { xs: "50%", md: "20%"}}}
+                          sx={{ width: { xs: "50%", md: "20%" } }}
                         >
-                          <Typography
-                            textAlign="center"
-                          >
-                            {item.isPerishable ? "Perishable" : "Not Perishable"}
+                          <Typography textAlign="center">
+                            {item.isPerishable
+                              ? "Perishable"
+                              : "Not Perishable"}
                           </Typography>
                           <Typography
                             sx={{
@@ -2041,30 +2135,51 @@ export default function Inventory() {
                             {item.expiryDate}
                           </Typography>
                         </Box>
-                        <Box zIndex={2} display="flex" width="15%" justifyContent="center" alignItems="center">
+                        <Box
+                          zIndex={2}
+                          display="flex"
+                          width="15%"
+                          justifyContent="center"
+                          alignItems="center"
+                        >
                           <TooltipIcon title="Delete" placement="top">
                             <Box
                               onClick={(e) => {
-                                deleteItem(item.name)
+                                deleteItem(item.inventory, item.name);
                               }}
                             >
-                              <DeleteOutlineIcon sx={{ '&:hover': { cursor: "pointer" } }}/>
+                              <DeleteOutlineIcon
+                                sx={{ "&:hover": { cursor: "pointer" } }}
+                              />
                             </Box>
                           </TooltipIcon>
                           <TooltipIcon title="-1" placement="top">
-                            <RemoveIcon sx={{ mx: { xs: 1 }, '&:hover': { cursor: "pointer" }}} />
+                            <RemoveIcon
+                              sx={{
+                                mx: { xs: 1 },
+                                "&:hover": { cursor: "pointer" },
+                              }}
+                              onClick={() => {editQuantity(item.inventory, item.name, -1)}}
+                            />
                           </TooltipIcon>
                           <TooltipIcon title="+1" placement="top">
-                            <AddIcon sx={{ mr: 1, '&:hover': { cursor: "pointer" }}} />
+                            <AddIcon
+                              sx={{ mr: 1, "&:hover": { cursor: "pointer" } }}
+                              onClick={() => {editQuantity(item.inventory, item.name, 1)}}
+                            />
                           </TooltipIcon>
                         </Box>
                       </Stack>
-                      <Typography zIndex={2} textAlign="center" width="50%">{item.notes ? `"${item.notes}"` : ""}</Typography>
+                      <Typography zIndex={2} textAlign="center" width="50%">
+                        {item.notes ? `"${item.notes}"` : ""}
+                      </Typography>
                     </Stack>
                   </Grid>
                 ))
               ) : (
-                <Typography textAlign="center" mt={3}>No Items Here</Typography>
+                <Typography textAlign="center" mt={3}>
+                  No Items Here
+                </Typography>
               )}
             </Grid>
           </Box>
@@ -2338,14 +2453,18 @@ export default function Inventory() {
           <Typography variant="h4" width="80%" textAlign="center">
             {inventoryNameForShopping} Shopping List
           </Typography>
-          {neededItems.length > 0 ? (<Typography>no items</Typography>) : <Typography>items exist</Typography>}
+          {neededItems.length > 0 ? (
+            <Typography>no items</Typography>
+          ) : (
+            <Typography>items exist</Typography>
+          )}
           {neededItems.map((item) => (
             <Stack
               key={item.name}
               direction="column"
               alignItems="center"
               borderRadius="15px"
-              border = "2px solid black"
+              border="2px solid black"
               spacing={2}
               py={1}
               position="relative"
@@ -2373,7 +2492,7 @@ export default function Inventory() {
             >
               <Stack
                 sx={{
-                  flexDirection: { xs: "column", md: "row"},
+                  flexDirection: { xs: "column", md: "row" },
                 }}
                 spacing={2}
                 width="100%"
@@ -2381,9 +2500,7 @@ export default function Inventory() {
                 justifyContent="center"
                 alignItems="center"
               >
-                <Typography
-                  textAlign="center"
-                >
+                <Typography textAlign="center">
                   Assigned To: {item.assignTo}
                 </Typography>
                 <Box
@@ -2392,31 +2509,40 @@ export default function Inventory() {
                   flexDirection="row"
                   justifyContent="center"
                   alignItems="center"
-                  sx={{ width: { xs: "50%", md: "15%" }}}
+                  sx={{ width: { xs: "50%", md: "15%" } }}
                 >
-                  <Typography
-                    textAlign="center"
-                    fontWeight="bold"
-                  >
+                  <Typography textAlign="center" fontWeight="bold">
                     {item.name}
                   </Typography>
                 </Box>
-                <Box zIndex={2} sx={{ width: { xs: "50%", md: "12%" }}} display="flex" justifyContent="center" alignItems="center">
+                <Box
+                  zIndex={2}
+                  sx={{ width: { xs: "50%", md: "12%" } }}
+                  display="flex"
+                  justifyContent="center"
+                  alignItems="center"
+                >
                   <Typography>
                     Qty. {item.quantity} {item.unit}
                   </Typography>
                 </Box>
-                <Typography zIndex={2} sx={{ width: { xs: "50%", md: "10%" }}} display="flex" justifyContent="center" alignItems="center">${item.price}</Typography>
-                <Box 
+                <Typography
+                  zIndex={2}
+                  sx={{ width: { xs: "50%", md: "10%" } }}
+                  display="flex"
+                  justifyContent="center"
+                  alignItems="center"
+                >
+                  ${item.price}
+                </Typography>
+                <Box
                   display="flex"
                   justifyContent="center"
                   alignItems="center"
                   zIndex={2}
-                  sx={{ width: { xs: "50%", md: "20%"}}}
+                  sx={{ width: { xs: "50%", md: "20%" } }}
                 >
-                  <Typography
-                    textAlign="center"
-                  >
+                  <Typography textAlign="center">
                     {item.isPerishable ? "Perishable" : "Not Perishable"}
                   </Typography>
                   <Typography
@@ -2428,25 +2554,37 @@ export default function Inventory() {
                     {item.expiryDate}
                   </Typography>
                 </Box>
-                <Box zIndex={2} display="flex" width="15%" justifyContent="center" alignItems="center">
+                <Box
+                  zIndex={2}
+                  display="flex"
+                  width="15%"
+                  justifyContent="center"
+                  alignItems="center"
+                >
                   <TooltipIcon title="Delete" placement="top">
                     <Box
                       onClick={(inventoryNameForDisplay) =>
                         deleteItem(inventoryNameForDisplay)
                       }
                     >
-                      <DeleteOutlineIcon sx={{ '&:hover': { cursor: "pointer" } }}/>
+                      <DeleteOutlineIcon
+                        sx={{ "&:hover": { cursor: "pointer" } }}
+                      />
                     </Box>
                   </TooltipIcon>
                   <TooltipIcon title="-1" placement="top">
-                    <RemoveIcon sx={{ mx: { xs: 1 }, '&:hover': { cursor: "pointer" }}} />
+                    <RemoveIcon
+                      sx={{ mx: { xs: 1 }, "&:hover": { cursor: "pointer" } }}
+                    />
                   </TooltipIcon>
                   <TooltipIcon title="+1" placement="top">
-                    <AddIcon sx={{ mr: 1, '&:hover': { cursor: "pointer" }}} />
+                    <AddIcon sx={{ mr: 1, "&:hover": { cursor: "pointer" } }} />
                   </TooltipIcon>
                 </Box>
               </Stack>
-              <Typography zIndex={2} textAlign="center" width="50%">{item.notes ? `"${item.notes}"` : ""}</Typography>
+              <Typography zIndex={2} textAlign="center" width="50%">
+                {item.notes ? `"${item.notes}"` : ""}
+              </Typography>
               <Box onClick={() => buyItem(item.name)}>
                 <DarkButton>Add to Shopping List</DarkButton>
               </Box>
@@ -2455,7 +2593,6 @@ export default function Inventory() {
         </Box>
       </Modal>
 
-      
       {/* <Accordion>
                 <AccordionSummary
                   expandIcon={<ArrowDropDownIcon />}
