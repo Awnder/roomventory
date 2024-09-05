@@ -32,7 +32,11 @@ import StarsSharpIcon from "@mui/icons-material/StarsSharp";
 import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
 import CloseIcon from "@mui/icons-material/Close";
 import AutoAwesomeIcon from "@mui/icons-material/AutoAwesome";
-import { DarkButton, LightButton, DarkButtonSimple } from "../../Components/styledbuttons";
+import {
+  DarkButton,
+  LightButton,
+  DarkButtonSimple,
+} from "../../Components/styledbuttons";
 import { Category, Opacity, Search } from "@mui/icons-material";
 import { useRouter } from "next/navigation";
 import { useUser } from "@clerk/nextjs";
@@ -344,12 +348,14 @@ export default function Inventory() {
   /****************************************************** AI Suggestions ******************************************************/
 
   // Function to get suggestions from the AI
-  const getSuggestions = async (inventoryName) => {
-    console.log('getting suggestions');
+  const getSuggestions = async (passedInventory) => {
+    console.log("getting suggestions");
 
     const localInventory = inventories.find(
-      (inventory) => inventory.name === inventoryName
+      (inventory) => inventory.name === passedInventory
     );
+
+    console.log("localInventory", localInventory);
 
     await fetch("/api/generate", {
       method: "POST",
@@ -594,7 +600,7 @@ export default function Inventory() {
 
   //function to delete an item from the inventory (1 READ, 1 WRITE operation)
   const deleteItem = useCallback(
-    async (passedInventory, passedItem) => {
+    async (passedInventory, passedItem, isNeeded) => {
       console.log("deleting item");
       try {
         const groupRef = doc(collection(db, "groups"), groupID);
@@ -609,15 +615,23 @@ export default function Inventory() {
           alert("Inventory does not exist");
           return;
         } else {
-          const items = inventorySnap.data().items;
+          const items = isNeeded
+            ? inventorySnap.data().neededItems
+            : inventorySnap.data().items;
 
           const newItems = items.filter((item) => item.name !== passedItem);
           //WRITE
-          await updateDoc(inventoryRef, {
-            items: newItems,
-          });
-          setItemList(newItems);
-          // fetchInventories();
+          if (isNeeded) {
+            await updateDoc(inventoryRef, {
+              neededItems: newItems,
+            });
+            setNeededItems(newItems);
+          } else {
+            await updateDoc(inventoryRef, {
+              items: newItems,
+            });
+            setItemList(newItems);
+          }
         }
       } catch (error) {
         console.error("Error deleting item: ", error);
@@ -721,7 +735,7 @@ export default function Inventory() {
   );
 
   const editQuantity = useCallback(
-    async (passedInventory, passedItem, amount) => {
+    async (passedInventory, passedItem, amount, isNeeded) => {
       console.log("increasing quantity");
       try {
         const groupRef = doc(collection(db, "groups"), groupID);
@@ -736,24 +750,49 @@ export default function Inventory() {
           alert("Inventory does not exist");
           return;
         } else {
-          const items = inventorySnap.data().items;
+          const items = isNeeded
+            ? inventorySnap.data().neededItems
+            : inventorySnap.data().items;
 
-          const newItems = items.map((item) => {
-            if (item.name === passedItem) {
-              if (item.quantity + amount < 0) {
-                alert("Quantity cannot be negative");
+          if (isNeeded) {
+            const newItems = items.map((item) => {
+              if (item.name === passedItem) {
+                if (item.quantityNeeded + amount < 0) {
+                  alert("Quantity cannot be negative");
+                  return item;
+                }
+                return {
+                  ...item,
+                  quantityNeeded: item.quantityNeeded + amount,
+                };
+              } else {
                 return item;
               }
-              return { ...item, quantity: item.quantity + amount };
-            } else {
-              return item;
-            }
-          });
+            });
+
+            await updateDoc(inventoryRef, {
+              neededItems: newItems,
+            });
+            setNeededItems(newItems);
+          } else {
+            const newItems = items.map((item) => {
+              if (item.name === passedItem) {
+                if (item.quantity + amount < 0) {
+                  alert("Quantity cannot be negative");
+                  return item;
+                }
+                return { ...item, quantity: item.quantity + amount };
+              } else {
+                return item;
+              }
+            });
+            await updateDoc(inventoryRef, {
+              items: newItems,
+            });
+            setItemList(newItems);
+          }
           //WRITE
-          await updateDoc(inventoryRef, {
-            items: newItems,
-          });
-          setItemList(newItems);
+
           // fetchInventories();
         }
       } catch (error) {
@@ -790,6 +829,15 @@ export default function Inventory() {
     const inventoryRef = doc(inventoryCollection, selectedInventory); //inventory should be dynamically selected
     //READ
     const inventorySnap = await getDoc(inventoryRef);
+
+    const itemExists = inventorySnap
+      .data()
+      .neededItems.find((item) => item.name === itemName);
+
+    if (itemExists) {
+      alert("Item already exists");
+      return;
+    }
 
     if (!inventorySnap.exists()) {
       alert("Inventory does not exist");
@@ -1875,7 +1923,7 @@ export default function Inventory() {
               }}
             />
           </Box>
-  
+
           {/* Item Display */}
           <Box width="80%" maxWidth="lg" overflow="auto">
             <Grid
@@ -2009,7 +2057,9 @@ export default function Inventory() {
                           <TooltipIcon title="Delete" placement="top">
                             <DeleteOutlineIcon
                               sx={{ "&:hover": { cursor: "pointer" } }}
-                              onClick={() => {deleteItem(item.inventory, item.name);}}
+                              onClick={() => {
+                                deleteItem(item.inventory, item.name, false);
+                              }}
                             />
                           </TooltipIcon>
                           <TooltipIcon title="-1" placement="top">
@@ -2018,13 +2068,27 @@ export default function Inventory() {
                                 mx: { xs: 1 },
                                 "&:hover": { cursor: "pointer" },
                               }}
-                              onClick={() => {editQuantity(item.inventory, item.name, -1)}}
+                              onClick={() => {
+                                editQuantity(
+                                  item.inventory,
+                                  item.name,
+                                  -1,
+                                  false
+                                );
+                              }}
                             />
                           </TooltipIcon>
                           <TooltipIcon title="+1" placement="top">
                             <AddIcon
                               sx={{ mr: 1, "&:hover": { cursor: "pointer" } }}
-                              onClick={() => {editQuantity(item.inventory, item.name, 1)}}
+                              onClick={() => {
+                                editQuantity(
+                                  item.inventory,
+                                  item.name,
+                                  1,
+                                  false
+                                );
+                              }}
                             />
                           </TooltipIcon>
                         </Box>
@@ -2338,8 +2402,8 @@ export default function Inventory() {
               }}
             />
           </Box>
-             {/* Display AI Suggestions */}
-             <TooltipIcon title="AI Suggestions" placement="top">
+          {/* Display AI Suggestions */}
+          <TooltipIcon title="AI Suggestions" placement="top">
             <Box
               sx={{
                 fontSize: 40,
@@ -2352,7 +2416,7 @@ export default function Inventory() {
                 },
               }}
               onClick={() => {
-                getSuggestions(inventoryNameForDisplay);
+                getSuggestions(inventoryNameForShopping);
               }}
             >
               <DarkButton>
@@ -2528,9 +2592,13 @@ export default function Inventory() {
                     alignItems="center"
                     sx={{ width: { xs: "50%", md: "35%" } }}
                   >
-                    <Typography textAlign="center">
-                      Assigned To: <strong>{item.assignTo}</strong>
-                    </Typography>
+                    {item.assignTo ? (
+                      <Typography textAlign="center">
+                        Assigned To: <strong>{item.assignTo}</strong>
+                      </Typography>
+                    ) : (
+                      <Typography textAlign="center">Not Assigned</Typography>
+                    )}
                   </Box>
                   <Box
                     zIndex={2}
@@ -2563,11 +2631,21 @@ export default function Inventory() {
                     justifyContent="center"
                     alignItems="center"
                   >
-                    <Typography mr={1}>
-                      Priority:
-                    </Typography>
-                    <Typography color={item.priority === "low" ? green_dark : item.priority === "med" ? "#B5A642" : "#A52A2A"}>
-                      {item.priority === "low" ? "Low" : item.priority === "med" ? "Medium" : "High"}
+                    <Typography mr={1}>Priority:</Typography>
+                    <Typography
+                      color={
+                        item.priority === "low"
+                          ? green_dark
+                          : item.priority === "med"
+                          ? "#B5A642"
+                          : "#A52A2A"
+                      }
+                    >
+                      {item.priority === "low"
+                        ? "Low"
+                        : item.priority === "med"
+                        ? "Medium"
+                        : "High"}
                     </Typography>
                   </Box>
                   <Box
@@ -2580,21 +2658,27 @@ export default function Inventory() {
                     <TooltipIcon title="Delete" placement="top">
                       <DeleteOutlineIcon
                         sx={{
-                          "&:hover": { cursor: "pointer" }
+                          "&:hover": { cursor: "pointer" },
                         }}
-                        onClick={() => {deleteItem(item.inventory, item.name);}}
+                        onClick={() => {
+                          deleteItem(item.inventory, item.name, true);
+                        }}
                       />
                     </TooltipIcon>
                     <TooltipIcon title="-1" placement="top">
                       <RemoveIcon
                         sx={{ mx: { xs: 1 }, "&:hover": { cursor: "pointer" } }}
-                        onClick={() => {editQuantity(item.inventory, item.name, -1)}}
+                        onClick={() => {
+                          editQuantity(item.inventory, item.name, -1, true);
+                        }}
                       />
                     </TooltipIcon>
                     <TooltipIcon title="+1" placement="top">
-                      <AddIcon 
-                        sx={{ mr: 1, "&:hover": { cursor: "pointer" } }}    
-                        onClick={() => {editQuantity(item.inventory, item.name, 1)}}
+                      <AddIcon
+                        sx={{ mr: 1, "&:hover": { cursor: "pointer" } }}
+                        onClick={() => {
+                          editQuantity(item.inventory, item.name, 1, true);
+                        }}
                       />
                     </TooltipIcon>
                   </Box>
@@ -2602,12 +2686,15 @@ export default function Inventory() {
                 <Typography zIndex={2} textAlign="center" width="50%">
                   {item.notes ? `"${item.notes}"` : ""}
                 </Typography>
-                <Box zIndex={2} onClick={() => buyItem(inventoryNameForShopping, item.name)}>
-                  <DarkButtonSimple>Add to Shopping List</DarkButtonSimple>
+                <Box
+                  zIndex={2}
+                  onClick={() => buyItem(inventoryNameForShopping, item.name)}
+                >
+                  <DarkButtonSimple>I bought this</DarkButtonSimple>
                 </Box>
               </Stack>
             ))}
-          </Box> 
+          </Box>
         </Box>
       </Modal>
     </Stack>
