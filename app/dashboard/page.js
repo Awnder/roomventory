@@ -13,7 +13,9 @@ import {
 import TooltipIcon from "../../Components/tooltipicon";
 import AddCircleOutlineIcon from "@mui/icons-material/AddCircleOutline";
 import SearchIcon from "@mui/icons-material/Search";
-import { DarkButton } from "../../Components/styledbuttons"
+import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
+import CloseIcon from "@mui/icons-material/Close";
+import { DarkButton, LightButtonSimple } from "../../Components/styledbuttons"
 import { useRouter } from "next/navigation";
 import { useUser } from "@clerk/nextjs";
 import { db } from "/firebase";
@@ -48,6 +50,7 @@ export default function Dashboard() {
   const [itemName, setItemName] = useState("");
   const [groupName, setGroupName] = useState("");
   const [email, setEmail] = useState("");
+  const [groupNameForDeletion, setGroupNameForDeletion] = useState("");
 
   // Real data from Firebase
   const [groups, setGroups] = useState([]);
@@ -55,6 +58,11 @@ export default function Dashboard() {
 
   const [addInventoryModal, setAddInventoryModal] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
+
+  // Modal
+  const [openDeleteGroupModal, setOpenDeleteGroupModal] = useState(false);
+  const handleOpenDeleteGroupModal = () => setOpenDeleteGroupModal(true);
+  const handleCloseDeleteGroupModal = () => setOpenDeleteGroupModal(false);
 
 
   /****************************************************** Routing ******************************************************/
@@ -132,14 +140,13 @@ export default function Dashboard() {
 
 
   // Function to delete a group from the database (n READ, n WRITE)
-  const deleteGroup = async (group, batch) => {
+  const deleteGroup = async (group) => {
     console.log("Deleting group");
 
     const groupID = (user.id).slice(-5) + " " + group;
+    const batch = writeBatch(db);
 
     const groupRef = doc(collection(db, "groups"), groupID);
-    //READ
-    const groupSnap = await getDoc(groupRef);
 
     // Get inventories collection
     const inventoriesCollection = collection(
@@ -149,26 +156,26 @@ export default function Dashboard() {
       "inventories"
     );
     //READ
-    const inventoriesSnap = await getDocs(inventoriesCollection);
+    const [groupSnap, inventoriesSnap] = await Promise.all([
+      getDoc(groupRef),
+      getDocs(inventoriesCollection),
+    ]);
 
     if (groupSnap.exists() && inventoriesSnap.size > 0) {
       // Process inventories
-      const inventoryPromises = inventoriesSnap.docs.map(async (inventory) => {
-        const inventoryName = inventory.data().name;
+      inventoriesSnap.forEach((inventory) => {
+        const inventoryName = inventory.id; // Use the document ID for the name
         const inventoryRef = doc(inventoriesCollection, inventoryName);
-        //READ
-        const inventorySnap = await getDoc(inventoryRef);
-        
-        //DELETE
+        // Add deletion to the batch
         batch.delete(inventoryRef);
       });
-
-      // Wait for all inventory deletions to be scheduled
-      await Promise.all(inventoryPromises);
     }
-
-    // Finally, delete the group
+  
+    // Finally, delete the group after all inventory deletions are added to the batch
     batch.delete(groupRef);
+  
+    // Commit the batch operation
+    await batch.commit();
   };
 
 
@@ -271,7 +278,7 @@ export default function Dashboard() {
     };
 
     getGroups();
-  }, [user, createGroup]);
+  }, [user, createGroup, deleteGroup]);
 
   // Function to filter groups based on search term
   useEffect(() => {
@@ -288,6 +295,62 @@ export default function Dashboard() {
       alignItems="center"
       minHeight="100vh"
     >
+      {/* Modal for deleting group */}
+      <Modal open={openDeleteGroupModal}>
+        <Box
+          position="absolute"
+          top="50%"
+          left="50%"
+          bgcolor="white"
+          border="2px solid #000"
+          borderRadius="20px"
+          p={2}
+          display="flex"
+          flexDirection="column"
+          justifyContent="center"
+          alignItems="center"
+          gap={3}
+          sx={{
+            transform: "translate(-50%,-50%)",
+            width: { xs: "80%", sm: "60%" },
+            maxWidth: "md",
+          }}
+        >
+          <CloseIcon
+            sx={{
+              position: "absolute",
+              top: 5,
+              left: 5,
+              fontSize: 40,
+              color: `${green_dark}`,
+              transition: "200ms",
+              "&:hover": {
+                cursor: "pointer",
+                transform: "rotate(180deg) scale(1.05)",
+              },
+            }}
+            onClick={() => {
+              setOpenDeleteGroupModal(false);
+            }}
+          />
+          <Typography variant="h4" width="80%" textAlign="center">
+            Delete Group
+          </Typography>
+          <Typography width="80%" textAlign="center">
+            Are you sure you want to delete {groupNameForDeletion} and all
+            its contents?
+          </Typography>
+          <Box
+            onClick={() => {
+              deleteGroup(groupNameForDeletion);
+              handleCloseDeleteGroupModal();
+            }
+            }
+          >
+            <DarkButton>Delete</DarkButton>
+          </Box>
+        </Box>
+      </Modal>
       <Box 
         display="flex"
         justifyContent="center"
@@ -359,7 +422,7 @@ export default function Dashboard() {
           alignItems="center"
           justifyContent="center"
         >
-          <TooltipIcon title="Create Inventory" placement="top">
+          <TooltipIcon title="Create Group" placement="top">
             <AddCircleOutlineIcon
               onClick={() => setAddInventoryModal(true)}
               sx={{
@@ -400,6 +463,32 @@ export default function Dashboard() {
                   },
                 }}
               >
+                <TooltipIcon title="Delete Group" placement="top">
+                  <Box
+                    sx={{
+                      position: "absolute",
+                      top: 0,
+                      right: 5,
+                      fontSize: 40,
+                      color: `${green_dark}`,
+                      transition: "200ms",
+                      "&:hover": {
+                        cursor: "pointer",
+                        color: `${green_light}`,
+                        transform: "scale(1.05)",
+                      },
+                    }}
+                    onClick={(event) => {
+                      setGroupNameForDeletion(group.name)
+                      handleOpenDeleteGroupModal();
+                      event.stopPropagation();
+                    }}
+                  >
+                    <LightButtonSimple>
+                      <DeleteOutlineIcon />
+                    </LightButtonSimple>
+                  </Box>
+                </TooltipIcon>
                 <Typography
                   variant="h6"
                   maxHeight="100%"
