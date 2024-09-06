@@ -138,6 +138,7 @@ export default function Inventory() {
   const [openExpenseModal, setOpenExpenseModal] = useState(false);
   const [openShoppingListModal, setOpenShoppingListModal] = useState(false);
   const [openEditItemModal, setOpenEditItemModal] = useState(false);
+  const [openEditNeededItemModal, setOpenEditNeededItemModal] = useState(false);
 
   //Modals open/close
   const handleOpenMemberModal = () => setOpenMemberModal(true);
@@ -190,6 +191,8 @@ export default function Inventory() {
   };
   const handleOpenEditItemModal = () => setOpenEditItemModal(true);
   const handleCloseEditItemModal = () => setOpenEditItemModal(false);
+  const handleOpenEditNeededItemModal = () => setOpenEditNeededItemModal(true);
+  const handleCloseEditNeededItemModal = () => setOpenEditNeededItemModal(false);
 
   //Filtered objects
   const [filteredInventories, setFilteredInventories] = useState([]);
@@ -907,6 +910,29 @@ export default function Inventory() {
     async (passedInventory, passedItem, isNeeded) => {
       console.log("editing item");
 
+      if (!itemName.trim()) {
+        alert("Item Name is required");
+        return;
+      }
+  
+      if (!selectedInventory.trim()) {
+        alert("Inventory must be selected");
+        return;
+      }
+  
+      if (!quantity || quantity <= 0) {
+        alert("Quantity must be a positive number");
+        return;
+      }
+  
+      if (price < 0) {
+        alert("Price must be a non-negative number");
+        return;
+      }
+
+      console.log('assignedRoommate', assignedRoommate);
+      console.log('priority', priority);
+
       try {
         const groupRef = doc(collection(db, "groups"), groupID);
         const inventoryCollection = collection(groupRef, "inventories");
@@ -925,24 +951,25 @@ export default function Inventory() {
             : inventorySnap.data().items;
 
           if (isNeeded) {
-            // const newItems = localItems.map((item) => {
-            //   if (item.name === passedItem) {
-            //     if (item.quantityNeeded + amount < 0) {
-            //       alert("Quantity cannot be negative");
-            //       return item;
-            //     }
-            //     return {
-            //       ...item,
-            //       quantityNeeded: item.quantityNeeded + amount,
-            //     };
-            //   } else {
-            //     return item;
-            //   }
-            // });
-            // await updateDoc(inventoryRef, {
-            //   neededItems: newItems,
-            // });
-            // setNeededItemList(newItems);
+            const newItems = localItems.map((item) => {
+              if (item.name === passedItem) {
+                return {
+                  ...item,
+                  name: itemName,
+                  quantityNeeded: parseInt(quantity),
+                  unit: unit,
+                  assignTo: assignedRoommate,
+                  priority: priority,
+                  notes: notes.trim(),
+                };
+              } else {
+                return item;
+              }
+            });
+            await updateDoc(inventoryRef, {
+              neededItems: newItems,
+            });
+            setNeededItemList(newItems);
           } else {
             const newItems = localItems.map((item) => {
               if (item.name === passedItem) {
@@ -969,8 +996,9 @@ export default function Inventory() {
               items: newItems,
             });
             setItemList(newItems);
-            setItemToEdit("");
           }
+                     
+          setItemToEdit("");
           //WRITE
 
           // fetchInventories();
@@ -980,7 +1008,7 @@ export default function Inventory() {
       }
       fetchInventories();
     },
-    [groupID, quantity, unit, price, isPerishable, notes, itemToEdit, itemName]
+    [groupID, quantity, unit, price, isPerishable, notes, itemToEdit, itemName, priority, assignedRoommate]
   );
   /****************************************************** Needed Items Functions ******************************************************/
 
@@ -1043,6 +1071,8 @@ export default function Inventory() {
       await updateDoc(inventoryRef, {
         neededItems: newItems,
       });
+
+      setNeededItemList(newItems);
 
       fetchInventories();
     }
@@ -1611,9 +1641,9 @@ export default function Inventory() {
                       sx={{ border: "1px solid black" }}
                       onChange={(e) => setPriority(e.target.value)}
                     >
-                      <MenuItem value={"high"}>High</MenuItem>
+                      <MenuItem value={"High"}>High</MenuItem>
                       <MenuItem value={"Medium"}>Medium</MenuItem>
-                      <MenuItem value={"low"}>Low</MenuItem>
+                      <MenuItem value={"Low"}>Low</MenuItem>
                     </Select>
                   </FormControl>
                 </Box>
@@ -2514,6 +2544,159 @@ export default function Inventory() {
         </Stack>
       </Modal>
 
+      {/*Modal for editing items */}
+      <Modal open={openEditNeededItemModal}>
+        <Stack
+          position="absolute"
+          top="50%"
+          left="50%"
+          width="80%"
+          maxWidth="sm"
+          bgcolor="white"
+          border="2px solid #000"
+          borderRadius="20px"
+          p={2}
+          gap={2}
+          direction="column"
+          justifyContent="center"
+          alignItems="center"
+          sx={{
+            transform: "translate(-50%,-50%)",
+          }}
+        >
+          <CloseIcon
+            sx={{
+              position: "absolute",
+              top: 5,
+              left: 5,
+              fontSize: 40,
+              color: `${green_dark}`,
+              transition: "200ms",
+              "&:hover": {
+                cursor: "pointer",
+                transform: "rotate(180deg) scale(1.05)",
+              },
+            }}
+            onClick={(e) => {
+              handleCloseEditNeededItemModal();
+            }}
+          />
+          
+          <Typography variant="h5" textAlign="center">
+            Edit Item
+          </Typography>
+          <TextField
+            size="small"
+            placeholder="Name"
+            fullWidth
+            value={itemName}
+            onChange={(e) => setItemName(e.target.value)}
+            sx={{ bgcolor: "white", width: "80%", border: "1px solid black" }}
+            required
+          />
+          <Stack
+            direction="row"
+            spacing={2}
+            justifyContent="center"
+            alignItems="center"
+            width="80%"
+          >
+            <Typography>Quantity:</Typography>
+            <TextField
+              size="small"
+              placeholder="Quantity"
+              inputMode="numeric"
+              value={quantity}
+              onChange={(e) => {
+                const value = e.target.value;
+                // Regular expression to allow only numbers and decimals
+                if (/^\d*$/.test(value)) {
+                  setQuantity(value); // Convert the value to an integer
+                }
+              }}
+              sx={{
+                bgcolor: "white",
+                width: "50%",
+                color: "black",
+                border: "1px solid black",
+              }}
+            />
+            <Typography textAlign="center">X</Typography>
+            <TextField
+              size="small"
+              placeholder="Unit (optional)"
+              border="1px solid black"
+              inputMode="numeric"
+              value={unit}
+              onChange={(e) => setUnit(e.target.value)}
+              sx={{
+                bgcolor: "white",
+                width: "50%",
+                border: "1px solid black",
+              }}
+            />
+          </Stack>
+          <Stack direction="row" alignItems="center" width="80%">
+              <Typography width="30%">Assign To:</Typography>
+              <Box bgcolor="white" color="black" width="70%">
+                <FormControl fullWidth>
+                  <Select
+                    size="small"
+                    value={assignedRoommate}
+                    sx={{ color: "black", border: "1px solid black" }}
+                    onChange={(e) => setAssignedRoommate(e.target.value)}
+                  >
+                    {groupMembers.map((member) => (
+                      <MenuItem key={member.name} value={member.name}>
+                        {member.name}
+                      </MenuItem>
+                    ))}
+                  </Select>
+                </FormControl>
+              </Box>
+            </Stack>
+            <Stack direction="row" spacing={2} alignItems="center" width="80%">
+              <Stack direction="row" alignItems="center">
+                <Typography color="black" textAlign="center" mr={3}>
+                  Priority:
+                </Typography>
+                <Box bgcolor="white" width="60%">
+                  <FormControl fullWidth>
+                    <Select
+                      size="small"
+                      value={priority}
+                      sx={{ border: "1px solid black" }}
+                      onChange={(e) => {setPriority(e.target.value); console.log(priority);}}
+                    >
+                      <MenuItem value={"High"}>High</MenuItem>
+                      <MenuItem value={"Medium"}>Medium</MenuItem>
+                      <MenuItem value={"Low"}>Low</MenuItem>
+                    </Select>
+                  </FormControl>
+                </Box>
+              </Stack>
+            </Stack>
+          <Stack direction="row" spacing={2} alignItems="center" width="80%">
+          </Stack>
+          <TextField
+            multiline
+            placeholder="Add notes (optional)"
+            value={notes}
+            onChange={(e) => setNotes(e.target.value)}
+            sx={{ bgcolor: "white", width: "80%", border: "1px solid black" }}
+          />
+
+          <Box
+            onClick={() => {
+              editItem(selectedInventory, itemToEdit, true);
+              handleCloseEditNeededItemModal();
+            }}
+          >
+            <DarkButton>Save Changes</DarkButton>
+          </Box>
+        </Stack>
+      </Modal>
+
       {/* Modal for Inventory Deletion */}
       <Modal open={openDeleteInventoryModal}>
         <Box
@@ -2780,6 +2963,15 @@ export default function Inventory() {
               handleCloseShoppingListModal();
             }}
           />
+           <Box
+            sx={{ position: "absolute", top: 15, right: 15 }}
+            onClick={(e) => {
+              handleOpenNeededItemModal();
+              setSelectedInventory(inventoryNameForShopping);
+            }}
+          >
+            <DarkButton>Add Item</DarkButton>
+          </Box>
           <Typography variant="h4" width="80%" textAlign="center">
             {inventoryNameForShopping} Shopping List
           </Typography>
@@ -3027,16 +3219,16 @@ export default function Inventory() {
                       <Typography mr={1}>Priority:</Typography>
                       <Typography
                         color={
-                          item.priority === "low"
+                          item.priority === "Low"
                             ? green_dark
-                            : item.priority === "med"
+                            : item.priority === "Medium"
                             ? "#B5A642"
                             : "#A52A2A"
                         }
                       >
-                        {item.priority === "low"
+                        {item.priority === "Low"
                           ? "Low"
-                          : item.priority === "med"
+                          : item.priority === "Medium"
                           ? "Medium"
                           : "High"}
                       </Typography>
@@ -3078,6 +3270,27 @@ export default function Inventory() {
                           }}
                         />
                       </TooltipIcon>
+                      <TooltipIcon title="Edit Item" placement="top">
+                            <EditIcon
+                              sx={{
+                                "&:hover": {
+                                  cursor: "pointer",
+                                  transform: "scale(1.2)",
+                                },
+                              }}
+                              onClick={() => {
+                                setItemName(item.name);
+                                setQuantity(item.quantityNeeded);
+                                setUnit(item.unit);
+                                setNotes(item.notes);
+                                setPriority(item.priority);
+                                setAssignedRoommate(item.assignTo);
+                                setSelectedInventory(inventoryNameForShopping);
+                                handleOpenEditNeededItemModal();
+                                setItemToEdit(item.name);
+                              }}
+                            />
+                          </TooltipIcon>
                     </Box>
                     <Box
                       zIndex={2}
