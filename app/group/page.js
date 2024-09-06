@@ -2479,7 +2479,6 @@ export default function Inventory() {
               }}
             />
           </Box>
-          {/* Display AI Suggestions */}
           <TooltipIcon title="AI Suggestions" placement="top">
             <Box
               sx={{
@@ -2497,102 +2496,35 @@ export default function Inventory() {
               }}
             >
               <DarkButton>
-                <Typography mr={1}>Generate Suggestions</Typography>
+                <Typography mr={1}>AI Suggest</Typography>
                 <AutoAwesomeIcon />
               </DarkButton>
             </Box>
           </TooltipIcon>
-
+          
+          {/* Shopping list (left) and suggested (right) lists */}
           <Stack
             width="100%"
+            height="80%"
             maxHeight="80%"
             overflow="auto"
-            spacing={2}
-            sx={{ flexDirection: { xs: "column", sm: "row-reverse" } }}
+            spacing={1}
+            sx={{  flexDirection: { xs: "column", md: "row-reverse" }  }}
           >
             {/* Stack that displays the suggested items */}
-            <Stack width="80%" maxWidth="lg" height="100%" maxHeight="md">
-              {!isEmptyObj(suggestedItems) ? (
-                <Box
-                  maxHeight="80%"
-                  border="1px solid black"
-                  borderRadius="20px"
-                  textAlign="center"
-                  px={2}
-                  overflow="auto"
-                >
-                  {suggestedItems.items.map((item) => (
-                    <Stack
-                      key={item.name}
-                      direction="column"
-                      alignItems="center"
-                      width="100%"
-                      borderRadius="15px"
-                      border="2px solid black"
-                      spacing={2}
-                      py={1}
-                      position="relative"
-                      mb={2}
-                      sx={{
-                        background: `linear-gradient(to bottom, ${green_light}, #fff)`,
-                        "&::before": {
-                          position: "absolute",
-                          content: "''",
-                          top: 0,
-                          right: 0,
-                          bottom: 0,
-                          left: 0,
-                          background: `linear-gradient(to bottom, #fff, ${green_light})`,
-                          transition: "opacity 200ms linear",
-                          opacity: 0,
-                          borderRadius: "15px",
-                        },
-                        "&:hover::before": {
-                          opacity: 1,
-                          zIndex: 1,
-                          borderRadius: "15px",
-                        },
-                      }}
-                    >
-                      <Stack direction="row">
-                        <Typography textAlign="center" fontWeight="bold">
-                          {item.name}
-                        </Typography>
-                        <Box zIndex={2} onClick={() => deleteItem()}>
-                          <TooltipIcon title="Discard" placement="top">
-                            <DeleteOutlineIcon sx={{ fontSize: 30 }} onClick={() => {rejectSuggestion(item.name)}} />
-                          </TooltipIcon>
-                        </Box>
-                        <Box
-                          zIndex={2}
-                        >
-                          <TooltipIcon title="Confirm" placement="top">
-                            <CheckIcon sx={{ fontSize: 30 }} onClick={() => {acceptSuggestion(inventoryNameForShopping, item.name)}} />
-                          </TooltipIcon>
-                        </Box>
-                      </Stack>
-                    </Stack>
-                  ))}
-                </Box>
-              ) : (
-                <></>
-              )}
-
-              {/* Needed items */}
-              <Box width="80%" maxWidth="lg" overflow="auto">
-                {filteredNeededItems.map((item) => (
+            {!isEmptyObj(suggestedItems) ? (
+              <Box maxHeight="80%" width="20%" border="1px solid black" borderRadius="15px" textAlign="center" px={1} pt={1} mt={2} overflow="auto">
+                {suggestedItems.items.map((item) => (
                   <Stack
-                    key={item.name}
+                    key={item.name} 
                     direction="column"
                     alignItems="center"
+                    width="100%"
                     borderRadius="15px"
                     border="2px solid black"
-                    overflow="auto"
-                    spacing={2}
-                    pt={1}
-                    pb={2}
+                    py={1}
                     position="relative"
-                    mb={2}
+                    mb={1}
                     sx={{
                       background: `linear-gradient(to bottom, ${green_light}, #fff)`,
                       "&::before": {
@@ -2614,135 +2546,189 @@ export default function Inventory() {
                       },
                     }}
                   >
-                    <Stack
-                      sx={{
-                        flexDirection: { xs: "column", md: "row" },
-                      }}
-                      width="100%"
-                      spacing={1}
-                      px={2}
-                      justifyContent="center"
-                      alignItems="center"
-                    >
-                      <Box zIndex={2} sx={{ width: { xs: "50%", md: "35%" } }}>
-                        {item.assignTo ? (
-                          <Typography textAlign="center">
-                            Assigned To: <strong>{item.assignTo}</strong>
-                          </Typography>
-                        ) : (
-                          <Typography textAlign="center">
-                            Not Assigned
-                          </Typography>
-                        )}
-                      </Box>
-                      <Box
-                        zIndex={2}
-                        display="flex"
-                        flexDirection="row"
-                        justifyContent="center"
-                        alignItems="center"
-                        sx={{ width: { xs: "50%", md: "15%" } }}
+                    <Stack direction="row" justifyContent="center" alignItems="center" textAlign="center" zIndex={2}>
+                      <Typography
+                        textAlign="center"
+                        fontWeight="bold"
+                        px={1}
                       >
-                        <Typography textAlign="center" fontWeight="bold">
-                          {item.name}
-                        </Typography>
-                      </Box>
-                      <Box
-                        zIndex={2}
-                        sx={{ width: { xs: "50%", md: "12%" } }}
-                        display="flex"
-                        justifyContent="center"
-                        alignItems="center"
-                      >
-                        <Typography>
-                          Qty. {item.quantityNeeded} {item.unit}
-                        </Typography>
-                      </Box>
-                      <Box
-                        zIndex={2}
-                        sx={{ width: { xs: "50%", md: "20%" } }}
-                        display="flex"
-                        flexDirection="row"
-                        justifyContent="center"
-                        alignItems="center"
-                      >
-                        <Typography mr={1}>Priority:</Typography>
-                        <Typography
-                          color={
-                            item.priority === "low"
-                              ? green_dark
-                              : item.priority === "med"
-                              ? "#B5A642"
-                              : "#A52A2A"
-                          }
-                        >
-                          {item.priority === "low"
-                            ? "Low"
-                            : item.priority === "med"
-                            ? "Medium"
-                            : "High"}
-                        </Typography>
-                      </Box>
-                      <Box
-                        zIndex={2}
-                        display="flex"
-                        width="15%"
-                        justifyContent="center"
-                        alignItems="center"
-                      >
-                        <TooltipIcon title="Delete" placement="top">
-                          <DeleteOutlineIcon
-                            sx={{
-                              ml: 2,
-                              "&:hover": { cursor: "pointer" },
-                            }}
-                            onClick={() => {
-                              deleteItem(item.inventory, item.name, true);
-                            }}
-                          />
-                        </TooltipIcon>
-                        <TooltipIcon title="-1" placement="top">
-                          <RemoveIcon
-                            sx={{
-                              mx: { xs: 1 },
-                              "&:hover": { cursor: "pointer" },
-                            }}
-                            onClick={() => {
-                              editQuantity(item.inventory, item.name, -1, true);
-                            }}
-                          />
-                        </TooltipIcon>
-                        <TooltipIcon title="+1" placement="top">
-                          <AddIcon
-                            sx={{ mr: 1, "&:hover": { cursor: "pointer" } }}
-                            onClick={() => {
-                              editQuantity(item.inventory, item.name, 1, true);
-                            }}
-                          />
-                        </TooltipIcon>
-                      </Box>
-                      <Box
-                        zIndex={2}
-                        onClick={() =>
-                          buyItem(inventoryNameForShopping, item.name)
-                        }
-                      >
-                        <DarkButtonSimple mr={1} ml={1}>
-                          I bought this
-                        </DarkButtonSimple>
+                        {item.name}
+                      </Typography>
+                      <Box>
+                        <Box onClick={() => deleteItem()}>
+                          <TooltipIcon title="Discard" placement="top">
+                            <DeleteOutlineIcon sx={{fontSize: 25}} />
+                          </TooltipIcon>
+                        </Box>
+                        <Box onClick={() => buyItem(inventoryNameForShopping, item.name)} mr={1}>
+                          <TooltipIcon title="Confirm" placement="top">
+                            <CheckIcon sx={{fontSize: 25}} />
+                          </TooltipIcon>
+                        </Box>
                       </Box>
                     </Stack>
-                    {item.notes ? (
-                      <Typography zIndex={2} textAlign="center" width="50%">
-                        Notes: {`"${item.notes}"`}
-                      </Typography>
-                    ) : (
-                      <></>
-                    )}
                   </Stack>
                 ))}
               </Box>
-            </Stack>
+            ) : (
+              <></>
+            )}
+            {/* Needed items */}
+            <Box width="100%" height="100%" maxWidth="lg" overflow="auto">
+              {filteredNeededItems.map((item) => (
+                <Stack
+                  key={item.name}
+                  direction="column"
+                  alignItems="center"
+                  borderRadius="15px"
+                  border="2px solid black"
+                  overflow="auto"
+                  spacing={2}
+                  pt={1}
+                  pb={2}
+                  position="relative"
+                  mb={2}
+                  sx={{
+                    background: `linear-gradient(to bottom, ${green_light}, #fff)`,
+                    "&::before": {
+                      position: "absolute",
+                      content: "''",
+                      top: 0,
+                      right: 0,
+                      bottom: 0,
+                      left: 0,
+                      background: `linear-gradient(to bottom, #fff, ${green_light})`,
+                      transition: "opacity 200ms linear",
+                      opacity: 0,
+                      borderRadius: "15px",
+                    },
+                    "&:hover::before": {
+                      opacity: 1,
+                      zIndex: 1,
+                      borderRadius: "15px",
+                    },
+                  }}
+                >
+                  <Stack
+                    sx={{
+                      flexDirection: { xs: "column", md: "row" },
+                    }}
+                    width="100%"
+                    spacing={1}
+                    px={2}
+                    justifyContent="center"
+                    alignItems="center"
+                  >
+                    <Box
+                      zIndex={2}
+                      sx={{ width: { xs: "50%", md: "35%" } }}
+                    >
+                      {item.assignTo ? (
+                        <Typography textAlign="center">
+                          Assigned To: <strong>{item.assignTo}</strong>
+                        </Typography>
+                      ) : (
+                        <Typography textAlign="center">Not Assigned</Typography>
+                      )}
+                    </Box>
+                    <Box
+                      zIndex={2}
+                      display="flex"
+                      flexDirection="row"
+                      justifyContent="center"
+                      alignItems="center"
+                      sx={{ width: { xs: "50%", md: "15%" } }}
+                    >
+                      <Typography textAlign="center" fontWeight="bold">
+                        {item.name}
+                      </Typography>
+                    </Box>
+                    <Box
+                      zIndex={2}
+                      sx={{ width: { xs: "50%", md: "12%" } }}
+                      display="flex"
+                      justifyContent="center"
+                      alignItems="center"
+                    >
+                      <Typography>
+                        Qty. {item.quantityNeeded} {item.unit}
+                      </Typography>
+                    </Box>
+                    <Box
+                      zIndex={2}
+                      sx={{ width: { xs: "50%", md: "20%" } }}
+                      display="flex"
+                      flexDirection="row"
+                      justifyContent="center"
+                      alignItems="center"
+                    >
+                      <Typography mr={1}>Priority:</Typography>
+                      <Typography
+                        color={
+                          item.priority === "low"
+                            ? green_dark
+                            : item.priority === "med"
+                            ? "#B5A642"
+                            : "#A52A2A"
+                        }
+                      >
+                        {item.priority === "low"
+                          ? "Low"
+                          : item.priority === "med"
+                          ? "Medium"
+                          : "High"}
+                      </Typography>
+                    </Box>
+                    <Box
+                      zIndex={2}
+                      display="flex"
+                      width="15%"
+                      justifyContent="center"
+                      alignItems="center"
+                    >
+                      <TooltipIcon title="Delete" placement="top">
+                        <DeleteOutlineIcon
+                          sx={{
+                            ml: 2,
+                            "&:hover": { cursor: "pointer" },
+                          }}
+                          onClick={() => {
+                            deleteItem(item.inventory, item.name, true);
+                          }}
+                        />
+                      </TooltipIcon>
+                      <TooltipIcon title="-1" placement="top">
+                        <RemoveIcon
+                          sx={{ mx: { xs: 1 }, "&:hover": { cursor: "pointer" } }}
+                          onClick={() => {
+                            editQuantity(item.inventory, item.name, -1, true);
+                          }}
+                        />
+                      </TooltipIcon>
+                      <TooltipIcon title="+1" placement="top">
+                        <AddIcon
+                          sx={{ mr: 1, "&:hover": { cursor: "pointer" } }}
+                          onClick={() => {
+                            editQuantity(item.inventory, item.name, 1, true);
+                          }}
+                        />
+                      </TooltipIcon>
+                    </Box>
+                    <Box
+                      zIndex={2}
+                      onClick={() => buyItem(inventoryNameForShopping, item.name)}
+                    >
+                      <DarkButtonSimple mr={1} ml={1}>I bought this</DarkButtonSimple>
+                    </Box>
+                  </Stack>
+                  {item.notes ? (
+                    <Typography zIndex={2} textAlign="center" width="50%">
+                      Notes: {`"${item.notes}"`}
+                    </Typography>
+                  ) : (<></>)}
+                </Stack>
+              ))}
+            </Box>
           </Stack>
         </Box>
       </Modal>
