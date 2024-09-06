@@ -19,6 +19,7 @@ import {
   MenuItem,
   Tooltip,
   Paper,
+  NativeSelect
 } from "@mui/material";
 import TooltipIcon from "../../Components/tooltipicon";
 import ShoppingCartOutlinedIcon from "@mui/icons-material/ShoppingCartOutlined";
@@ -34,6 +35,7 @@ import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
 import CloseIcon from "@mui/icons-material/Close";
 import AutoAwesomeIcon from "@mui/icons-material/AutoAwesome";
 import CircularProgress from "@mui/material/CircularProgress";
+import EditIcon from '@mui/icons-material/Edit';
 import {
   DarkButton,
   LightButton,
@@ -134,6 +136,7 @@ export default function Inventory() {
   const [openKickMemberModal, setOpenKickMemberModal] = useState(false);
   const [openExpenseModal, setOpenExpenseModal] = useState(false);
   const [openShoppingListModal, setOpenShoppingListModal] = useState(false);
+  const [openEditItemModal, setOpenEditItemModal] = useState(false);
 
   //Modals open/close
   const handleOpenMemberModal = () => setOpenMemberModal(true);
@@ -173,6 +176,8 @@ export default function Inventory() {
     setItemSearch("");
     setOpenShoppingListModal(false);
   };
+  const handleOpenEditItemModal = () => setOpenEditItemModal(true);
+  const handleCloseEditItemModal = () => setOpenEditItemModal(false);
 
   //Filtered objects
   const [filteredInventories, setFilteredInventories] = useState([]);
@@ -886,6 +891,86 @@ export default function Inventory() {
         }
       } catch (error) {
         console.error("Error increasing quantity: ", error);
+      }
+      fetchInventories();
+    },
+    [groupID]
+  );
+
+  const editItem = useCallback(
+    async (passedInventory, passedItem, isNeeded) => {
+      console.log("increasing quantity");
+      console.log(passedInventory);
+      try {
+        const groupRef = doc(collection(db, "groups"), groupID);
+        const inventoryCollection = collection(groupRef, "inventories");
+
+        const inventoryRef = doc(inventoryCollection, passedInventory); //inventory should be dynamically selected
+
+        //READ
+        const inventorySnap = await getDoc(inventoryRef);
+
+        if (!inventorySnap.exists()) {
+          alert("Inventory does not exist");
+          return;
+        } else {
+          const localItems = isNeeded
+            ? inventorySnap.data().neededItems
+            : inventorySnap.data().items;
+
+          if (isNeeded) {
+            // const newItems = localItems.map((item) => {
+            //   if (item.name === passedItem) {
+            //     if (item.quantityNeeded + amount < 0) {
+            //       alert("Quantity cannot be negative");
+            //       return item;
+            //     }
+            //     return {
+            //       ...item,
+            //       quantityNeeded: item.quantityNeeded + amount,
+            //     };
+            //   } else {
+            //     return item;
+            //   }
+            // });
+
+            // await updateDoc(inventoryRef, {
+            //   neededItems: newItems,
+            // });
+            // setNeededItemList(newItems);
+          } else {
+            const newItems = localItems.map((item) => {
+              if (item.name === passedItem) {
+                // if (quantity < 0) {
+                //   alert("Quantity cannot be negative");
+                //   return item;
+                // }
+                return { 
+                  ...item,
+                  name: passedItem, 
+                  quantity: parseInt(quantity), 
+                  inventory: passedInventory, 
+                  unit: unit, 
+                  price: parseFloat(price),  
+                  lastUpdated: new Date(),
+                  isPerishable: isPerishable,
+                  notes: notes.trim(),
+                };
+              } else {
+                return item;
+              }
+            });
+            await updateDoc(inventoryRef, {
+              items: newItems,
+            });
+            setItemList(newItems);
+          }
+          //WRITE
+
+          // fetchInventories();
+        }
+      } catch (error) {
+        console.error("Error editing item: ", error);
       }
       fetchInventories();
     },
@@ -1863,7 +1948,7 @@ export default function Inventory() {
                 borderRadius={"15px"}
                 minHeight="200px"
                 bgcolor={green_light}
-                color={green_dark}
+                color="black"
                 boxShadow="0 0 5px black"
                 border={`2px solid ${green_dark}`}
                 onClick={(event) => {
@@ -1876,7 +1961,7 @@ export default function Inventory() {
                   "&:hover": {
                     transform: "scale(1.02)",
                     bgcolor: `${green_dark}`,
-                    color: `${green_light}`,
+                    color: "white",
                     cursor: "pointer",
                     "& .deleteIconInventory": {
                       color: `${green_light}`,
@@ -2149,7 +2234,7 @@ export default function Inventory() {
                         >
                           <TooltipIcon title="Delete" placement="top">
                             <DeleteOutlineIcon
-                              sx={{ "&:hover": { cursor: "pointer" } }}
+                              sx={{ "&:hover": { cursor: "pointer", transform: "scale(1.2)"} }}
                               onClick={() => {
                                 deleteItem(item.inventory, item.name, false);
                               }}
@@ -2184,6 +2269,21 @@ export default function Inventory() {
                               }}
                             />
                           </TooltipIcon>
+                          <TooltipIcon title="Edit Item" placement="top">
+                            <EditIcon
+                              sx={{ '&:hover': { cursor: "pointer", transform: "scale(1.2)"}}}
+                              onClick={() => {
+                                setItemName(item.name);
+                                setQuantity(item.quantity);
+                                setUnit(item.unit);
+                                setPrice(item.price);
+                                setIsPerishable(item.isPerishable);
+                                setNotes(item.notes);
+                                setSelectedInventory(inventoryNameForDisplay);
+                                handleOpenEditItemModal();
+                              }}
+                            />
+                          </TooltipIcon>
                         </Box>
                       </Stack>
                       <Typography zIndex={2} textAlign="center" width="50%">
@@ -2201,6 +2301,192 @@ export default function Inventory() {
           </Box>
         </Box>
       </Modal>
+
+      {/*Modal for editing items */}
+      <Modal open={openEditItemModal}>
+          <Stack
+            position="absolute"
+            top="50%"
+            left="50%"
+            width="80%"
+            maxWidth="sm"
+            bgcolor="white"
+            border="2px solid #000"
+            borderRadius="20px"
+            p={2}
+            gap={2}
+            direction="column"
+            justifyContent="center"
+            alignItems="center"
+            sx={{
+              transform: "translate(-50%,-50%)",
+            }}
+          >
+            <CloseIcon
+              sx={{
+                position: "absolute",
+                top: 5,
+                left: 5,
+                fontSize: 40,
+                color: `${green_dark}`,
+                transition: "200ms",
+                "&:hover": {
+                  cursor: "pointer",
+                  transform: "rotate(180deg) scale(1.05)",
+                },
+              }}
+              onClick={(e) => {
+                handleCloseEditItemModal();
+              }}
+            />
+            <Typography variant="h5" textAlign="center">
+              Edit Item
+            </Typography>
+            <TextField
+              size="small"
+              placeholder="Name"
+              fullWidth
+              value={itemName}
+              onChange={(e) => setItemName(e.target.value)}
+              sx={{ bgcolor: "white", width: "80%", border: "1px solid black" }}
+              required
+            />
+            <Stack
+              direction="row"
+              spacing={2}
+              justifyContent="center"
+              alignItems="center"
+              width="80%"
+            >
+              <Typography>Quantity:</Typography>
+              <TextField
+                size="small"
+                placeholder="Quantity"
+                inputMode="numeric"
+                value={quantity}
+                onChange={(e) => {
+                  const value = e.target.value;
+                  // Regular expression to allow only numbers and decimals
+                  if (/^\d*$/.test(value)) {
+                    setQuantity(value); // Convert the value to an integer
+                  }
+                }}
+                sx={{
+                  bgcolor: "white",
+                  width: "50%",
+                  color: "black",
+                  border: "1px solid black",
+                }}
+              />
+              <Typography textAlign="center">X</Typography>
+              <TextField
+                size="small"
+                placeholder="Unit (optional)"
+                border="1px solid black"
+                inputMode="numeric"
+                value={unit}
+                onChange={(e) => setUnit(e.target.value)}
+                sx={{
+                  bgcolor: "white",
+                  width: "50%",
+                  border: "1px solid black",
+                }}
+              />
+            </Stack>
+            <Stack
+              direction="row"
+              justifyContent="center"
+              alignItems="center"
+              width="80%"
+            >
+              <Typography color="black" mr={1} width="20%">
+                Price:
+              </Typography>
+              <TextField
+                size="small"
+                border="1px solid black"
+                inputMode="decimal"
+                value={price}
+                onChange={(e) => {
+                  const value = e.target.value;
+                  // Regular expression to allow only numbers and decimals
+                  if (/^\d*\.?\d*$/.test(value)) {
+                    setPrice(value);
+                  }
+                }}
+                InputProps={{
+                  startAdornment: (
+                    <InputAdornment sx={{ mr: 1 }}>$</InputAdornment>
+                  ),
+                }}
+                sx={{
+                  bgcolor: "white",
+                  width: "80%",
+                  border: "1px solid black",
+                }}
+              />
+            </Stack>
+            <Stack direction="row" spacing={2} alignItems="center" width="80%">
+              <FormControl
+                sx={{
+                  display: "flex",
+                  flexDirection: "row",
+                  justifyContent: "center",
+                  alignItems: "center",
+                }}
+              >
+                <FormLabel sx={{ color: "black", textAlign: "center" }}>
+                  Perishable?
+                </FormLabel>
+                <RadioGroup
+                  defaultValue={isPerishable ? "Yes" : "No"}
+                  row
+                  value={isPerishable}
+                  onChange={(e) => setIsPerishable(e.target.value)}
+                  sx={{ ml: 2 }}
+                >
+                  <FormControlLabel
+                    value={true}
+                    control={<Radio size="small" />}
+                    label="Yes"
+                  />
+                  <FormControlLabel
+                    value={false}
+                    control={<Radio size="small" />}
+                    label="No"
+                  />
+                </RadioGroup>
+              </FormControl>
+              {/*
+              <TextField
+                size="small"
+                placeholder="Exp. Date"
+                border="1px solid black"
+                inputMode="numeric"
+                value={expiryDate}
+                onChange={(e) => setExpiryDate(e.target.value)}
+                sx={{ bgcolor: "white", width: "60%" }}
+              />
+              */}
+            </Stack>
+            <TextField
+              multiline
+              placeholder="Add notes (optional)"
+              value={notes}
+              onChange={(e) => setNotes(e.target.value)}
+              sx={{ bgcolor: "white", width: "80%", border: "1px solid black" }}
+            />
+
+            <Box
+              onClick={() => {
+                editItem(selectedInventory, itemName, false);
+                handleCloseEditItemModal();
+              }}
+            >
+              <DarkButton>Save Changes</DarkButton>
+            </Box>
+          </Stack>
+        </Modal>
 
       {/* Modal for Inventory Deletion */}
       <Modal open={openDeleteInventoryModal}>
