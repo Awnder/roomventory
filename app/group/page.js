@@ -93,9 +93,9 @@ export default function Inventory() {
   const [itemSearch, setItemSearch] = useState("");
   //
   const [inventoryName, setInventoryName] = useState("");
-  const [items, setItems] = useState([]);
+  //const [items, setItems] = useState([]);
   const [itemList, setItemList] = useState([]);
-  const [neededItems, setNeededItems] = useState([]);
+  const [neededItemList, setNeededItemList] = useState([]);
   const [email, setEmail] = useState("");
   const [suggestedItems, setSuggestedItems] = useState({});
   const [inventoryNameForDisplay, setInventoryNameForDisplay] = useState("");
@@ -148,7 +148,7 @@ export default function Inventory() {
     fetchItemsFromInventory(inventoryName);
     setOpenInventoryModal(true);
   };
-  const handleCloseInventoryModal = () => setOpenInventoryModal(false);
+  const handleCloseInventoryModal = () => {setOpenInventoryModal(false); setItemSearch("");};
   const handleOpenDeleteInventoryModal = (inventoryName) => {
     setInventoryNameForDeletion(inventoryName);
     setOpenDeleteInventoryModal(true);
@@ -166,12 +166,14 @@ export default function Inventory() {
   const handleOpenShoppingListModal = () => setOpenShoppingListModal(true);
   const handleCloseShoppingListModal = () => {
     setSuggestedItems({});
+    setItemSearch("");
     setOpenShoppingListModal(false);
   };
 
   //Filtered objects
   const [filteredInventories, setFilteredInventories] = useState([]);
   const [filteredItems, setFilteredItems] = useState([]);
+  const [filteredNeededItems, setFilteredNeededItems] = useState([]);
 
   // Get group name from URL
   const searchParams = useSearchParams();
@@ -411,14 +413,14 @@ export default function Inventory() {
           notes: suggestedItem.notes, // allow user to add notes (default to empty string)
         };
 
-        const newNeededItems = [...neededItems, newNeededItem];
+        const newNeededItems = [...neededItemList, newNeededItem];
 
         //WRITE
         await updateDoc(inventoryRef, {
           neededItems: newNeededItems,
         });
 
-        setNeededItems(newNeededItems);
+        setNeededItemList(newNeededItems);
 
         const remainingSuggestions = suggestedItems.items.filter(
           (item) => item.name !== passedItem
@@ -615,7 +617,7 @@ export default function Inventory() {
       alert("Inventory does not exist");
       return;
     } else {
-      const items = inventorySnap.data().items;
+      const localItems = inventorySnap.data().items;
 
       const newItem = {
         name: itemName, // require user to give name
@@ -632,7 +634,7 @@ export default function Inventory() {
         notes: notes.trim(), // allow user to add notes (default to empty string)
       };
 
-      const newItems = [...items, newItem];
+      const newItems = [...localItems, newItem];
       //WRITE
       await updateDoc(inventoryRef, {
         items: newItems,
@@ -681,17 +683,17 @@ export default function Inventory() {
           alert("Inventory does not exist");
           return;
         } else {
-          const items = isNeeded
+          const localItems = isNeeded
             ? inventorySnap.data().neededItems
             : inventorySnap.data().items;
 
-          const newItems = items.filter((item) => item.name !== passedItem);
+          const newItems = localItems.filter((item) => item.name !== passedItem);
           //WRITE
           if (isNeeded) {
             await updateDoc(inventoryRef, {
               neededItems: newItems,
             });
-            setNeededItems(newItems);
+            setNeededItemList(newItems);
           } else {
             await updateDoc(inventoryRef, {
               items: newItems,
@@ -735,7 +737,7 @@ export default function Inventory() {
           return;
         }
 
-        const items = localInventory.items;
+        const localItems = localInventory.items;
 
         newItem = {
           name: newItem.name, // require user to give name
@@ -751,8 +753,8 @@ export default function Inventory() {
           minimumQuantity: 0, // allow user to specify (default to 0)
           notes: notes.trim(), // allow user to add notes (default to empty string)
         };
-        const newItems = [...items, newItem];
-        const newNeededItems = neededItems.filter(
+        const newItems = [...localItems, newItem];
+        const newNeededItems = neededItemList.filter(
           (neededItem) => neededItem.name !== purchasedItemName
         );
 
@@ -764,12 +766,13 @@ export default function Inventory() {
           neededItems: newNeededItems,
         });
 
-        setNeededItems(newNeededItems);
+        setItemList(newItems);
+        setNeededItemList(newNeededItems);
 
         fetchInventories();
       }
     },
-    [groupID, neededItems, items, inventories]
+    [groupID, neededItemList, itemList, inventories]
   );
 
   const fetchItemsFromInventory = useCallback(
@@ -797,7 +800,6 @@ export default function Inventory() {
         (inventory) => inventory.name === passedInventory
       );
 
-      setItems(localInventory.items);
     },
     [inventories, groupID]
   );
@@ -819,12 +821,12 @@ export default function Inventory() {
           alert("Inventory does not exist");
           return;
         } else {
-          const items = isNeeded
+          const localItems = isNeeded
             ? inventorySnap.data().neededItems
             : inventorySnap.data().items;
 
           if (isNeeded) {
-            const newItems = items.map((item) => {
+            const newItems = localItems.map((item) => {
               if (item.name === passedItem) {
                 if (item.quantityNeeded + amount < 0) {
                   alert("Quantity cannot be negative");
@@ -842,9 +844,9 @@ export default function Inventory() {
             await updateDoc(inventoryRef, {
               neededItems: newItems,
             });
-            setNeededItems(newItems);
+            setNeededItemList(newItems);
           } else {
-            const newItems = items.map((item) => {
+            const newItems = localItems.map((item) => {
               if (item.name === passedItem) {
                 if (item.quantity + amount < 0) {
                   alert("Quantity cannot be negative");
@@ -912,7 +914,7 @@ export default function Inventory() {
       alert("Inventory does not exist");
       return;
     } else {
-      const items = inventorySnap.data().neededItems;
+      const localItems = inventorySnap.data().neededItems;
 
       const newNeededItem = {
         name: itemName, // require user to give name
@@ -927,7 +929,7 @@ export default function Inventory() {
         notes: notes.trim(), // allow user to add notes (default to empty string)
       };
 
-      const newItems = [...items, newNeededItem];
+      const newItems = [...localItems, newNeededItem];
       //WRITE
       await updateDoc(inventoryRef, {
         neededItems: newItems,
@@ -1051,15 +1053,20 @@ export default function Inventory() {
   useEffect(() => {
     console.log("filtering items");
     setFilteredItems(
-      items.filter((item) =>
+      itemList.filter((item) =>
         item.name.toLowerCase().includes(itemSearch.toLowerCase())
       )
     );
-  }, [itemSearch, items]);
+  }, [itemSearch, itemList]);
 
   useEffect(() => {
-    setFilteredItems(itemList);
-  }, [itemList]);
+    console.log("filtering items");
+    setFilteredNeededItems(
+      neededItemList.filter((item) =>
+        item.name.toLowerCase().includes(itemSearch.toLowerCase())
+      )
+    );
+  }, [itemSearch, neededItemList]);
 
   useEffect(() => {
     if (user) {
@@ -1842,6 +1849,7 @@ export default function Inventory() {
                 boxShadow="0 0 5px black"
                 border={`2px solid ${green_dark}`}
                 onClick={(event) => {
+                  setItemList(inventory.items);
                   setInventoryNameForDisplay(inventory.name);
                   handleOpenInventoryModal(inventory.name);
                 }}
@@ -1896,7 +1904,7 @@ export default function Inventory() {
                     onClick={(event) => {
                       setInventoryNameForShopping(inventory.name);
                       setSelectedInventory(inventory.name);
-                      setNeededItems(inventory.neededItems);
+                      setNeededItemList(inventory.neededItems);
                       handleOpenShoppingListModal();
                       event.stopPropagation();
                     }}
@@ -2572,7 +2580,7 @@ export default function Inventory() {
 
               {/* Needed items */}
               <Box width="80%" maxWidth="lg" overflow="auto">
-                {neededItems.map((item) => (
+                {filteredNeededItems.map((item) => (
                   <Stack
                     key={item.name}
                     direction="column"
