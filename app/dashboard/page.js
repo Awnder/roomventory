@@ -537,7 +537,7 @@ export default function Dashboard() {
               onChange={(e) => setGroupName(e.target.value)}
               sx={{ mr: 2, mb: {xs: 2} }}
             />
-            <Box onClick={createGroup}>
+            <Box onClick={() => {createGroup}}>
               <DarkButton fullWidth>Create</DarkButton>
             </Box>
           </Stack>
