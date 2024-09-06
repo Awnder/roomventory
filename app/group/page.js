@@ -19,7 +19,7 @@ import {
   MenuItem,
   Tooltip,
   Paper,
-  NativeSelect
+  NativeSelect,
 } from "@mui/material";
 import TooltipIcon from "../../Components/tooltipicon";
 import ShoppingCartOutlinedIcon from "@mui/icons-material/ShoppingCartOutlined";
@@ -35,7 +35,7 @@ import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
 import CloseIcon from "@mui/icons-material/Close";
 import AutoAwesomeIcon from "@mui/icons-material/AutoAwesome";
 import CircularProgress from "@mui/material/CircularProgress";
-import EditIcon from '@mui/icons-material/Edit';
+import EditIcon from "@mui/icons-material/Edit";
 import {
   DarkButton,
   LightButton,
@@ -105,6 +105,7 @@ export default function Inventory() {
   const [inventoryNameForDeletion, setInventoryNameForDeletion] = useState("");
   const [kickedMember, setKickedMember] = useState("");
   const [inventoryNameForShopping, setInventoryNameForShopping] = useState("");
+  const [itemToEdit, setItemToEdit] = useState("");
 
   // Item Metadata
   const [itemName, setItemName] = useState("");
@@ -899,8 +900,8 @@ export default function Inventory() {
 
   const editItem = useCallback(
     async (passedInventory, passedItem, isNeeded) => {
-      console.log("increasing quantity");
-      console.log(passedInventory);
+      console.log("editing item");
+      
       try {
         const groupRef = doc(collection(db, "groups"), groupID);
         const inventoryCollection = collection(groupRef, "inventories");
@@ -933,7 +934,6 @@ export default function Inventory() {
             //     return item;
             //   }
             // });
-
             // await updateDoc(inventoryRef, {
             //   neededItems: newItems,
             // });
@@ -945,13 +945,13 @@ export default function Inventory() {
                 //   alert("Quantity cannot be negative");
                 //   return item;
                 // }
-                return { 
-                  ...item,
-                  name: passedItem, 
-                  quantity: parseInt(quantity), 
-                  inventory: passedInventory, 
-                  unit: unit, 
-                  price: parseFloat(price),  
+                return {
+                  ...item, 
+                  name: itemName,
+                  quantity: parseInt(quantity),
+                  inventory: passedInventory,
+                  unit: unit,
+                  price: parseFloat(price),
                   lastUpdated: new Date(),
                   isPerishable: isPerishable,
                   notes: notes.trim(),
@@ -964,6 +964,7 @@ export default function Inventory() {
               items: newItems,
             });
             setItemList(newItems);
+            setItemToEdit("");
           }
           //WRITE
 
@@ -974,7 +975,7 @@ export default function Inventory() {
       }
       fetchInventories();
     },
-    [groupID]
+    [groupID, quantity, unit, price, isPerishable, notes, itemToEdit, itemName]
   );
   /****************************************************** Needed Items Functions ******************************************************/
 
@@ -2234,7 +2235,12 @@ export default function Inventory() {
                         >
                           <TooltipIcon title="Delete" placement="top">
                             <DeleteOutlineIcon
-                              sx={{ "&:hover": { cursor: "pointer", transform: "scale(1.2)"} }}
+                              sx={{
+                                "&:hover": {
+                                  cursor: "pointer",
+                                  transform: "scale(1.2)",
+                                },
+                              }}
                               onClick={() => {
                                 deleteItem(item.inventory, item.name, false);
                               }}
@@ -2271,7 +2277,12 @@ export default function Inventory() {
                           </TooltipIcon>
                           <TooltipIcon title="Edit Item" placement="top">
                             <EditIcon
-                              sx={{ '&:hover': { cursor: "pointer", transform: "scale(1.2)"}}}
+                              sx={{
+                                "&:hover": {
+                                  cursor: "pointer",
+                                  transform: "scale(1.2)",
+                                },
+                              }}
                               onClick={() => {
                                 setItemName(item.name);
                                 setQuantity(item.quantity);
@@ -2281,6 +2292,7 @@ export default function Inventory() {
                                 setNotes(item.notes);
                                 setSelectedInventory(inventoryNameForDisplay);
                                 handleOpenEditItemModal();
+                                setItemToEdit(item.name);
                               }}
                             />
                           </TooltipIcon>
@@ -2304,160 +2316,160 @@ export default function Inventory() {
 
       {/*Modal for editing items */}
       <Modal open={openEditItemModal}>
+        <Stack
+          position="absolute"
+          top="50%"
+          left="50%"
+          width="80%"
+          maxWidth="sm"
+          bgcolor="white"
+          border="2px solid #000"
+          borderRadius="20px"
+          p={2}
+          gap={2}
+          direction="column"
+          justifyContent="center"
+          alignItems="center"
+          sx={{
+            transform: "translate(-50%,-50%)",
+          }}
+        >
+          <CloseIcon
+            sx={{
+              position: "absolute",
+              top: 5,
+              left: 5,
+              fontSize: 40,
+              color: `${green_dark}`,
+              transition: "200ms",
+              "&:hover": {
+                cursor: "pointer",
+                transform: "rotate(180deg) scale(1.05)",
+              },
+            }}
+            onClick={(e) => {
+              handleCloseEditItemModal();
+            }}
+          />
+          <Typography variant="h5" textAlign="center">
+            Edit Item
+          </Typography>
+          <TextField
+            size="small"
+            placeholder="Name"
+            fullWidth
+            value={itemName}
+            onChange={(e) => setItemName(e.target.value)}
+            sx={{ bgcolor: "white", width: "80%", border: "1px solid black" }}
+            required
+          />
           <Stack
-            position="absolute"
-            top="50%"
-            left="50%"
-            width="80%"
-            maxWidth="sm"
-            bgcolor="white"
-            border="2px solid #000"
-            borderRadius="20px"
-            p={2}
-            gap={2}
-            direction="column"
+            direction="row"
+            spacing={2}
             justifyContent="center"
             alignItems="center"
-            sx={{
-              transform: "translate(-50%,-50%)",
-            }}
+            width="80%"
           >
-            <CloseIcon
-              sx={{
-                position: "absolute",
-                top: 5,
-                left: 5,
-                fontSize: 40,
-                color: `${green_dark}`,
-                transition: "200ms",
-                "&:hover": {
-                  cursor: "pointer",
-                  transform: "rotate(180deg) scale(1.05)",
-                },
+            <Typography>Quantity:</Typography>
+            <TextField
+              size="small"
+              placeholder="Quantity"
+              inputMode="numeric"
+              value={quantity}
+              onChange={(e) => {
+                const value = e.target.value;
+                // Regular expression to allow only numbers and decimals
+                if (/^\d*$/.test(value)) {
+                  setQuantity(value); // Convert the value to an integer
+                }
               }}
-              onClick={(e) => {
-                handleCloseEditItemModal();
+              sx={{
+                bgcolor: "white",
+                width: "50%",
+                color: "black",
+                border: "1px solid black",
               }}
             />
-            <Typography variant="h5" textAlign="center">
-              Edit Item
+            <Typography textAlign="center">X</Typography>
+            <TextField
+              size="small"
+              placeholder="Unit (optional)"
+              border="1px solid black"
+              inputMode="numeric"
+              value={unit}
+              onChange={(e) => setUnit(e.target.value)}
+              sx={{
+                bgcolor: "white",
+                width: "50%",
+                border: "1px solid black",
+              }}
+            />
+          </Stack>
+          <Stack
+            direction="row"
+            justifyContent="center"
+            alignItems="center"
+            width="80%"
+          >
+            <Typography color="black" mr={1} width="20%">
+              Price:
             </Typography>
             <TextField
               size="small"
-              placeholder="Name"
-              fullWidth
-              value={itemName}
-              onChange={(e) => setItemName(e.target.value)}
-              sx={{ bgcolor: "white", width: "80%", border: "1px solid black" }}
-              required
+              border="1px solid black"
+              inputMode="decimal"
+              value={price}
+              onChange={(e) => {
+                const value = e.target.value;
+                // Regular expression to allow only numbers and decimals
+                if (/^\d*\.?\d*$/.test(value)) {
+                  setPrice(value);
+                }
+              }}
+              InputProps={{
+                startAdornment: (
+                  <InputAdornment sx={{ mr: 1 }}>$</InputAdornment>
+                ),
+              }}
+              sx={{
+                bgcolor: "white",
+                width: "80%",
+                border: "1px solid black",
+              }}
             />
-            <Stack
-              direction="row"
-              spacing={2}
-              justifyContent="center"
-              alignItems="center"
-              width="80%"
+          </Stack>
+          <Stack direction="row" spacing={2} alignItems="center" width="80%">
+            <FormControl
+              sx={{
+                display: "flex",
+                flexDirection: "row",
+                justifyContent: "center",
+                alignItems: "center",
+              }}
             >
-              <Typography>Quantity:</Typography>
-              <TextField
-                size="small"
-                placeholder="Quantity"
-                inputMode="numeric"
-                value={quantity}
-                onChange={(e) => {
-                  const value = e.target.value;
-                  // Regular expression to allow only numbers and decimals
-                  if (/^\d*$/.test(value)) {
-                    setQuantity(value); // Convert the value to an integer
-                  }
-                }}
-                sx={{
-                  bgcolor: "white",
-                  width: "50%",
-                  color: "black",
-                  border: "1px solid black",
-                }}
-              />
-              <Typography textAlign="center">X</Typography>
-              <TextField
-                size="small"
-                placeholder="Unit (optional)"
-                border="1px solid black"
-                inputMode="numeric"
-                value={unit}
-                onChange={(e) => setUnit(e.target.value)}
-                sx={{
-                  bgcolor: "white",
-                  width: "50%",
-                  border: "1px solid black",
-                }}
-              />
-            </Stack>
-            <Stack
-              direction="row"
-              justifyContent="center"
-              alignItems="center"
-              width="80%"
-            >
-              <Typography color="black" mr={1} width="20%">
-                Price:
-              </Typography>
-              <TextField
-                size="small"
-                border="1px solid black"
-                inputMode="decimal"
-                value={price}
-                onChange={(e) => {
-                  const value = e.target.value;
-                  // Regular expression to allow only numbers and decimals
-                  if (/^\d*\.?\d*$/.test(value)) {
-                    setPrice(value);
-                  }
-                }}
-                InputProps={{
-                  startAdornment: (
-                    <InputAdornment sx={{ mr: 1 }}>$</InputAdornment>
-                  ),
-                }}
-                sx={{
-                  bgcolor: "white",
-                  width: "80%",
-                  border: "1px solid black",
-                }}
-              />
-            </Stack>
-            <Stack direction="row" spacing={2} alignItems="center" width="80%">
-              <FormControl
-                sx={{
-                  display: "flex",
-                  flexDirection: "row",
-                  justifyContent: "center",
-                  alignItems: "center",
-                }}
+              <FormLabel sx={{ color: "black", textAlign: "center" }}>
+                Perishable?
+              </FormLabel>
+              <RadioGroup
+                defaultValue={isPerishable ? "Yes" : "No"}
+                row
+                value={isPerishable}
+                onChange={(e) => setIsPerishable(e.target.value)}
+                sx={{ ml: 2 }}
               >
-                <FormLabel sx={{ color: "black", textAlign: "center" }}>
-                  Perishable?
-                </FormLabel>
-                <RadioGroup
-                  defaultValue={isPerishable ? "Yes" : "No"}
-                  row
-                  value={isPerishable}
-                  onChange={(e) => setIsPerishable(e.target.value)}
-                  sx={{ ml: 2 }}
-                >
-                  <FormControlLabel
-                    value={true}
-                    control={<Radio size="small" />}
-                    label="Yes"
-                  />
-                  <FormControlLabel
-                    value={false}
-                    control={<Radio size="small" />}
-                    label="No"
-                  />
-                </RadioGroup>
-              </FormControl>
-              {/*
+                <FormControlLabel
+                  value={true}
+                  control={<Radio size="small" />}
+                  label="Yes"
+                />
+                <FormControlLabel
+                  value={false}
+                  control={<Radio size="small" />}
+                  label="No"
+                />
+              </RadioGroup>
+            </FormControl>
+            {/*
               <TextField
                 size="small"
                 placeholder="Exp. Date"
@@ -2468,25 +2480,25 @@ export default function Inventory() {
                 sx={{ bgcolor: "white", width: "60%" }}
               />
               */}
-            </Stack>
-            <TextField
-              multiline
-              placeholder="Add notes (optional)"
-              value={notes}
-              onChange={(e) => setNotes(e.target.value)}
-              sx={{ bgcolor: "white", width: "80%", border: "1px solid black" }}
-            />
-
-            <Box
-              onClick={() => {
-                editItem(selectedInventory, itemName, false);
-                handleCloseEditItemModal();
-              }}
-            >
-              <DarkButton>Save Changes</DarkButton>
-            </Box>
           </Stack>
-        </Modal>
+          <TextField
+            multiline
+            placeholder="Add notes (optional)"
+            value={notes}
+            onChange={(e) => setNotes(e.target.value)}
+            sx={{ bgcolor: "white", width: "80%", border: "1px solid black" }}
+          />
+
+          <Box
+            onClick={() => {
+              editItem(selectedInventory, itemToEdit, false);
+              handleCloseEditItemModal();
+            }}
+          >
+            <DarkButton>Save Changes</DarkButton>
+          </Box>
+        </Stack>
+      </Modal>
 
       {/* Modal for Inventory Deletion */}
       <Modal open={openDeleteInventoryModal}>
@@ -2838,7 +2850,6 @@ export default function Inventory() {
                 pt={1}
                 overflow="auto"
               >
-                
                 {suggestedItems.items.map((item) => (
                   <Stack
                     key={item.name}
