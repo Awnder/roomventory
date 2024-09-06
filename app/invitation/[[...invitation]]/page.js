@@ -172,7 +172,7 @@ export default function Page() {
             my={8}
             borderBottom={`2px solid ${green_main}`}
           >
-            Join the Waitlist!
+            Your rommates are waiting!
           </Typography>
           <SignIn />
         </Box>

@@ -1324,7 +1324,7 @@ export default function Inventory() {
               onChange={(e) => setInventoryName(e.target.value)}
               sx={{ bgcolor: "white" }}
             />
-            <Box onClick={createInventory}>
+            <Box onClick={() => {createInventory}}>
               <DarkButton>Create</DarkButton>
             </Box>
           </Box>

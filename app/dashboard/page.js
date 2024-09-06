@@ -261,7 +261,6 @@ export default function Dashboard() {
 
         const matchingDocs = querySnapshot.docs.filter(doc => {
           const docId = doc.id;
-          console.log(docId); // Log document ID
           return docId.includes(user.id.slice(-5));
         });
 

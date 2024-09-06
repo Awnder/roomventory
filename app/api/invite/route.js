@@ -27,7 +27,7 @@ export async function POST(req) {
   const response = await clerkClient.invitations.createInvitation({
     emailAddress: email,
     ignoreExisting: true,
-    redirectUrl: `https://roomventory.vercel.app/invitation?invitation_id=${customID}`,
+    redirectUrl: `http://localhost:3000/invitation?invitation_id=${customID}`,
     publicMetadata: {
       group: group,
       id: customID,
