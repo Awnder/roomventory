@@ -5,6 +5,7 @@ import { SignedIn, SignedOut } from "@clerk/nextjs";
 import CheckIcon from '@mui/icons-material/Check';
 import PriorityHighIcon from '@mui/icons-material/PriorityHigh';
 import CloseIcon from '@mui/icons-material/Close';
+import { DarkButton, LightButton } from "../Components/styledbuttons";
 
 import Image from "next/image";
 import toiletpaper from '/public/toiletpaper.jpg';
@@ -66,50 +67,16 @@ export default function Home() {
             <Typography variant="h5" color={`${gray_dark}`} mb={5} mx={5} sx={{ animation: "entranceSubtitle 2s ease-out",}}>
               The collective inventory for you and your roommates
             </Typography>
-            <Button
-                variant="contained"
-                sx={{
-                  color: `${gray_dark}`,
-                  bgcolor: `${green_light}`,
-                  borderRadius: "10px",
-                  transition: "200ms",
-                  "&:hover": {
-                    color: `${green_light}`,
-                    bgcolor: `${green_dark}`,
-                    transform: "scale(1.1)",
-                  },
-                  animation: "entranceButton 2s ease-out",
-                }}
-                href="https://forms.gle/r4Q1dvHoLoNzeecS7"
-                target="_blank"
-              >
-                <Typography variant="h6">Join the Waitlist</Typography>
-              </Button>
-            {/* <Typography variant="h6" py={2} px={4} bgcolor={green_light} borderRadius="10px">Coming Soon!</Typography> */}
-            {/* <SignedOut>
-              <Button
-                variant="contained"
-                sx={{
-                  color: `${gray_dark}`,
-                  bgcolor: `${green_light}`,
-                  borderRadius: "10px",
-                  transition: "200ms",
-                  "&:hover": {
-                    color: `${green_light}`,
-                    bgcolor: `${green_dark}`,
-                    transform: "scale(1.1)",
-                  },
-                }}
-                href="/signup"
-              >
-                <Typography variant="h6">I'm Interested</Typography>
-              </Button>
+            <SignedOut>
+              <Box sx={{animation: "entranceButton 2s ease-out"}}>
+                <LightButton href="/signup"><Typography variant="h6">Get Started</Typography></LightButton>
+              </Box>
             </SignedOut>
             <SignedIn>
-              <Typography>
-                You're in! Thank you for joining the waitlist!
-              </Typography>
-            </SignedIn> */}
+              <Box sx={{animation: "entranceButton 2s ease-out"}}>
+                <DarkButton href="/dashboard" ><Typography variant="h6">To your inventory</Typography></DarkButton>
+              </Box>
+            </SignedIn>
           </Stack>
   {/* Toilet Paper Example */}
         <Box 
@@ -168,9 +135,9 @@ export default function Home() {
                 sx={{
                   boxShadow: `0 0 10px ${green_dark}`,
                   background: `linear-gradient(to bottom, #fff,${green_light})`,
+                  transition: "200ms",
                   '&:hover': {
                     transform: "scale(1.1)",
-                    transition: "100ms ease-out"
                   },
                 }}
               >
@@ -185,9 +152,9 @@ export default function Home() {
                 sx={{
                   boxShadow: `0 0 10px ${green_dark}`,
                   background: `linear-gradient(to bottom, #fff,${green_light})`,
+                  transition: "200ms",
                   '&:hover': {
                     transform: "scale(1.1)",
-                    transition: "100ms ease-out"
                   },
                 }}
               >
@@ -202,14 +169,14 @@ export default function Home() {
                 sx={{
                   boxShadow: `0 0 10px ${green_dark}`,
                   background: `linear-gradient(to bottom, #fff,${green_light})`,
+                  transition: "200ms",
                   '&:hover': {
                     transform: "scale(1.1)",
-                    transition: "100ms ease-out"
                   },
                 }}
               >
                 <Typography variant="h5" mb={2}>Item Tags</Typography>
-                <Typography>Items come with name tags, so you know who added what. Now you can blame 'that' guy for not buying his share of toilet paper. Additionally, emergency tags let you know if items are low.</Typography>
+                <Typography>Items come with name tags, so you know who added what. Now you can blame 'that' guy for not buying his share.</Typography>
               </Box>
             </Grid>
             <Grid item xs={12} md={6} lg={4}>
@@ -219,14 +186,14 @@ export default function Home() {
                 sx={{
                   boxShadow: `0 0 10px ${green_dark}`,
                   background: `linear-gradient(to bottom, #fff,${green_light})`,
+                  transition: "200ms",
                   '&:hover': {
                     transform: "scale(1.1)",
-                    transition: "100ms ease-out"
                   },
                 }}
               >
-                <Typography variant="h5" mb={2}>Future Goal: Picture Perfect</Typography>
-                <Typography>Leverage computer vision and AI to add items to your inventories with a photo of your items.</Typography>
+                <Typography variant="h5" mb={2}>Shopping List</Typography>
+                <Typography>Have shopping lists for each inventory collection so that you know what you need to buy.</Typography>
               </Box>
             </Grid>
             <Grid item xs={12} md={6} lg={4}>
@@ -236,13 +203,30 @@ export default function Home() {
                 sx={{
                   boxShadow: `0 0 10px ${green_dark}`,
                   background: `linear-gradient(to bottom, #fff,${green_light})`,
+                  transition: "200ms",
                   '&:hover': {
                     transform: "scale(1.1)",
-                    transition: "100ms ease-out"
                   },
                 }}
               >
-                <Typography variant="h5" mb={2}>Future Goal: AI Suggests</Typography>
+                <Typography variant="h5" mb={2}>Price & Debit</Typography>
+                <Typography>Add the price of an item you bought and know how much your friends should pay you back.</Typography>
+              </Box>
+            </Grid>
+            <Grid item xs={12} md={6} lg={4}>
+              <Box
+                height="100%"
+                p={2}
+                sx={{
+                  boxShadow: `0 0 10px ${green_dark}`,
+                  background: `linear-gradient(to bottom, #fff,${green_light})`,
+                  transition: "200ms",
+                  '&:hover': {
+                    transform: "scale(1.1)",
+                  },
+                }}
+              >
+                <Typography variant="h5" mb={2}>AI Insights</Typography>
                 <Typography>Helpful AI prompting suggests items that you might need based on your current inventory.</Typography>
               </Box>
             </Grid>
