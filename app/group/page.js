@@ -28,7 +28,7 @@ import SettingsIcon from "@mui/icons-material/Settings";
 import SearchIcon from "@mui/icons-material/Search";
 import AddIcon from "@mui/icons-material/Add";
 import RemoveIcon from "@mui/icons-material/Remove";
-import CheckIcon from '@mui/icons-material/Check';
+import CheckIcon from "@mui/icons-material/Check";
 import StarsSharpIcon from "@mui/icons-material/StarsSharp";
 import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
 import CloseIcon from "@mui/icons-material/Close";
@@ -164,7 +164,10 @@ export default function Inventory() {
   const handleOpenExpenseModal = () => setOpenExpenseModal(true);
   const handleCloseExpenseModal = () => setOpenExpenseModal(false);
   const handleOpenShoppingListModal = () => setOpenShoppingListModal(true);
-  const handleCloseShoppingListModal = () => {setSuggestedItems({}); setOpenShoppingListModal(false)};
+  const handleCloseShoppingListModal = () => {
+    setSuggestedItems({});
+    setOpenShoppingListModal(false);
+  };
 
   //Filtered objects
   const [filteredInventories, setFilteredInventories] = useState([]);
@@ -352,13 +355,13 @@ export default function Inventory() {
   // Function to get suggestions from the AI
   const getSuggestions = async (passedInventory) => {
     console.log("getting suggestions");
-  
+
     const localInventory = inventories.find(
       (inventory) => inventory.name === passedInventory
     );
-  
+
     console.log("localInventory", localInventory);
-  
+
     const response = await fetch("/api/generate", {
       method: "POST",
       headers: {
@@ -366,15 +369,74 @@ export default function Inventory() {
       },
       body: JSON.stringify({ localInventory }),
     });
-  
+
     const data = await response.json();
     setSuggestedItems({ inventory: passedInventory, items: data });
   };
-  
+
   // Use useEffect to observe suggestedItems after it's updated
   useEffect(() => {
     console.log("suggesteditems in page.js", suggestedItems);
   }, [suggestedItems]);
+
+  const acceptSuggestion = async (passedInventory, passedItem) => {
+    console.log("accepting suggestion");
+    try {
+      const groupRef = doc(collection(db, "groups"), groupID);
+      const inventoryCollection = collection(groupRef, "inventories");
+
+      const inventoryRef = doc(inventoryCollection, passedInventory); //inventory should be dynamically selected
+
+      //READ
+      const inventorySnap = await getDoc(inventoryRef);
+
+      if (!inventorySnap.exists()) {
+        alert("Inventory does not exist");
+        return;
+      } else {
+        const suggestedItem = suggestedItems.items.find(
+          (item) => item.name === passedItem
+        );
+
+        const newNeededItem = {
+          name: passedItem, // require user to give name
+          quantityNeeded: suggestedItem.quantityNeeded, // allow user to adjust quantity (default to 1)
+          unit: suggestedItem.unit, // allow user to adjust unit (default to null)
+          inventory: passedInventory, // automatically selected based on the inventory selected
+          priority: suggestedItem.priority, // allow user to adjust priority (default to Low)
+          assignTo: "", // require user to assign to a roommate
+          linksOnline: [], // allow user to add links (default to empty array)
+          status: "Needed", // automatically set to Needed
+          dateAdded: new Date(), // default to time now
+          notes: suggestedItem.notes, // allow user to add notes (default to empty string)
+        };
+
+        const newNeededItems = [...neededItems, newNeededItem];
+
+        //WRITE
+        await updateDoc(inventoryRef, {
+          neededItems: newNeededItems,
+        });
+
+        setNeededItems(newNeededItems);
+
+        const remainingSuggestions = suggestedItems.items.filter(
+          (item) => item.name !== passedItem
+        );
+        setSuggestedItems({inventory: passedInventory, items: remainingSuggestions});
+
+        //fetchInventories();
+      }
+    } catch (error) {
+      console.error("Error accepting suggestion: ", error);
+    }
+  };
+
+  const rejectSuggestion = async (passedItem) => {
+    console.log("rejecting suggestion");
+    const remainingSuggestions = suggestedItems.items.filter((item) => item.name !== passedItem);
+    setSuggestedItems({inventory: inventoryNameForShopping, items: remainingSuggestions});
+  };
 
   /****************************************************** Inventory Functions ******************************************************/
 
@@ -743,7 +805,7 @@ export default function Inventory() {
   const editQuantity = useCallback(
     async (passedInventory, passedItem, amount, isNeeded) => {
       console.log("increasing quantity");
-      console.log(passedInventory)
+      console.log(passedInventory);
       try {
         const groupRef = doc(collection(db, "groups"), groupID);
         const inventoryCollection = collection(groupRef, "inventories");
@@ -2438,66 +2500,72 @@ export default function Inventory() {
             maxHeight="80%"
             overflow="auto"
             spacing={2}
-            sx={{flexDirection: {xs: "column", sm: "row-reverse"}}}
+            sx={{ flexDirection: { xs: "column", sm: "row-reverse" } }}
           >
             {/* Stack that displays the suggested items */}
             <Stack width="80%" maxWidth="lg" height="100%" maxHeight="md">
-             {!isEmptyObj(suggestedItems) ? (
-              <Box maxHeight="80%" border="1px solid black" borderRadius="20px" textAlign="center" px={2} overflow="auto">
-                {suggestedItems.items.map((item) => (
-                  <Stack
-                    key={item.name} 
-                    direction="column"
-                    alignItems="center"
-                    width="100%"
-                    borderRadius="15px"
-                    border="2px solid black"
-                    spacing={2}
-                    py={1}
-                    position="relative"
-                    mb={2}
-                    sx={{
-                      background: `linear-gradient(to bottom, ${green_light}, #fff)`,
-                      "&::before": {
-                        position: "absolute",
-                        content: "''",
-                        top: 0,
-                        right: 0,
-                        bottom: 0,
-                        left: 0,
-                        background: `linear-gradient(to bottom, #fff, ${green_light})`,
-                        transition: "opacity 200ms linear",
-                        opacity: 0,
-                        borderRadius: "15px",
-                      },
-                      "&:hover::before": {
-                        opacity: 1,
-                        zIndex: 1,
-                        borderRadius: "15px",
-                      },
-                    }}
-                  >
-                    <Stack direction="row">
-                      <Typography
-                        textAlign="center"
-                        fontWeight="bold"
-                      >
-                        {item.name}
-                      </Typography>
-                      <Box zIndex={2} onClick={() => deleteItem()}>
-                        <TooltipIcon title="Discard" placement="top">
-                          <DeleteOutlineIcon sx={{fontSize: 30}} />
-                        </TooltipIcon>
-                      </Box>
-                      <Box zIndex={2} onClick={() => buyItem(inventoryNameForShopping, item.name)}>
-                        <TooltipIcon title="Confirm" placement="top">
-                          <CheckIcon sx={{fontSize: 30}} />
-                        </TooltipIcon>
-                      </Box>
+              {!isEmptyObj(suggestedItems) ? (
+                <Box
+                  maxHeight="80%"
+                  border="1px solid black"
+                  borderRadius="20px"
+                  textAlign="center"
+                  px={2}
+                  overflow="auto"
+                >
+                  {suggestedItems.items.map((item) => (
+                    <Stack
+                      key={item.name}
+                      direction="column"
+                      alignItems="center"
+                      width="100%"
+                      borderRadius="15px"
+                      border="2px solid black"
+                      spacing={2}
+                      py={1}
+                      position="relative"
+                      mb={2}
+                      sx={{
+                        background: `linear-gradient(to bottom, ${green_light}, #fff)`,
+                        "&::before": {
+                          position: "absolute",
+                          content: "''",
+                          top: 0,
+                          right: 0,
+                          bottom: 0,
+                          left: 0,
+                          background: `linear-gradient(to bottom, #fff, ${green_light})`,
+                          transition: "opacity 200ms linear",
+                          opacity: 0,
+                          borderRadius: "15px",
+                        },
+                        "&:hover::before": {
+                          opacity: 1,
+                          zIndex: 1,
+                          borderRadius: "15px",
+                        },
+                      }}
+                    >
+                      <Stack direction="row">
+                        <Typography textAlign="center" fontWeight="bold">
+                          {item.name}
+                        </Typography>
+                        <Box zIndex={2} onClick={() => deleteItem()}>
+                          <TooltipIcon title="Discard" placement="top">
+                            <DeleteOutlineIcon sx={{ fontSize: 30 }} onClick={() => {rejectSuggestion(item.name)}} />
+                          </TooltipIcon>
+                        </Box>
+                        <Box
+                          zIndex={2}
+                        >
+                          <TooltipIcon title="Confirm" placement="top">
+                            <CheckIcon sx={{ fontSize: 30 }} onClick={() => {acceptSuggestion(inventoryNameForShopping, item.name)}} />
+                          </TooltipIcon>
+                        </Box>
+                      </Stack>
                     </Stack>
-                  </Stack>
-                ))}
-              </Box>
+                  ))}
+                </Box>
               ) : (
                 <></>
               )}
@@ -2548,16 +2616,15 @@ export default function Inventory() {
                       justifyContent="center"
                       alignItems="center"
                     >
-                      <Box
-                        zIndex={2}
-                        sx={{ width: { xs: "50%", md: "35%" } }}
-                      >
+                      <Box zIndex={2} sx={{ width: { xs: "50%", md: "35%" } }}>
                         {item.assignTo ? (
                           <Typography textAlign="center">
                             Assigned To: <strong>{item.assignTo}</strong>
                           </Typography>
                         ) : (
-                          <Typography textAlign="center">Not Assigned</Typography>
+                          <Typography textAlign="center">
+                            Not Assigned
+                          </Typography>
                         )}
                       </Box>
                       <Box
@@ -2628,7 +2695,10 @@ export default function Inventory() {
                         </TooltipIcon>
                         <TooltipIcon title="-1" placement="top">
                           <RemoveIcon
-                            sx={{ mx: { xs: 1 }, "&:hover": { cursor: "pointer" } }}
+                            sx={{
+                              mx: { xs: 1 },
+                              "&:hover": { cursor: "pointer" },
+                            }}
                             onClick={() => {
                               editQuantity(item.inventory, item.name, -1, true);
                             }}
@@ -2645,22 +2715,27 @@ export default function Inventory() {
                       </Box>
                       <Box
                         zIndex={2}
-                        onClick={() => buyItem(inventoryNameForShopping, item.name)}
+                        onClick={() =>
+                          buyItem(inventoryNameForShopping, item.name)
+                        }
                       >
-                        <DarkButtonSimple mr={1} ml={1}>I bought this</DarkButtonSimple>
+                        <DarkButtonSimple mr={1} ml={1}>
+                          I bought this
+                        </DarkButtonSimple>
                       </Box>
                     </Stack>
                     {item.notes ? (
                       <Typography zIndex={2} textAlign="center" width="50%">
                         Notes: {`"${item.notes}"`}
                       </Typography>
-                    ) : (<></>)}
+                    ) : (
+                      <></>
+                    )}
                   </Stack>
                 ))}
               </Box>
             </Stack>
           </Stack>
-          
         </Box>
       </Modal>
     </Stack>
