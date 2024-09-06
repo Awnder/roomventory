@@ -743,7 +743,7 @@ export default function Inventory() {
       fetchInventories();
       setItemName("");
     },
-    [groupID]
+    [groupID, itemList, neededItemList]
   );
 
   // This function moves the item from the neededItems array to the items array (1 WRITE operation)
@@ -1324,7 +1324,7 @@ export default function Inventory() {
               onChange={(e) => setInventoryName(e.target.value)}
               sx={{ bgcolor: "white" }}
             />
-            <Box onClick={() => {createInventory}}>
+            <Box onClick={() => {createInventory()}}>
               <DarkButton>Create</DarkButton>
             </Box>
           </Box>

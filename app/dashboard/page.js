@@ -15,7 +15,7 @@ import AddCircleOutlineIcon from "@mui/icons-material/AddCircleOutline";
 import SearchIcon from "@mui/icons-material/Search";
 import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
 import CloseIcon from "@mui/icons-material/Close";
-import { DarkButton, LightButtonSimple } from "../../Components/styledbuttons"
+import { DarkButton, LightButtonSimple } from "../../Components/styledbuttons";
 import { useRouter } from "next/navigation";
 import { useUser } from "@clerk/nextjs";
 import { db } from "/firebase";
@@ -31,7 +31,7 @@ import {
   where,
 } from "firebase/firestore";
 import { useState, useEffect, useCallback } from "react";
-import Image from "next/image"; 
+import Image from "next/image";
 import banner from "../../public/banner.png";
 
 // colors
@@ -64,7 +64,6 @@ export default function Dashboard() {
   const handleOpenDeleteGroupModal = () => setOpenDeleteGroupModal(true);
   const handleCloseDeleteGroupModal = () => setOpenDeleteGroupModal(false);
 
-
   /****************************************************** Routing ******************************************************/
 
   const handleGroupClick = (name) => {
@@ -85,22 +84,17 @@ export default function Dashboard() {
 
     const newGroup = {
       name: groupName,
-      members: [{name: `${userName}`, leader: true, owe: 0}],
+      members: [{ name: `${userName}`, leader: true, owe: 0 }],
     };
 
     const batch = writeBatch(db);
     const userDocRef = doc(collection(db, "users"), user.id);
 
-    const groupID = (user.id).slice(-5) + " " + groupName;
+    const groupID = user.id.slice(-5) + " " + groupName;
 
     const groupDocRef = doc(collection(db, "groups"), groupID);
 
     const userSnap = await getDoc(userDocRef);
-
-    if (userSnap.data().groups.includes(groupName)) {
-      alert("User already exists in this group");
-      return;
-    }
 
     try {
       // Check if user exists
@@ -115,9 +109,12 @@ export default function Dashboard() {
         };
         batch.set(userDocRef, newUser);
       } else {
-        // Update user with new group
-        const userData = userSnap.data();
-        if (!userData.groups.includes(groupName)) {
+        if (userSnap.data().groups.includes(groupName)) {
+          alert("User already exists in this group");
+          return;
+        } else {
+          const userData = userSnap.data();
+
           batch.update(userDocRef, {
             groups: [...userData.groups, groupName], // Alternatively use arrayUnion if you want to handle duplicates automatically
           });
@@ -125,7 +122,8 @@ export default function Dashboard() {
       }
 
       batch.set(groupDocRef, newGroup);
-      
+      setGroups([...groups, newGroup]);
+
       // Commit the batch
       await batch.commit();
 
@@ -138,54 +136,86 @@ export default function Dashboard() {
     setAddInventoryModal(false);
   }, [groupName, user]);
 
-
   // Function to delete a group from the database (n READ, n WRITE)
-  const deleteGroup = async (group) => {
-    console.log("Deleting group");
+  const deleteGroup = useCallback(
+    async (passedGroup) => {
+      console.log("Deleting group");
 
-    const groupID = (user.id).slice(-5) + " " + group;
-    const batch = writeBatch(db);
+      const groupID = user.id.slice(-5) + " " + passedGroup;
+      const batch = writeBatch(db);
 
-    const groupRef = doc(collection(db, "groups"), groupID);
+      const groupRef = doc(collection(db, "groups"), groupID);
 
-    // Get inventories collection
-    const inventoriesCollection = collection(
-      db,
-      "groups",
-      group,
-      "inventories"
-    );
-    //READ
-    const [groupSnap, inventoriesSnap] = await Promise.all([
-      getDoc(groupRef),
-      getDocs(inventoriesCollection),
-    ]);
+      // Get inventories collection
+      const inventoriesCollection = collection(
+        db,
+        "groups",
+        groupID,
+        "inventories"
+      );
+      //READ
+      const [groupSnap, inventoriesSnap] = await Promise.all([
+        getDoc(groupRef),
+        getDocs(inventoriesCollection),
+      ]);
 
-    if (groupSnap.exists() && inventoriesSnap.size > 0) {
-      // Process inventories
-      inventoriesSnap.forEach((inventory) => {
-        const inventoryName = inventory.id; // Use the document ID for the name
-        const inventoryRef = doc(inventoriesCollection, inventoryName);
-        // Add deletion to the batch
-        batch.delete(inventoryRef);
-      });
-    }
+      if (groupSnap.exists() && inventoriesSnap.size > 0) {
+        // Process inventories
+        inventoriesSnap.forEach((inventory) => {
+          const inventoryName = inventory.id; // Use the document ID for the name
+          const inventoryRef = doc(inventoriesCollection, inventoryName);
+          // Add deletion to the batch
+          batch.delete(inventoryRef);
+        });
+      }
+
+      console.log("Groups before deletion:", groups);
+      const remainingGroups = groups.filter((group) => group.name !== passedGroup);
+      console.log("Remaining groups:", remainingGroups);
+      setGroups(remainingGroups);
+
+      // Finally, delete the group after all inventory deletions are added to the batch
+      batch.delete(groupRef);
+
+     
+
+      try {
+        //READ
+        const userDocRef = doc(collection(db, "users"), user.id);
+        const userSnap = await getDoc(userDocRef);
   
-    // Finally, delete the group after all inventory deletions are added to the batch
-    batch.delete(groupRef);
-  
-    // Commit the batch operation
-    await batch.commit();
-  };
+        if (userSnap.exists()) {
+          const userData = userSnap.data();
+          console.log('userData', userData.groups)
+          console.log('groupName', passedGroup)
+          const newGroups = userData.groups.filter(
+            (group) => group !== passedGroup
+          );
 
+          console.log('newGroups', newGroups)
+  
+          batch.update(userDocRef, {
+            groups: newGroups,
+          });
+        }
+      } catch (error) {
+        console.error("Error adjusting user's groups:", error);
+        alert("An error occurred while deleting the group. Please try again.");
+      }
+
+      // Commit the batch operation
+      await batch.commit();
+    },
+    [groups , user]
+  );
 
   // Function to leave a group (1 READ, 2 WRITE)
- const leaveGroup = async () => {
-  console.log("Leaving group");
+  const leaveGroup = useCallback(async () => {
+    console.log("Leaving group");
 
     const userDocRef = doc(collection(db, "users"), user.id);
 
-    const groupID = (user.id).slice(-5) + " " + groupName;
+    const groupID = user.id.slice(-5) + " " + groupName;
 
     const groupDocRef = doc(collection(db, "groups"), groupID);
 
@@ -238,7 +268,7 @@ export default function Dashboard() {
 
     await batch.commit();
     setGroupName("");
-  };
+  }, [groupName, user]);
 
   /****************************************************** Use Effects ******************************************************/
 
@@ -253,21 +283,21 @@ export default function Dashboard() {
       const userSnap = await getDoc(userRef);
 
       if (userSnap.exists()) {
-
         const groupsRef = collection(db, "groups");
 
         //READ
         const querySnapshot = await getDocs(groupsRef);
 
-        const matchingDocs = querySnapshot.docs.filter(doc => {
+        const matchingDocs = querySnapshot.docs.filter((doc) => {
           const docId = doc.id;
           return docId.includes(user.id.slice(-5));
         });
 
-
         const groupObjects = matchingDocs.map((doc) => doc.data());
 
+        console.log('old groups', groups)
         setGroups(groupObjects);
+        console.log('new groups', groupObjects)
         setFilteredGroups(groupObjects);
       } else {
         console.log("User does not exist");
@@ -275,14 +305,21 @@ export default function Dashboard() {
     };
 
     getGroups();
-  }, [user, createGroup, deleteGroup]);
+  }, [user]);
+
+  useEffect(() => {
+    console.log("User:", user);
+    console.log("Groups:", groups);
+  }, [groups]);
 
   // Function to filter groups based on search term
   useEffect(() => {
     console.log("Filtering groups");
-    setFilteredGroups(groups.filter(group =>
-      group.name.toLowerCase().includes(searchTerm.toLowerCase())
-    ));
+    setFilteredGroups(
+      groups.filter((group) =>
+        group.name.toLowerCase().includes(searchTerm.toLowerCase())
+      )
+    );
   }, [searchTerm, groups]);
 
   return (
@@ -334,28 +371,27 @@ export default function Dashboard() {
             Delete Group
           </Typography>
           <Typography width="80%" textAlign="center">
-            Are you sure you want to delete {groupNameForDeletion} and all
-            its contents?
+            Are you sure you want to delete {groupNameForDeletion} and all its
+            contents?
           </Typography>
           <Box
             onClick={() => {
               deleteGroup(groupNameForDeletion);
               handleCloseDeleteGroupModal();
-            }
-            }
+            }}
           >
             <DarkButton>Delete</DarkButton>
           </Box>
         </Box>
       </Modal>
-      <Box 
+      <Box
         display="flex"
         justifyContent="center"
         alignItems="center"
-        width="80%" 
+        width="80%"
         height="200px"
-        maxWidth="lg" 
-        position="relative" 
+        maxWidth="lg"
+        position="relative"
         overflow="hidden"
         borderRadius="20px"
         mt={5}
@@ -373,25 +409,31 @@ export default function Dashboard() {
           }}
         />
         <Box
-            width="80%"
-            maxWidth="lg"
-            borderRadius="20px"
-            position="absolute"
-            p={3}
-            bgcolor="rgba(78, 130, 107, 0.7)" // rgba for green_dark, needed opacity scale
-          >
-            {user ? (
-              <Typography
-                textAlign="center"
-                color={green_white}
-                sx={{ typography: { xs: "h5", sm: "h4" } }}
-              >
-                Welcome, {user.firstName}, to Your Roomventory
-              </Typography>
-            ) : null}
+          width="80%"
+          maxWidth="lg"
+          borderRadius="20px"
+          position="absolute"
+          p={3}
+          bgcolor="rgba(78, 130, 107, 0.7)" // rgba for green_dark, needed opacity scale
+        >
+          {user ? (
+            <Typography
+              textAlign="center"
+              color={green_white}
+              sx={{ typography: { xs: "h5", sm: "h4" } }}
+            >
+              Welcome, {user.firstName}, to Your Roomventory
+            </Typography>
+          ) : null}
         </Box>
       </Box>
-      <Stack width="100%" direction="row" spacing={2} justifyContent="center" mt={4}>
+      <Stack
+        width="100%"
+        direction="row"
+        spacing={2}
+        justifyContent="center"
+        mt={4}
+      >
         <Box
           width="60%"
           maxWidth="md"
@@ -414,11 +456,7 @@ export default function Dashboard() {
             }}
           />
         </Box>
-        <Box
-          display="flex"
-          alignItems="center"
-          justifyContent="center"
-        >
+        <Box display="flex" alignItems="center" justifyContent="center">
           <TooltipIcon title="Create Group" placement="top">
             <AddCircleOutlineIcon
               onClick={() => setAddInventoryModal(true)}
@@ -435,7 +473,14 @@ export default function Dashboard() {
         </Box>
       </Stack>
       <Box width="80%" maxWidth="lg" my={5}>
-        <Grid container flexGrow={1} spacing={2} display="flex" justifyContent="center" alignItems="center">
+        <Grid
+          container
+          flexGrow={1}
+          spacing={2}
+          display="flex"
+          justifyContent="center"
+          alignItems="center"
+        >
           {filteredGroups.map((group) => (
             <Grid item key={group.name} xs={12} sm={6} md={4}>
               <Box
@@ -456,7 +501,7 @@ export default function Dashboard() {
                     transform: "scale(1.02)",
                     bgcolor: `${green_dark}`,
                     color: `${green_white}`,
-                    cursor: "pointer"
+                    cursor: "pointer",
                   },
                 }}
               >
@@ -476,7 +521,7 @@ export default function Dashboard() {
                       },
                     }}
                     onClick={(event) => {
-                      setGroupNameForDeletion(group.name)
+                      setGroupNameForDeletion(group.name);
                       handleOpenDeleteGroupModal();
                       event.stopPropagation();
                     }}
@@ -492,7 +537,10 @@ export default function Dashboard() {
                   width="90%"
                   overflow="auto"
                   textAlign="center"
-                  sx={{ overflowWrap: "break-word", '&:hover': { cursor: "pointer" }}}
+                  sx={{
+                    overflowWrap: "break-word",
+                    "&:hover": { cursor: "pointer" },
+                  }}
                 >
                   {group.name}
                 </Typography>
@@ -523,18 +571,27 @@ export default function Dashboard() {
             transform: "translate(-50%, -50%)",
           }}
         >
-          <Typography textAlign="center" color={green_dark} mb={2} sx={{ typography: { xs: "h6", sm: "h5" } }}>
+          <Typography
+            textAlign="center"
+            color={green_dark}
+            mb={2}
+            sx={{ typography: { xs: "h6", sm: "h5" } }}
+          >
             Create New Group
           </Typography>
-          <Stack sx={{ direction: {xs: "column", sm: "row"} }}>
+          <Stack sx={{ direction: { xs: "column", sm: "row" } }}>
             <TextField
               fullWidth
               label="Group Name"
               value={groupName}
               onChange={(e) => setGroupName(e.target.value)}
-              sx={{ mr: 2, mb: {xs: 2} }}
+              sx={{ mr: 2, mb: { xs: 2 } }}
             />
-            <Box onClick={() => {createGroup}}>
+            <Box
+              onClick={() => {
+                createGroup();
+              }}
+            >
               <DarkButton fullWidth>Create</DarkButton>
             </Box>
           </Stack>

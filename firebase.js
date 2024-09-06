@@ -2,6 +2,7 @@
 import { initializeApp } from "firebase/app";
 import { getAnalytics, isSupported } from "firebase/analytics";
 import { getFirestore } from "firebase/firestore";
+
 // TODO: Add SDKs for Firebase products that you want to use
 // https://firebase.google.com/docs/web/setup#available-libraries
 
@@ -9,12 +10,12 @@ import { getFirestore } from "firebase/firestore";
 // For Firebase JS SDK v7.20.0 and later, measurementId is optional
 const firebaseConfig = {
   apiKey: `${process.env.NEXT_PUBLIC_FIREBASE_API_KEY}`,
-  authDomain: "roomventory-3d42f.firebaseapp.com",
-  projectId: "roomventory-3d42f",
-  storageBucket: "roomventory-3d42f.appspot.com",
-  messagingSenderId: "579687683713",
-  appId: "1:579687683713:web:343bcf57d78bcb4ccbdf80",
-  measurementId: "G-264895EDPQ"
+  authDomain: "roomventory-c42a1.firebaseapp.com",
+  projectId: "roomventory-c42a1",
+  storageBucket: "roomventory-c42a1.appspot.com",
+  messagingSenderId: "39853762534",
+  appId: "1:39853762534:web:f0177a1f57ae6923fe9827",
+  measurementId: "G-09GXH3GWX3"
 };
 
 // Initialize Firebase
