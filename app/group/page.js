@@ -878,6 +878,86 @@ export default function Inventory() {
     },
     [groupID]
   );
+
+  const editItem = useCallback(
+    async (passedInventory, passedItem, isNeeded) => {
+      console.log("increasing quantity");
+      console.log(passedInventory);
+      try {
+        const groupRef = doc(collection(db, "groups"), groupID);
+        const inventoryCollection = collection(groupRef, "inventories");
+
+        const inventoryRef = doc(inventoryCollection, passedInventory); //inventory should be dynamically selected
+
+        //READ
+        const inventorySnap = await getDoc(inventoryRef);
+
+        if (!inventorySnap.exists()) {
+          alert("Inventory does not exist");
+          return;
+        } else {
+          const localItems = isNeeded
+            ? inventorySnap.data().neededItems
+            : inventorySnap.data().items;
+
+          if (isNeeded) {
+            // const newItems = localItems.map((item) => {
+            //   if (item.name === passedItem) {
+            //     if (item.quantityNeeded + amount < 0) {
+            //       alert("Quantity cannot be negative");
+            //       return item;
+            //     }
+            //     return {
+            //       ...item,
+            //       quantityNeeded: item.quantityNeeded + amount,
+            //     };
+            //   } else {
+            //     return item;
+            //   }
+            // });
+
+            // await updateDoc(inventoryRef, {
+            //   neededItems: newItems,
+            // });
+            // setNeededItemList(newItems);
+          } else {
+            const newItems = localItems.map((item) => {
+              if (item.name === passedItem) {
+                // if (quantity < 0) {
+                //   alert("Quantity cannot be negative");
+                //   return item;
+                // }
+                return { 
+                  ...item,
+                  name: passedItem, 
+                  quantity: parseInt(quantity), 
+                  inventory: passedInventory, 
+                  unit: unit, 
+                  price: parseFloat(price),  
+                  lastUpdated: new Date(),
+                  isPerishable: isPerishable,
+                  notes: notes.trim(),
+                };
+              } else {
+                return item;
+              }
+            });
+            await updateDoc(inventoryRef, {
+              items: newItems,
+            });
+            setItemList(newItems);
+          }
+          //WRITE
+
+          // fetchInventories();
+        }
+      } catch (error) {
+        console.error("Error editing item: ", error);
+      }
+      fetchInventories();
+    },
+    [groupID]
+  );
   /****************************************************** Needed Items Functions ******************************************************/
 
   //function to add a needed item to the inventory (1 READ, 1 WRITE operation)
@@ -2383,8 +2463,8 @@ export default function Inventory() {
 
             <Box
               onClick={() => {
-                // addItem();
-                //handleCloseItemModal();
+                editItem(selectedInventory, itemName, false);
+                handleCloseEditItemModal();
               }}
             >
               <DarkButton>Save Changes</DarkButton>
