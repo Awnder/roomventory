@@ -258,7 +258,6 @@ export default function Dashboard() {
 
         //READ
         const querySnapshot = await getDocs(groupsRef);
-        console.log("Query snapshot:", querySnapshot);
 
         const matchingDocs = querySnapshot.docs.filter(doc => {
           const docId = doc.id;
@@ -266,7 +265,6 @@ export default function Dashboard() {
           return docId.includes(user.id.slice(-5));
         });
 
-        console.log("Matching docs:", matchingDocs);
 
         const groupObjects = matchingDocs.map((doc) => doc.data());
 

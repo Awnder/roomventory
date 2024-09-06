@@ -391,8 +391,6 @@ export default function Inventory() {
       (inventory) => inventory.name === passedInventory
     );
 
-    console.log("localInventory", localInventory);
-
     const response = await fetch("/api/generate", {
       method: "POST",
       headers: {
@@ -844,7 +842,6 @@ export default function Inventory() {
   const editQuantity = useCallback(
     async (passedInventory, passedItem, amount, isNeeded) => {
       console.log("increasing quantity");
-      console.log(passedInventory);
       try {
         const groupRef = doc(collection(db, "groups"), groupID);
         const inventoryCollection = collection(groupRef, "inventories");
@@ -934,9 +931,6 @@ export default function Inventory() {
         alert("Price must be a non-negative number");
         return;
       }
-
-      console.log("assignedRoommate", assignedRoommate);
-      console.log("priority", priority);
 
       try {
         const groupRef = doc(collection(db, "groups"), groupID);
@@ -1228,7 +1222,6 @@ export default function Inventory() {
       // Generate groupID only if `groupName` is available
       const groupIDValue = `${user.id.slice(-5)} ${groupName}`;
       setGroupID(groupIDValue);
-      console.log("groupID from useEffect:", groupIDValue); // Log for debugging
     } else {
       console.warn("groupName or user is undefined");
     }
@@ -2684,7 +2677,6 @@ export default function Inventory() {
                     sx={{ border: "1px solid black" }}
                     onChange={(e) => {
                       setPriority(e.target.value);
-                      console.log(priority);
                     }}
                   >
                     <MenuItem value={"High"}>High</MenuItem>
