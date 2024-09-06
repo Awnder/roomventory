@@ -50,8 +50,27 @@ the suggested items should be in the following format:
   "notes": "Additional Notes"
 }
 
+The resposne should look like this:
+ [
+  {
+    "name": "Item Name",
+    "quantityNeeded": 1,
+    "unit": "Unit",
+    "priority": "Priority Level",
+    "notes": "Additional Notes"
+  },
+  {
+    "name": "Item Name",
+    "quantityNeeded": 1,
+    "unit": "Unit",
+    "priority": "Priority Level",
+    "notes": "Additional Notes"
+  }
+]
+
 You will NOT wrap the response within JSON md markers.
 You will NOT add ANY text AT ALL outside of the JSON object.
+DO NOT ADD 'suggestions' as a property name. It should be a list of JSON objects.
 
 `;
 

@@ -192,7 +192,8 @@ export default function Inventory() {
   const handleOpenEditItemModal = () => setOpenEditItemModal(true);
   const handleCloseEditItemModal = () => setOpenEditItemModal(false);
   const handleOpenEditNeededItemModal = () => setOpenEditNeededItemModal(true);
-  const handleCloseEditNeededItemModal = () => setOpenEditNeededItemModal(false);
+  const handleCloseEditNeededItemModal = () =>
+    setOpenEditNeededItemModal(false);
 
   //Filtered objects
   const [filteredInventories, setFilteredInventories] = useState([]);
@@ -401,7 +402,11 @@ export default function Inventory() {
     });
 
     const data = await response.json();
-    setSuggestedItems({ inventory: passedInventory, items: data });
+    if (Array.isArray(data)) {
+      setSuggestedItems({ inventory: passedInventory, items: data });
+    } else {
+      alert("The AI returned an invalid response. Please try again.");
+    }
     setLoadingSuggestions(false);
   };
 
@@ -914,24 +919,24 @@ export default function Inventory() {
         alert("Item Name is required");
         return;
       }
-  
+
       if (!selectedInventory.trim()) {
         alert("Inventory must be selected");
         return;
       }
-  
+
       if (!quantity || quantity <= 0) {
         alert("Quantity must be a positive number");
         return;
       }
-  
+
       if (price < 0) {
         alert("Price must be a non-negative number");
         return;
       }
 
-      console.log('assignedRoommate', assignedRoommate);
-      console.log('priority', priority);
+      console.log("assignedRoommate", assignedRoommate);
+      console.log("priority", priority);
 
       try {
         const groupRef = doc(collection(db, "groups"), groupID);
@@ -997,7 +1002,7 @@ export default function Inventory() {
             });
             setItemList(newItems);
           }
-                     
+
           setItemToEdit("");
           //WRITE
 
@@ -1008,7 +1013,18 @@ export default function Inventory() {
       }
       fetchInventories();
     },
-    [groupID, quantity, unit, price, isPerishable, notes, itemToEdit, itemName, priority, assignedRoommate]
+    [
+      groupID,
+      quantity,
+      unit,
+      price,
+      isPerishable,
+      notes,
+      itemToEdit,
+      itemName,
+      priority,
+      assignedRoommate,
+    ]
   );
   /****************************************************** Needed Items Functions ******************************************************/
 
@@ -2581,7 +2597,7 @@ export default function Inventory() {
               handleCloseEditNeededItemModal();
             }}
           />
-          
+
           <Typography variant="h5" textAlign="center">
             Edit Item
           </Typography>
@@ -2637,47 +2653,54 @@ export default function Inventory() {
             />
           </Stack>
           <Stack direction="row" alignItems="center" width="80%">
-              <Typography width="30%">Assign To:</Typography>
-              <Box bgcolor="white" color="black" width="70%">
+            <Typography width="30%">Assign To:</Typography>
+            <Box bgcolor="white" color="black" width="70%">
+              <FormControl fullWidth>
+                <Select
+                  size="small"
+                  value={assignedRoommate}
+                  sx={{ color: "black", border: "1px solid black" }}
+                  onChange={(e) => setAssignedRoommate(e.target.value)}
+                >
+                  {groupMembers.map((member) => (
+                    <MenuItem key={member.name} value={member.name}>
+                      {member.name}
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+            </Box>
+          </Stack>
+          <Stack direction="row" spacing={2} alignItems="center" width="80%">
+            <Stack direction="row" alignItems="center">
+              <Typography color="black" textAlign="center" mr={3}>
+                Priority:
+              </Typography>
+              <Box bgcolor="white" width="60%">
                 <FormControl fullWidth>
                   <Select
                     size="small"
-                    value={assignedRoommate}
-                    sx={{ color: "black", border: "1px solid black" }}
-                    onChange={(e) => setAssignedRoommate(e.target.value)}
+                    value={priority}
+                    sx={{ border: "1px solid black" }}
+                    onChange={(e) => {
+                      setPriority(e.target.value);
+                      console.log(priority);
+                    }}
                   >
-                    {groupMembers.map((member) => (
-                      <MenuItem key={member.name} value={member.name}>
-                        {member.name}
-                      </MenuItem>
-                    ))}
+                    <MenuItem value={"High"}>High</MenuItem>
+                    <MenuItem value={"Medium"}>Medium</MenuItem>
+                    <MenuItem value={"Low"}>Low</MenuItem>
                   </Select>
                 </FormControl>
               </Box>
             </Stack>
-            <Stack direction="row" spacing={2} alignItems="center" width="80%">
-              <Stack direction="row" alignItems="center">
-                <Typography color="black" textAlign="center" mr={3}>
-                  Priority:
-                </Typography>
-                <Box bgcolor="white" width="60%">
-                  <FormControl fullWidth>
-                    <Select
-                      size="small"
-                      value={priority}
-                      sx={{ border: "1px solid black" }}
-                      onChange={(e) => {setPriority(e.target.value); console.log(priority);}}
-                    >
-                      <MenuItem value={"High"}>High</MenuItem>
-                      <MenuItem value={"Medium"}>Medium</MenuItem>
-                      <MenuItem value={"Low"}>Low</MenuItem>
-                    </Select>
-                  </FormControl>
-                </Box>
-              </Stack>
-            </Stack>
-          <Stack direction="row" spacing={2} alignItems="center" width="80%">
           </Stack>
+          <Stack
+            direction="row"
+            spacing={2}
+            alignItems="center"
+            width="80%"
+          ></Stack>
           <TextField
             multiline
             placeholder="Add notes (optional)"
@@ -2963,7 +2986,7 @@ export default function Inventory() {
               handleCloseShoppingListModal();
             }}
           />
-           <Box
+          <Box
             sx={{ position: "absolute", top: 15, right: 15 }}
             onClick={(e) => {
               handleOpenNeededItemModal();
@@ -3271,26 +3294,26 @@ export default function Inventory() {
                         />
                       </TooltipIcon>
                       <TooltipIcon title="Edit Item" placement="top">
-                            <EditIcon
-                              sx={{
-                                "&:hover": {
-                                  cursor: "pointer",
-                                  transform: "scale(1.2)",
-                                },
-                              }}
-                              onClick={() => {
-                                setItemName(item.name);
-                                setQuantity(item.quantityNeeded);
-                                setUnit(item.unit);
-                                setNotes(item.notes);
-                                setPriority(item.priority);
-                                setAssignedRoommate(item.assignTo);
-                                setSelectedInventory(inventoryNameForShopping);
-                                handleOpenEditNeededItemModal();
-                                setItemToEdit(item.name);
-                              }}
-                            />
-                          </TooltipIcon>
+                        <EditIcon
+                          sx={{
+                            "&:hover": {
+                              cursor: "pointer",
+                              transform: "scale(1.2)",
+                            },
+                          }}
+                          onClick={() => {
+                            setItemName(item.name);
+                            setQuantity(item.quantityNeeded);
+                            setUnit(item.unit);
+                            setNotes(item.notes);
+                            setPriority(item.priority);
+                            setAssignedRoommate(item.assignTo);
+                            setSelectedInventory(inventoryNameForShopping);
+                            handleOpenEditNeededItemModal();
+                            setItemToEdit(item.name);
+                          }}
+                        />
+                      </TooltipIcon>
                     </Box>
                     <Box
                       zIndex={2}
