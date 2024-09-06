@@ -125,7 +125,7 @@ export default function Home() {
                 py={2}
                 boxShadow="0 0 10px black"
               >
-                Features & Goals
+                Why Roomventory?
               </Typography>
             </Grid>
             <Grid item xs={12} md={6} lg={4}>
