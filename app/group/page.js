@@ -2077,6 +2077,14 @@ export default function Inventory() {
               handleCloseInventoryModal();
             }}
           />
+          <Box
+            sx={{ position: "absolute", top: 15, right: 15}}
+            onClick={(e) => {
+              handleOpenItemModal();
+            }}
+          >
+            <DarkButton>Add Item</DarkButton>
+          </Box>
           <Typography variant="h4" textAlign="center" width="80%">
             {inventoryNameForDisplay}
           </Typography>
