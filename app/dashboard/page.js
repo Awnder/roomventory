@@ -362,8 +362,8 @@ export default function Dashboard() {
           <TooltipIcon title="Create Inventory" placement="top">
             <AddCircleOutlineIcon
               onClick={() => setAddInventoryModal(true)}
-              color="success"
               sx={{
+                color: `${green_dark}`,
                 fontSize: 70,
                 transition: "200ms",
                 "&:hover": {
@@ -375,7 +375,7 @@ export default function Dashboard() {
         </Box>
       </Stack>
       <Box width="80%" maxWidth="lg" my={5}>
-        <Grid container flexGrow={1} spacing={2}>
+        <Grid container flexGrow={1} spacing={2} display="flex" justifyContent="center" alignItems="center">
           {filteredGroups.map((group) => (
             <Grid item key={group.name} xs={12} sm={6} md={4}>
               <Box
