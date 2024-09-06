@@ -34,6 +34,7 @@ import StarsSharpIcon from "@mui/icons-material/StarsSharp";
 import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
 import CloseIcon from "@mui/icons-material/Close";
 import AutoAwesomeIcon from "@mui/icons-material/AutoAwesome";
+import CircularProgress from "@mui/material/CircularProgress";
 import EditIcon from '@mui/icons-material/Edit';
 import {
   DarkButton,
@@ -151,7 +152,10 @@ export default function Inventory() {
     fetchItemsFromInventory(inventoryName);
     setOpenInventoryModal(true);
   };
-  const handleCloseInventoryModal = () => {setOpenInventoryModal(false); setItemSearch("");};
+  const handleCloseInventoryModal = () => {
+    setOpenInventoryModal(false);
+    setItemSearch("");
+  };
   const handleOpenDeleteInventoryModal = (inventoryName) => {
     setInventoryNameForDeletion(inventoryName);
     setOpenDeleteInventoryModal(true);
@@ -179,6 +183,9 @@ export default function Inventory() {
   const [filteredInventories, setFilteredInventories] = useState([]);
   const [filteredItems, setFilteredItems] = useState([]);
   const [filteredNeededItems, setFilteredNeededItems] = useState([]);
+
+  //loading
+  const [loadingSuggestions, setLoadingSuggestions] = useState(false);
 
   // Get group name from URL
   const searchParams = useSearchParams();
@@ -362,6 +369,7 @@ export default function Inventory() {
   // Function to get suggestions from the AI
   const getSuggestions = async (passedInventory) => {
     console.log("getting suggestions");
+    setLoadingSuggestions(true);
 
     const localInventory = inventories.find(
       (inventory) => inventory.name === passedInventory
@@ -379,6 +387,7 @@ export default function Inventory() {
 
     const data = await response.json();
     setSuggestedItems({ inventory: passedInventory, items: data });
+    setLoadingSuggestions(false);
   };
 
   // Use useEffect to observe suggestedItems after it's updated
@@ -430,7 +439,10 @@ export default function Inventory() {
         const remainingSuggestions = suggestedItems.items.filter(
           (item) => item.name !== passedItem
         );
-        setSuggestedItems({inventory: passedInventory, items: remainingSuggestions});
+        setSuggestedItems({
+          inventory: passedInventory,
+          items: remainingSuggestions,
+        });
 
         //fetchInventories();
       }
@@ -441,8 +453,13 @@ export default function Inventory() {
 
   const rejectSuggestion = async (passedItem) => {
     console.log("rejecting suggestion");
-    const remainingSuggestions = suggestedItems.items.filter((item) => item.name !== passedItem);
-    setSuggestedItems({inventory: inventoryNameForShopping, items: remainingSuggestions});
+    const remainingSuggestions = suggestedItems.items.filter(
+      (item) => item.name !== passedItem
+    );
+    setSuggestedItems({
+      inventory: inventoryNameForShopping,
+      items: remainingSuggestions,
+    });
   };
 
   /****************************************************** Inventory Functions ******************************************************/
@@ -692,7 +709,9 @@ export default function Inventory() {
             ? inventorySnap.data().neededItems
             : inventorySnap.data().items;
 
-          const newItems = localItems.filter((item) => item.name !== passedItem);
+          const newItems = localItems.filter(
+            (item) => item.name !== passedItem
+          );
           //WRITE
           if (isNeeded) {
             await updateDoc(inventoryRef, {
@@ -804,7 +823,6 @@ export default function Inventory() {
       const localInventory = inventories.find(
         (inventory) => inventory.name === passedInventory
       );
-
     },
     [inventories, groupID]
   );
@@ -2155,14 +2173,12 @@ export default function Inventory() {
                           zIndex={2}
                           sx={{ width: { xs: "50%", md: "20%" } }}
                         >
-                          {groupMembers.map((member) => (
-                            <Chip
-                              key={member.name}
-                              label={member.name}
-                              variant="outlined"
-                              sx={{ border: "1px solid black" }}
-                            />
-                          ))}
+                          <Chip
+                            key={item.addedBy}
+                            label={item.addedBy}
+                            variant="outlined"
+                            sx={{ border: "1px solid black" }}
+                          />
                         </Stack>
                         <Box
                           zIndex={2}
@@ -2793,9 +2809,21 @@ export default function Inventory() {
                 <Typography mr={1}>AI Suggest</Typography>
                 <AutoAwesomeIcon />
               </DarkButton>
+              {loadingSuggestions && (
+                <Box
+                  display="flex"
+                  justifyContent="center"
+                  alignItems="center"
+                  mt={3}
+                  ml={2} // Add some margin for spacing between the button and the loader
+                  color={green_dark} // Ensure the spinner color is green
+                >
+                  <CircularProgress size={24} color="inherit" />
+                </Box>
+              )}
             </Box>
           </TooltipIcon>
-          
+
           {/* Shopping list (left) and suggested (right) lists */}
           <Stack
             width="100%"
@@ -2804,14 +2832,24 @@ export default function Inventory() {
             overflow="auto"
             spacing={1}
             gap={1}
-            sx={{  flexDirection: { xs: "column", md: "row-reverse" } }}
+            sx={{ flexDirection: { xs: "column", md: "row-reverse" } }}
           >
             {/* Stack that displays the suggested items */}
             {!isEmptyObj(suggestedItems) ? (
-              <Box height="90%" maxHeight="90%" border="1px solid black" borderRadius="15px" textAlign="center" px={1} pt={1} overflow="auto">
+              <Box
+                height="90%"
+                maxHeight="90%"
+                border="1px solid black"
+                borderRadius="15px"
+                textAlign="center"
+                px={1}
+                pt={1}
+                overflow="auto"
+              >
+                
                 {suggestedItems.items.map((item) => (
                   <Stack
-                    key={item.name} 
+                    key={item.name}
                     direction="column"
                     alignItems="center"
                     width="100%"
@@ -2841,23 +2879,38 @@ export default function Inventory() {
                       },
                     }}
                   >
-                    <Stack direction="row" justifyContent="center" alignItems="center" textAlign="center" zIndex={2}>
-                      <Typography
-                        textAlign="center"
-                        fontWeight="bold"
-                        px={1}
-                      >
+                    <Stack
+                      direction="row"
+                      justifyContent="center"
+                      alignItems="center"
+                      textAlign="center"
+                      zIndex={2}
+                    >
+                      <Typography textAlign="center" fontWeight="bold" px={1}>
                         {item.name}
                       </Typography>
                       <Stack direction="row">
                         <Box onClick={() => deleteItem()}>
                           <TooltipIcon title="Discard" placement="top">
-                            <DeleteOutlineIcon sx={{fontSize: 25}} onClick={() => {rejectSuggestion(item.name)}} />
+                            <DeleteOutlineIcon
+                              sx={{ fontSize: 25 }}
+                              onClick={() => {
+                                rejectSuggestion(item.name);
+                              }}
+                            />
                           </TooltipIcon>
                         </Box>
                         <Box mr={1}>
                           <TooltipIcon title="Confirm" placement="top">
-                            <CheckIcon sx={{fontSize: 25}} onClick={() => {acceptSuggestion(inventoryNameForShopping, item.name)}} />
+                            <CheckIcon
+                              sx={{ fontSize: 25 }}
+                              onClick={() => {
+                                acceptSuggestion(
+                                  inventoryNameForShopping,
+                                  item.name
+                                );
+                              }}
+                            />
                           </TooltipIcon>
                         </Box>
                       </Stack>
@@ -2869,7 +2922,7 @@ export default function Inventory() {
               <Box display="hidden"></Box>
             )}
             {/* Needed items */}
-            
+
             <Box width="100%" height="100%" maxWidth="lg" overflow="auto">
               {filteredNeededItems.map((item) => (
                 <Stack
@@ -2914,10 +2967,7 @@ export default function Inventory() {
                     justifyContent="center"
                     alignItems="center"
                   >
-                    <Box
-                      zIndex={2}
-                      sx={{ width: { xs: "50%", md: "35%" } }}
-                    >
+                    <Box zIndex={2} sx={{ width: { xs: "50%", md: "35%" } }}>
                       {item.assignTo ? (
                         <Typography textAlign="center">
                           Assigned To: <strong>{item.assignTo}</strong>
@@ -2994,7 +3044,10 @@ export default function Inventory() {
                       </TooltipIcon>
                       <TooltipIcon title="-1" placement="top">
                         <RemoveIcon
-                          sx={{ mx: { xs: 1 }, "&:hover": { cursor: "pointer" } }}
+                          sx={{
+                            mx: { xs: 1 },
+                            "&:hover": { cursor: "pointer" },
+                          }}
                           onClick={() => {
                             editQuantity(item.inventory, item.name, -1, true);
                           }}
@@ -3011,16 +3064,22 @@ export default function Inventory() {
                     </Box>
                     <Box
                       zIndex={2}
-                      onClick={() => buyItem(inventoryNameForShopping, item.name)}
+                      onClick={() =>
+                        buyItem(inventoryNameForShopping, item.name)
+                      }
                     >
-                      <DarkButtonSimple mr={1} ml={1}>I bought</DarkButtonSimple>
+                      <DarkButtonSimple mr={1} ml={1}>
+                        I bought
+                      </DarkButtonSimple>
                     </Box>
                   </Stack>
                   {item.notes ? (
                     <Typography zIndex={2} textAlign="center" width="50%">
                       Notes: {`"${item.notes}"`}
                     </Typography>
-                  ) : (<></>)}
+                  ) : (
+                    <></>
+                  )}
                 </Stack>
               ))}
             </Box>
