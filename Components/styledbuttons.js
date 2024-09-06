@@ -36,6 +36,34 @@ export function LightButton({children, href, fullWidth, m, mt, mb, ml, mr}) {
   )
 }
 
+export function LightButtonSimple({children, href, fullWidth, m, mt, mb, ml, mr}) {
+  return (
+    <Button
+      variant="contained"
+      sx={{
+        color: `${green_black}`,
+        bgcolor: `${green_light}`,
+        borderRadius: "10px",
+        transition: "200ms",
+        "&:hover": {
+          color: `${green_black}`,
+          bgcolor: `${green_light}`,
+          transform: "scale(1.05)",
+        },
+        m: m,
+        mt: mt,
+        mb: mb,
+        ml: ml,
+        mr: mr
+      }}
+      href={href}
+      fullWidth={fullWidth}
+    >
+      {children}
+    </Button>
+  )
+}
+
 
 export const DarkButton = React.forwardRef(function DarkButton(
   { children, href, fullWidth, m, mt, mb, ml, mr, ...rest },
