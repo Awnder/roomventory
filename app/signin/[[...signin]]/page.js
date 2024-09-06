@@ -14,6 +14,7 @@ export default function SignInPage() {
       display="flex"
       flexDirection="column"
       alignItems="center"
+      mb={10}
     >
       <Typography variant="h4" textAlign="center" color={`${green_dark}`} my={8} borderBottom={`2px solid ${green_main}`}>Your Inventory Awaits!</Typography>
       <SignIn />
