@@ -145,7 +145,18 @@ export default function Inventory() {
   const handleOpenNewInventoryModal = () => setOpenNewInventoryModal(true);
   const handleCloseNewInventoryModal = () => setOpenNewInventoryModal(false);
   const handleOpenItemModal = () => setOpenAddItemModal(true);
-  const handleCloseItemModal = () => setOpenAddItemModal(false);
+  const handleCloseItemModal = () => {
+    setOpenAddItemModal(false);
+    setItemName("");
+    setQuantity(1);
+    setSelectedInventory("");
+    setPrice(0);
+    setUnit("");
+    setExpiryDate("");
+    setIsPerishable(false);
+    setMinimumQuantity(0);
+    setNotes("");
+  };
   const handleOpenNeededItemModal = () => setOpenNeededItemModal(true);
   const handleCloseNeededItemModal = () => setOpenNeededItemModal(false);
   const handleOpenInventoryModal = (inventoryName) => {
@@ -663,18 +674,12 @@ export default function Inventory() {
         items: newItems,
       });
 
+      setItemList(newItems);
+
       fetchInventories();
       addExpense(newItem.price);
     }
-    setItemName("");
-    setQuantity(1);
-    setSelectedInventory("");
-    setPrice(0);
-    setUnit("");
-    setExpiryDate("");
-    setIsPerishable(false);
-    setMinimumQuantity(0);
-    setNotes("");
+
     handleCloseItemModal();
   }, [
     selectedInventory,
@@ -901,7 +906,7 @@ export default function Inventory() {
   const editItem = useCallback(
     async (passedInventory, passedItem, isNeeded) => {
       console.log("editing item");
-      
+
       try {
         const groupRef = doc(collection(db, "groups"), groupID);
         const inventoryCollection = collection(groupRef, "inventories");
@@ -946,7 +951,7 @@ export default function Inventory() {
                 //   return item;
                 // }
                 return {
-                  ...item, 
+                  ...item,
                   name: itemName,
                   quantity: parseInt(quantity),
                   inventory: passedInventory,
@@ -2078,9 +2083,10 @@ export default function Inventory() {
             }}
           />
           <Box
-            sx={{ position: "absolute", top: 15, right: 15}}
+            sx={{ position: "absolute", top: 15, right: 15 }}
             onClick={(e) => {
               handleOpenItemModal();
+              setSelectedInventory(inventoryNameForDisplay);
             }}
           >
             <DarkButton>Add Item</DarkButton>
