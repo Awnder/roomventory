@@ -2557,12 +2557,12 @@ export default function Inventory() {
                       <Box>
                         <Box onClick={() => deleteItem()}>
                           <TooltipIcon title="Discard" placement="top">
-                            <DeleteOutlineIcon sx={{fontSize: 25}} />
+                            <DeleteOutlineIcon sx={{fontSize: 25}} onClick={() => {rejectSuggestion(item.name)}} />
                           </TooltipIcon>
                         </Box>
-                        <Box onClick={() => buyItem(inventoryNameForShopping, item.name)} mr={1}>
+                        <Box mr={1}>
                           <TooltipIcon title="Confirm" placement="top">
-                            <CheckIcon sx={{fontSize: 25}} />
+                            <CheckIcon sx={{fontSize: 25}} onClick={() => {acceptSuggestion(inventoryNameForShopping, item.name)}} />
                           </TooltipIcon>
                         </Box>
                       </Box>
@@ -2574,6 +2574,7 @@ export default function Inventory() {
               <></>
             )}
             {/* Needed items */}
+            
             <Box width="100%" height="100%" maxWidth="lg" overflow="auto">
               {filteredNeededItems.map((item) => (
                 <Stack
