@@ -2509,11 +2509,12 @@ export default function Inventory() {
             maxHeight="80%"
             overflow="auto"
             spacing={1}
-            sx={{  flexDirection: { xs: "column", md: "row-reverse" }  }}
+            gap={1}
+            sx={{  flexDirection: { xs: "column", md: "row-reverse" } }}
           >
             {/* Stack that displays the suggested items */}
             {!isEmptyObj(suggestedItems) ? (
-              <Box maxHeight="80%" width="20%" border="1px solid black" borderRadius="15px" textAlign="center" px={1} pt={1} mt={2} overflow="auto">
+              <Box height="90%" maxHeight="90%" border="1px solid black" borderRadius="15px" textAlign="center" px={1} pt={1} overflow="auto">
                 {suggestedItems.items.map((item) => (
                   <Stack
                     key={item.name} 
@@ -2554,7 +2555,7 @@ export default function Inventory() {
                       >
                         {item.name}
                       </Typography>
-                      <Box>
+                      <Stack direction="row">
                         <Box onClick={() => deleteItem()}>
                           <TooltipIcon title="Discard" placement="top">
                             <DeleteOutlineIcon sx={{fontSize: 25}} onClick={() => {rejectSuggestion(item.name)}} />
@@ -2565,13 +2566,13 @@ export default function Inventory() {
                             <CheckIcon sx={{fontSize: 25}} onClick={() => {acceptSuggestion(inventoryNameForShopping, item.name)}} />
                           </TooltipIcon>
                         </Box>
-                      </Box>
+                      </Stack>
                     </Stack>
                   </Stack>
                 ))}
               </Box>
             ) : (
-              <></>
+              <Box display="hidden"></Box>
             )}
             {/* Needed items */}
             
@@ -2585,7 +2586,6 @@ export default function Inventory() {
                   border="2px solid black"
                   overflow="auto"
                   spacing={2}
-                  pt={1}
                   pb={2}
                   position="relative"
                   mb={2}
@@ -2719,7 +2719,7 @@ export default function Inventory() {
                       zIndex={2}
                       onClick={() => buyItem(inventoryNameForShopping, item.name)}
                     >
-                      <DarkButtonSimple mr={1} ml={1}>I bought this</DarkButtonSimple>
+                      <DarkButtonSimple mr={1} ml={1}>I bought</DarkButtonSimple>
                     </Box>
                   </Stack>
                   {item.notes ? (
