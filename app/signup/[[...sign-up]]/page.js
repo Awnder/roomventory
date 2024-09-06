@@ -15,7 +15,7 @@ export default function SignUpPage() {
       flexDirection="column"
       alignItems="center"
     >
-      <Typography variant="h4" textAlign="center" color={`${green_dark}`} my={8} borderBottom={`2px solid ${green_main}`}>Join the Waitlist!</Typography>
+      <Typography variant="h4" textAlign="center" color={`${green_dark}`} my={8} borderBottom={`2px solid ${green_main}`}>Welcome To Roomvenetory!</Typography>
       <SignUp />
     </Box>
   )
