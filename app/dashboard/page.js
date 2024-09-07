@@ -170,9 +170,6 @@ export default function Dashboard() {
 
       const groupRef = doc(collection(db, "groups"), groupID);
 
-
-
-
       // Get inventories collection
       const inventoriesCollection = collection(
         db,
@@ -186,9 +183,11 @@ export default function Dashboard() {
         getDocs(inventoriesCollection),
       ]);
 
-      groupData = groupSnap.data();
+      const groupData = groupSnap.data();
 
-      const isLeader = groupData.members.find((member) => member.name === `${user.firstName} ${user.lastName}`)?.leader;
+      const isLeader = groupData.members.find(
+        (member) => member.name === `${user.firstName} ${user.lastName}`
+      )?.leader;
 
       if (!isLeader) {
         alert("You must be the leader of the group to delete.");
@@ -268,10 +267,20 @@ export default function Dashboard() {
       try {
         // References to the old and new group documents
         const prevGroupRef = doc(collection(db, "groups"), prevGroupID);
+        const oldGroupSnap = await getDoc(prevGroupRef);
+        const groupData = oldGroupSnap.data();
+
+        const isLeader = groupData.members.find(
+          (member) => member.name === `${user.firstName} ${user.lastName}`
+        )?.leader;
+
+        if (!isLeader) {
+          alert("You must be the leader of the group to edit.");
+          return;
+        }
         const newGroupRef = doc(collection(db, "groups"), newGroupID);
 
         // Get the old group document
-        const oldGroupSnap = await getDoc(prevGroupRef);
 
         if (!oldGroupSnap.exists()) {
           console.error("Old group does not exist.");
