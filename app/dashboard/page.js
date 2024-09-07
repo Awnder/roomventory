@@ -170,6 +170,9 @@ export default function Dashboard() {
 
       const groupRef = doc(collection(db, "groups"), groupID);
 
+
+
+
       // Get inventories collection
       const inventoriesCollection = collection(
         db,
@@ -182,6 +185,15 @@ export default function Dashboard() {
         getDoc(groupRef),
         getDocs(inventoriesCollection),
       ]);
+
+      groupData = groupSnap.data();
+
+      const isLeader = groupData.members.find((member) => member.name === `${user.firstName} ${user.lastName}`)?.leader;
+
+      if (!isLeader) {
+        alert("You must be the leader of the group to delete.");
+        return;
+      }
 
       if (groupSnap.exists() && inventoriesSnap.size > 0) {
         // Process inventories

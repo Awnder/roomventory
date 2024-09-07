@@ -6,7 +6,7 @@ export async function POST(req) {
     secretKey: process.env.CLERK_SECRET_KEY,
   });
 
-  const { email, group } = await req.json();
+  const { email, group, invitorID } = await req.json();
   
   //const invitations = await clerkClient.invitations.getInvitationList();
   //const invitationId = invitations.data[0].id;
@@ -31,6 +31,7 @@ export async function POST(req) {
     publicMetadata: {
       group: group,
       id: customID,
+      invitorID: invitorID
     },
   });
 

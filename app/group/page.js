@@ -220,7 +220,7 @@ export default function Inventory() {
   /****************************************************** Handling Group Members ******************************************************/
 
   // Function to invite a member to the group (only leader can invite members)
-  const handleInvite = async (event) => {
+  const handleInvite = useCallback( async (event) => {
     if (!isLeader) {
       alert("You must be the leader of the group to invite members");
     }
@@ -232,7 +232,7 @@ export default function Inventory() {
       headers: {
         "Content-Type": "application/json", // Specify the content type
       },
-      body: JSON.stringify({ email: email, group: groupName }), // Stringify the email object
+      body: JSON.stringify({ email: email, group: groupName, invitorID: user.id }), // Stringify the email object
     });
 
     if (!res.ok) {
@@ -240,7 +240,7 @@ export default function Inventory() {
     }
 
     const data = await res.json();
-  };
+  }, [email, groupName]);
 
   // Function to kick a member from the group (only leader can kick members) (2 READ, 2 WRITE operations)
   const kickMember = async (member) => {

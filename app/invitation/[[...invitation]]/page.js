@@ -55,7 +55,7 @@ export default function Page() {
   }, []);
 
   const fetchInvitation = async () => {
-    console.log('fetching invitation');
+    console.log("fetching invitation");
     const res = await fetch("/api/getInvitation", {
       method: "POST",
       headers: {
@@ -76,14 +76,22 @@ export default function Page() {
     console.log("Invitation inside add user:", invitation);
 
     const groupName = invitation.publicMetadata.group;
-
-    const groupID = user.id.slice(-5) + " " + groupName;
+    const invitorID = invitation.publicMetadata.invitorID;
 
     console.log("Group Name:", groupName);
 
     const batch = writeBatch(db);
-    const userDocRef = doc(collection(db, "users"), user.id);
+    const InvitorDocRef = doc(collection(db, "users"), invitorID);
+    const invitorSnap = await getDoc(InvitorDocRef);
+    const invitorData = invitorSnap.data();
+
+    const groupID = invitorData.groups.find(
+      (group) => group.name === groupName
+    ).id;
+
     const groupDocRef = doc(collection(db, "groups"), groupID);
+
+    const userDocRef = doc(collection(db, "users"), user.id);
 
     try {
       // Check if user exists
@@ -94,19 +102,23 @@ export default function Page() {
         const newUser = {
           ID: user.id,
           name: userName,
-          groups: [groupName],
+          groups: [{ name: groupName, id: groupID }],
         };
         batch.set(userDocRef, newUser);
       } else {
-        // Update user with new group
-        const userData = userSnap.data();
-        if (!userData.groups.includes(groupName)) {
-          batch.update(userDocRef, {
-            groups: [...userData.groups, groupName], // Alternatively use arrayUnion if you want to handle duplicates automatically
-          });
-        } else {
+        const groupExists = userSnap
+          .data()
+          .groups.find((group) => group.name === groupName);
+        if (groupExists) {
           alert("User already exists in this group");
           return;
+        } else {
+          batch.update(userDocRef, {
+            groups: [
+              ...userSnap.data().groups,
+              { name: groupName, id: groupID },
+            ],
+          });
         }
       }
 
@@ -119,14 +131,17 @@ export default function Page() {
         const groupData = groupSnap.data();
         if (!groupData.members.includes(userName)) {
           batch.update(groupDocRef, {
-            members: [...groupData.members, { name: userName, leader: false, owe: 0}],
+            members: [
+              ...groupData.members,
+              { name: userName, leader: false, owe: 0, id: user.id },
+            ],
           });
         } else {
           alert("User already exists in this group");
           return;
         }
       }
-      
+
       // Commit the batch
       await batch.commit();
 
@@ -138,15 +153,19 @@ export default function Page() {
   };
 
   useEffect(() => {
-    if (isSignedIn && user) {
-      console.log("User has signed in!");
-      addNewUser();
-      //change this to direct to the group page instead
-      router.push("/dashboard");
-      // Perform any logic you want after the user has signed in
-    } else {
-      console.log("User is not signed in.");
-    }
+    const handleSignIn = async () => {
+      if (isSignedIn && user) {
+        console.log("User has signed in!");
+        await addNewUser();
+        //change this to direct to the group page instead
+        router.push("/dashboard");
+        // Perform any logic you want after the user has signed in
+      } else {
+        console.log("User is not signed in.");
+      }
+    };
+
+    handleSignIn();
   }, [isSignedIn, user]);
 
   // If there is no invitation token, restrict access to the sign-up page
