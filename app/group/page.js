@@ -40,6 +40,7 @@ import {
   DarkButton,
   LightButton,
   DarkButtonSimple,
+  LightButtonSimple,
 } from "../../Components/styledbuttons";
 import { Category, Opacity, Search } from "@mui/icons-material";
 import { useRouter } from "next/navigation";
@@ -106,6 +107,7 @@ export default function Inventory() {
   const [kickedMember, setKickedMember] = useState("");
   const [inventoryNameForShopping, setInventoryNameForShopping] = useState("");
   const [itemToEdit, setItemToEdit] = useState("");
+  const [inventoryToEdit, setInventoryToEdit] = useState("");
 
   // Item Metadata
   const [itemName, setItemName] = useState("");
@@ -139,6 +141,7 @@ export default function Inventory() {
   const [openShoppingListModal, setOpenShoppingListModal] = useState(false);
   const [openEditItemModal, setOpenEditItemModal] = useState(false);
   const [openEditNeededItemModal, setOpenEditNeededItemModal] = useState(false);
+  const [openEditInventoryModal, setOpenEditInventoryModal] = useState(false);
 
   //Modals open/close
   const handleOpenMemberModal = () => setOpenMemberModal(true);
@@ -194,6 +197,8 @@ export default function Inventory() {
   const handleOpenEditNeededItemModal = () => setOpenEditNeededItemModal(true);
   const handleCloseEditNeededItemModal = () =>
     setOpenEditNeededItemModal(false);
+  const handleOpenEditInventoryModal = () => setOpenEditInventoryModal(true);
+  const handleCloseEditInventoryModal = () => setOpenEditInventoryModal(false);
 
   //Filtered objects
   const [filteredInventories, setFilteredInventories] = useState([]);
@@ -539,6 +544,45 @@ export default function Inventory() {
     fetchInventories();
     setInventoryName("");
   }, [inventoryNameForDeletion, groupID]);
+
+  //Function to edit inventory name
+  const editInventory = useCallback(async (newName) => {
+    if (newName === inventoryToEdit) {
+      return;
+    }
+
+    if (newName.length < 1) {
+      alert("Please enter inventory name");
+      return;
+    }
+
+    const groupRef = doc(collection(db, "groups"), groupID);
+    const inventoryCol = collection(groupRef, "inventories");
+
+    const prevInventoryRef = doc(inventoryCol, inventoryToEdit);
+    const newInventoryRef = doc(inventoryCol, newName);
+    const batch = writeBatch(db);
+
+    try {
+      const prevInventorySnap = await getDoc(prevInventoryRef);
+      if (prevInventorySnap.exists()) {
+        const prevInventoryData = prevInventorySnap.data();
+        batch.set(newInventoryRef, prevInventoryData);
+        batch.delete(prevInventoryRef);
+
+        await batch.commit();
+        fetchInventories();
+        setInventoryName("");
+      } else {
+        console.error("Inventory does not exist");
+        return;
+      }
+    } catch (err) {
+      console.error("Error editing inventory name: ", err);
+      alert("Error occured while editing inventory name. Please try again.")
+    }
+    
+  }, [inventoryToEdit, inventoryName, groupID]);
 
   /****************************************************** Expense Tracking ******************************************************/
 
@@ -1930,7 +1974,7 @@ export default function Inventory() {
             </DarkButton>
           </Tooltip>
           <Typography variant="h5" textAlign="center">
-            Edit Group
+            Edit Group Members
           </Typography>
           <Stack direction="column" spacing={1}>
             {groupMembers.map((member) => (
@@ -2034,6 +2078,32 @@ export default function Inventory() {
                     event.stopPropagation();
                   }}
                 />
+                <TooltipIcon title="Edit Inventory" placement="top">
+                  <Box
+                    sx={{
+                      position: "absolute",
+                      top: 0,
+                      right: 80,
+                      fontSize: 40,
+                      color: `${green_dark}`,
+                      "&:hover": {
+                        cursor: "pointer",
+                        color: `${green_light}`,
+                        transform: "scale(1.05)",
+                      },
+                    }}
+                    onClick={(event) => {
+                      setInventoryName(inventory.name);
+                      setInventoryToEdit(inventory.name);
+                      handleOpenEditInventoryModal();
+                      event.stopPropagation();
+                    }}
+                  >
+                    <DarkButton>
+                      <EditIcon />
+                    </DarkButton>
+                  </Box>
+                </TooltipIcon>
                 <TooltipIcon title="Shopping List" placement="top">
                   <Box
                     sx={{
@@ -3327,6 +3397,72 @@ export default function Inventory() {
                   )}
                 </Stack>
               ))}
+            </Box>
+          </Stack>
+        </Box>
+      </Modal>
+
+      {/* Modal for editing inventory name */}
+      <Modal
+        open={openEditInventoryModal}
+      >
+        <Box
+          flex="display"
+          justifyContent="center"
+          alignItems="center"
+          bgcolor={green_white}
+          width="lg"
+          height="lg"
+          border="2px solid black"
+          borderRadius="15px"
+          p={3}
+          sx={{
+            position: "absolute",
+            top: "50%",
+            left: "50%",
+            transform: "translate(-50%, -50%)",
+          }}
+        >
+          <CloseIcon
+            sx={{
+              position: "absolute",
+              top: 5,
+              left: 5,
+              fontSize: 40,
+              color: `${green_dark}`,
+              transition: "200ms",
+              "&:hover": {
+                cursor: "pointer",
+                transform: "rotate(180deg) scale(1.05)",
+              },
+            }}
+            onClick={() => {
+              handleCloseEditInventoryModal();
+            }}
+          />
+          <Typography
+            textAlign="center"
+            color={green_dark}
+            mb={2}
+            sx={{ typography: { xs: "h6", sm: "h5" } }}
+          >
+            Edit Inventory
+          </Typography>
+          <Stack sx={{ direction: { xs: "column", sm: "row" } }}>
+            <TextField
+              fullWidth
+              placeholder="Inventory Name"
+              value={inventoryName}
+              onChange={(e) => setInventoryName(e.target.value)}
+              sx={{ mr: 2, mb: { xs: 2 } }}
+            />
+            <Box
+              onClick={() => {
+                editInventory(inventoryName);
+                handleCloseEditInventoryModal();
+              }}
+            >
+              <DarkButton fullWidth>Save Changes</DarkButton>
             </Box>
           </Stack>
         </Box>
