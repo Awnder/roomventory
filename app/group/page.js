@@ -619,7 +619,7 @@ export default function Inventory() {
           batch.set(newInventoryRef, newInventoryData);
           batch.delete(prevInventoryRef);
 
-          setInventories([...inventories, newInventoryData]);
+          //setInventories([...inventories, newInventoryData]);
 
           await batch.commit();
           fetchInventories();
