@@ -546,43 +546,72 @@ export default function Inventory() {
   }, [inventoryNameForDeletion, groupID]);
 
   //Function to edit inventory name
-  const editInventory = useCallback(async (newName) => {
-    if (newName === inventoryToEdit) {
-      return;
-    }
-
-    if (newName.length < 1) {
-      alert("Please enter inventory name");
-      return;
-    }
-
-    const groupRef = doc(collection(db, "groups"), groupID);
-    const inventoryCol = collection(groupRef, "inventories");
-
-    const prevInventoryRef = doc(inventoryCol, inventoryToEdit);
-    const newInventoryRef = doc(inventoryCol, newName);
-    const batch = writeBatch(db);
-
-    try {
-      const prevInventorySnap = await getDoc(prevInventoryRef);
-      if (prevInventorySnap.exists()) {
-        const prevInventoryData = prevInventorySnap.data();
-        batch.set(newInventoryRef, prevInventoryData);
-        batch.delete(prevInventoryRef);
-
-        await batch.commit();
-        fetchInventories();
-        setInventoryName("");
-      } else {
-        console.error("Inventory does not exist");
+  const editInventory = useCallback(
+    async (newName) => {
+      if (newName === inventoryToEdit) {
         return;
       }
-    } catch (err) {
-      console.error("Error editing inventory name: ", err);
-      alert("Error occured while editing inventory name. Please try again.")
-    }
-    
-  }, [inventoryToEdit, inventoryName, groupID]);
+
+      if (newName.length < 1) {
+        alert("Please enter inventory name");
+        return;
+      }
+
+      const groupRef = doc(collection(db, "groups"), groupID);
+
+      const inventoryCol = collection(groupRef, "inventories");
+
+      const docRef = doc(inventoryCol, newName);
+      const docSnapshot = await getDoc(docRef);
+
+      if (docSnapshot.exists()) {
+        alert("That name is taken already");
+        return;
+      }
+
+      const prevInventoryRef = doc(inventoryCol, inventoryToEdit);
+      const newInventoryRef = doc(inventoryCol, newName);
+      const batch = writeBatch(db);
+
+      try {
+        const prevInventorySnap = await getDoc(prevInventoryRef);
+        if (prevInventorySnap.exists()) {
+          const prevInventoryData = prevInventorySnap.data();
+          const newItems = prevInventoryData.items.map((item) => {
+            item.inventory = newName;
+            return item;
+          });
+          const newNeededItems = prevInventoryData.neededItems.map((item) => {
+            item.inventory = newName;
+            return item;
+          });
+
+          const newInventoryData = {
+            name: newName,
+            items: newItems,
+            neededItems: newNeededItems,
+          };
+
+          batch.set(newInventoryRef, newInventoryData);
+          batch.delete(prevInventoryRef);
+
+          setInventories([...inventories, newInventoryData]);
+
+          await batch.commit();
+          fetchInventories();
+
+          setInventoryName("");
+        } else {
+          console.error("Inventory does not exist");
+          return;
+        }
+      } catch (err) {
+        console.error("Error editing inventory name: ", err);
+        alert("Error occured while editing inventory name. Please try again.");
+      }
+    },
+    [inventoryToEdit, inventoryName, groupID]
+  );
 
   /****************************************************** Expense Tracking ******************************************************/
 
@@ -808,7 +837,7 @@ export default function Inventory() {
         alert("Inventory does not exist");
         return;
       } else {
-        let newItem = localInventory.neededItems.find(
+        let newItem = neededItemList.find(
           (item) => item.name === purchasedItemName
         );
 
@@ -1184,7 +1213,7 @@ export default function Inventory() {
     } catch (error) {
       console.error("Error fetching inventories from DB:", error);
     }
-  }, [user, groupName, groupID]);
+  }, [user, groupName, groupID, inventories]);
 
   useEffect(() => {
     console.log("fetching inventories from UseEffect");
@@ -1368,7 +1397,11 @@ export default function Inventory() {
               onChange={(e) => setInventoryName(e.target.value)}
               sx={{ bgcolor: "white" }}
             />
-            <Box onClick={() => {createInventory()}}>
+            <Box
+              onClick={() => {
+                createInventory();
+              }}
+            >
               <DarkButton>Create</DarkButton>
             </Box>
           </Box>
@@ -3184,7 +3217,7 @@ export default function Inventory() {
                         {item.name}
                       </Typography>
                       <Stack direction="row">
-                        <Box onClick={() => deleteItem()}>
+                        <Box>
                           <TooltipIcon title="Discard" placement="top">
                             <DeleteOutlineIcon
                               sx={{ fontSize: 25 }}
@@ -3403,9 +3436,7 @@ export default function Inventory() {
       </Modal>
 
       {/* Modal for editing inventory name */}
-      <Modal
-        open={openEditInventoryModal}
-      >
+      <Modal open={openEditInventoryModal}>
         <Box
           flex="display"
           justifyContent="center"
