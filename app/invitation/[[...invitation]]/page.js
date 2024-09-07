@@ -191,7 +191,7 @@ export default function Page() {
             my={8}
             borderBottom={`2px solid ${green_main}`}
           >
-            Your rommates are waiting!
+            Your roommates are waiting!
           </Typography>
           <SignIn />
         </Box>
