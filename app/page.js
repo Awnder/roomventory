@@ -69,14 +69,14 @@ export default function Home() {
             </Typography>
             <SignedOut>
               <Box sx={{animation: "entranceButton 2s ease-out"}}>
-                <LightButton href="/signup"><Typography variant="h6">Get Started</Typography></LightButton>
+                <LightButton href="https://forms.gle/wPFyxPrRYoNdVJuB8"><Typography variant="h6">Waitlist</Typography></LightButton>
               </Box>
             </SignedOut>
-            <SignedIn>
+            {/* <SignedIn>
               <Box sx={{animation: "entranceButton 2s ease-out"}}>
                 <DarkButton href="/dashboard" ><Typography variant="h6">To your inventory</Typography></DarkButton>
               </Box>
-            </SignedIn>
+            </SignedIn> */}
           </Stack>
   {/* Toilet Paper Example */}
         <Box 

@@ -23,14 +23,14 @@ export default function NavBar() {
           <Box display="flex" alignItems="center" flexGrow={1}>
             <Link href="./"><Image src={rv_logo} alt="Roomventory Logo" width={50}></Image></Link>
           </Box>
-          <SignedOut>
+          {/* <SignedOut>
             <DarkButton href="/signin" mr={2}>Sign In</DarkButton>
             <LightButton href="/signup">Sign Up</LightButton>
           </SignedOut>
           <SignedIn>
             <LightButton href="/dashboard" mr={3}>Dashboard</LightButton>
             <UserButton />
-          </SignedIn>
+          </SignedIn> */}
         </Toolbar>
       </Container>
     </AppBar>
