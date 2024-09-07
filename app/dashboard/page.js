@@ -90,17 +90,23 @@ export default function Dashboard() {
 
     const newGroup = {
       name: groupName,
-      members: [{ name: `${userName}`, leader: true, owe: 0 }],
+      members: [{ name: `${userName}`, leader: true, owe: 0, id: user.id }],
     };
 
     const batch = writeBatch(db);
     const userDocRef = doc(collection(db, "users"), user.id);
 
-    const groupID = user.id.slice(-5) + " " + groupName;
+    //const groupID = user.id.slice(-5) + " " + groupName;
+
+    const customID = Math.random().toString(36).substring(2, 8);
+
+    const groupID = customID + " " + groupName;
 
     const groupDocRef = doc(collection(db, "groups"), groupID);
 
     const userSnap = await getDoc(userDocRef);
+
+    const newUserGroup = { name: groupName, id: groupID };
 
     try {
       // Check if user exists
@@ -108,21 +114,25 @@ export default function Dashboard() {
 
       if (!userSnap.exists()) {
         // Create user if it does not exist
+
         const newUser = {
           ID: user.id,
           name: userName,
-          groups: [groupName],
+          groups: [newUserGroup],
         };
         batch.set(userDocRef, newUser);
       } else {
-        if (userSnap.data().groups.includes(groupName)) {
+        const groupExists = userSnap
+          .data()
+          .groups.find((group) => group.name === groupName);
+        if (groupExists) {
           alert("User already exists in this group");
           return;
         } else {
           const userData = userSnap.data();
 
           batch.update(userDocRef, {
-            groups: [...userData.groups, groupName], // Alternatively use arrayUnion if you want to handle duplicates automatically
+            groups: [...userData.groups, newUserGroup], // Alternatively use arrayUnion if you want to handle duplicates automatically
           });
         }
       }
@@ -147,7 +157,15 @@ export default function Dashboard() {
     async (passedGroup) => {
       console.log("Deleting group");
 
-      const groupID = user.id.slice(-5) + " " + passedGroup;
+      //const groupID = user.id.slice(-5) + " " + passedGroup;
+
+      const userDocRef = doc(collection(db, "users"), user.id);
+      const userSnap = await getDoc(userDocRef);
+      const userData = userSnap.data();
+      const groupID = userData.groups.find(
+        (group) => group.name === passedGroup
+      ).id;
+
       const batch = writeBatch(db);
 
       const groupRef = doc(collection(db, "groups"), groupID);
@@ -176,30 +194,30 @@ export default function Dashboard() {
       }
 
       console.log("Groups before deletion:", groups);
-      const remainingGroups = groups.filter((group) => group.name !== passedGroup);
+      const remainingGroups = groups.filter(
+        (group) => group.name !== passedGroup
+      );
       console.log("Remaining groups:", remainingGroups);
       setGroups(remainingGroups);
 
       // Finally, delete the group after all inventory deletions are added to the batch
       batch.delete(groupRef);
 
-     
-
       try {
         //READ
         const userDocRef = doc(collection(db, "users"), user.id);
         const userSnap = await getDoc(userDocRef);
-  
+
         if (userSnap.exists()) {
           const userData = userSnap.data();
-          console.log('userData', userData.groups)
-          console.log('groupName', passedGroup)
+          console.log("userData", userData.groups);
+          console.log("groupName", passedGroup);
           const newGroups = userData.groups.filter(
-            (group) => group !== passedGroup
+            (group) => group.name !== passedGroup
           );
 
-          console.log('newGroups', newGroups)
-  
+          console.log("newGroups", newGroups);
+
           batch.update(userDocRef, {
             groups: newGroups,
           });
@@ -212,91 +230,121 @@ export default function Dashboard() {
       // Commit the batch operation
       await batch.commit();
     },
-    [groups , user]
+    [groups, user]
   );
 
   //Function to edit group name
-  const editGroup = useCallback(async (newName) => {
-    if (newName === groupNameToEdit) {
-      return;
-    }
-
-    const prevGroupID = user.id.slice(-5) + " " + groupNameToEdit;
-    const newGroupID = user.id.slice(-5) + " " + newName;
-    const batch = writeBatch(db);
-
-    try {
-      // References to the old and new group documents
-      const prevGroupRef = doc(collection(db, "groups"), prevGroupID);
-      const newGroupRef = doc(collection(db, "groups"), newGroupID);
-  
-      // Get the old group document
-      const oldGroupSnap = await getDoc(prevGroupRef);
-  
-      if (!oldGroupSnap.exists()) {
-        console.error("Old group does not exist.");
+  const editGroup = useCallback(
+    async (newName) => {
+      if (newName === groupNameToEdit) {
         return;
       }
-  
-      // Rename group by creating a new document and deleting the old one
-      if (oldGroupSnap.exists()) {
-        // Process inventories under the old group
-        const inventoriesCollection = collection(db, "groups", prevGroupID, "inventories");
-        const inventoriesSnap = await getDocs(inventoriesCollection);
-  
-        // Create new inventories under the new group ID
-        const newInventoriesCollection = collection(db, "groups", newGroupID, "inventories");
-  
-        inventoriesSnap.forEach((inventory) => {
-          const inventoryRef = doc(inventoriesCollection, inventory.id);
-          const newInventoryRef = doc(newInventoriesCollection, inventory.id);
-          batch.set(newInventoryRef, inventory.data()); // Copy the inventory data to the new reference
-          batch.delete(inventoryRef); // Delete the old inventory reference
-        });
-  
-        // Delete the old group document
-        batch.delete(prevGroupRef);
-  
-        // Update the new group document with the old group's data
-        const groupData = oldGroupSnap.data();
-        batch.set(newGroupRef, { ...groupData, name: newName });
-  
-        // Update user's group list
-        const userDocRef = doc(collection(db, "users"), user.id);
-        const userSnap = await getDoc(userDocRef);
-  
-        if (userSnap.exists()) {
-          const userData = userSnap.data();
-          const updatedGroups = userData.groups.map((group) =>
-            group === groupNameToEdit ? newName : group
-          );
-          batch.update(userDocRef, { groups: updatedGroups });
+
+      const userDocRef = doc(collection(db, "users"), user.id);
+      const userSnap = await getDoc(userDocRef);
+      const userData = userSnap.data();
+      const prevGroupID = userData.groups.find(
+        (group) => group.name === groupNameToEdit
+      ).id;
+
+      const customID = prevGroupID.split(" ")[0];
+
+      //const prevGroupID = user.id.slice(-5) + " " + groupNameToEdit;
+      const newGroupID = customID + " " + newName;
+      const batch = writeBatch(db);
+
+      try {
+        // References to the old and new group documents
+        const prevGroupRef = doc(collection(db, "groups"), prevGroupID);
+        const newGroupRef = doc(collection(db, "groups"), newGroupID);
+
+        // Get the old group document
+        const oldGroupSnap = await getDoc(prevGroupRef);
+
+        if (!oldGroupSnap.exists()) {
+          console.error("Old group does not exist.");
+          return;
         }
-  
-        // Commit the batch operation
-        await batch.commit();
-  
-        // Update local state
-        const updatedGroupsList = groups.map((group) =>
-          group.name === groupNameToEdit ? { ...group, name: newName } : group
+
+        // Rename group by creating a new document and deleting the old one
+        if (oldGroupSnap.exists()) {
+          // Process inventories under the old group
+          const inventoriesCollection = collection(
+            db,
+            "groups",
+            prevGroupID,
+            "inventories"
+          );
+          const inventoriesSnap = await getDocs(inventoriesCollection);
+
+          // Create new inventories under the new group ID
+          const newInventoriesCollection = collection(
+            db,
+            "groups",
+            newGroupID,
+            "inventories"
+          );
+
+          inventoriesSnap.forEach((inventory) => {
+            const inventoryRef = doc(inventoriesCollection, inventory.id);
+            const newInventoryRef = doc(newInventoriesCollection, inventory.id);
+            batch.set(newInventoryRef, inventory.data()); // Copy the inventory data to the new reference
+            batch.delete(inventoryRef); // Delete the old inventory reference
+          });
+
+          // Delete the old group document
+          batch.delete(prevGroupRef);
+
+          // Update the new group document with the old group's data
+          const groupData = oldGroupSnap.data();
+          batch.set(newGroupRef, { ...groupData, name: newName });
+
+          // Update user's group list
+          const userDocRef = doc(collection(db, "users"), user.id);
+          const userSnap = await getDoc(userDocRef);
+
+          if (userSnap.exists()) {
+            const userData = userSnap.data();
+            const updatedGroups = userData.groups.map((group) =>
+              group.name === groupNameToEdit
+                ? { name: newName, id: newGroupID }
+                : group
+            );
+            batch.update(userDocRef, { groups: updatedGroups });
+          }
+
+          // Commit the batch operation
+          await batch.commit();
+
+          // Update local state
+          const updatedGroupsList = groups.map((group) =>
+            group.name === groupNameToEdit ? { ...group, name: newName } : group
+          );
+          setGroups(updatedGroupsList);
+
+          console.log("Group name updated successfully.");
+        }
+      } catch (error) {
+        console.error("Error editing group name:", error);
+        alert(
+          "An error occurred while updating the group name. Please try again."
         );
-        setGroups(updatedGroupsList);
-  
-        console.log("Group name updated successfully.");
       }
-    } catch (error) {
-      console.error("Error editing group name:", error);
-      alert("An error occurred while updating the group name. Please try again.");
-    }
-  }, [groupNameToEdit, groups, user]);
+    },
+    [groupNameToEdit, groups, user]
+  );
 
   // Function to leave a group (1 READ, 2 WRITE)
   const leaveGroup = useCallback(async () => {
     console.log("Leaving group");
 
+    //const groupID = user.id.slice(-5) + " " + groupName;
     const userDocRef = doc(collection(db, "users"), user.id);
-
-    const groupID = user.id.slice(-5) + " " + groupName;
+    const userSnap = await getDoc(userDocRef);
+    const userData = userSnap.data();
+    const groupID = userData.groups.find(
+      (group) => group.name === groupNameToEdit
+    ).id;
 
     const groupDocRef = doc(collection(db, "groups"), groupID);
 
@@ -310,7 +358,7 @@ export default function Dashboard() {
       if (userSnap.exists()) {
         const userData = userSnap.data();
         const newGroups = userData.groups.filter(
-          (group) => group !== groupName
+          (group) => group.name !== groupName
         );
 
         batch.update(userDocRef, {
@@ -366,19 +414,29 @@ export default function Dashboard() {
       if (userSnap.exists()) {
         const groupsRef = collection(db, "groups");
 
+        const querySnapshot = await getDocs(groupsRef);
+
+        const groupData = querySnapshot.docs.map((doc) => doc.data());
+
+        const groupObjects = groupData.filter((group) =>
+          group.members.find(
+            (member) => member.name === `${user.firstName} ${user.lastName}`
+          )
+        );
+        /*
+
         //READ
         const querySnapshot = await getDocs(groupsRef);
 
         const matchingDocs = querySnapshot.docs.filter((doc) => {
           const docId = doc.id;
-          return docId.includes(user.id.slice(-5));
+          return docId.includes(groupID);
         });
 
         const groupObjects = matchingDocs.map((doc) => doc.data());
+        */
 
-        console.log('old groups', groups)
         setGroups(groupObjects);
-        console.log('new groups', groupObjects)
         setFilteredGroups(groupObjects);
       } else {
         console.log("User does not exist");
@@ -723,9 +781,7 @@ export default function Dashboard() {
       </Modal>
 
       {/* Modal for editing an existing group */}
-      <Modal
-        open={openEditGroupModal}
-      >
+      <Modal open={openEditGroupModal}>
         <Box
           flex="display"
           justifyContent="center"

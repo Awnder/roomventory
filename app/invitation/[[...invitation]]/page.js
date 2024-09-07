@@ -126,7 +126,7 @@ export default function Page() {
           return;
         }
       }
-
+      
       // Commit the batch
       await batch.commit();
 

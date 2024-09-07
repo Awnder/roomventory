@@ -277,7 +277,7 @@ export default function Inventory() {
       if (userSnap.exists()) {
         const userData = userSnap.data();
         const newGroups = userData.groups.filter(
-          (group) => group !== groupName
+          (group) => group.name !== member
         );
 
         //WRITE
@@ -286,6 +286,30 @@ export default function Inventory() {
         });
 
         fetchGroups();
+      }
+
+      console.log("groupSnap", groupSnap);
+      console.log("groupData", groupData);
+
+      const kickedUserID = groupData.members.find(
+        (m) => m.name === member
+      )?.id;
+
+      console.log("kickedUserID", kickedUserID);
+      const kickedUserRef = doc(collection(db, "users"), kickedUserID);
+      const kickedUserSnap = await getDoc(kickedUserRef);
+      if (kickedUserSnap.exists()) {
+        const kickedUserData = kickedUserSnap.data();
+        const newGroups = kickedUserData.groups.filter(
+          (g) => g.id !== groupID
+        );
+
+        console.log("newGroups", newGroups);
+
+        //WRITE
+        await updateDoc(kickedUserRef, {
+          groups: newGroups,
+        });
       }
     }
   };
@@ -344,7 +368,7 @@ export default function Inventory() {
       if (userSnap.exists()) {
         const userData = userSnap.data();
         const newGroups = userData.groups.filter(
-          (group) => group !== groupName
+          (group) => group.name !== groupName
         );
 
         batch.update(userDocRef, {
@@ -1291,13 +1315,21 @@ export default function Inventory() {
   }, [itemSearch, neededItemList]);
 
   useEffect(() => {
-    if (user) {
-      // Generate groupID only if `groupName` is available
-      const groupIDValue = `${user.id.slice(-5)} ${groupName}`;
-      setGroupID(groupIDValue);
-    } else {
-      console.warn("groupName or user is undefined");
-    }
+    const fetchGroupID = async () => {
+      if (user) {
+        // Generate groupID only if `groupName` is available
+        const userDocRef = doc(db, "users", user.id);
+        const userSnap = await getDoc(userDocRef);
+        const userData = userSnap.data();
+        const groupIDValue = userData.groups.find(
+          (group) => group.name === groupName
+        ).id;
+        setGroupID(groupIDValue);
+      } else {
+        console.warn("groupName or user is undefined");
+      }
+    };
+    fetchGroupID();
   }, [user, groupName]); // Re-run the effect when `user` or `groupName` changes
 
   return (
@@ -2922,6 +2954,58 @@ export default function Inventory() {
             }}
           >
             <DarkButton>Leave</DarkButton>
+          </Box>
+        </Box>
+      </Modal>
+
+      {/* Modal for Kicking Member */}
+      <Modal open={openKickMemberModal}>
+        <Box
+          position="absolute"
+          top="50%"
+          left="50%"
+          bgcolor="white"
+          border="2px solid #000"
+          borderRadius="20px"
+          p={2}
+          display="flex"
+          flexDirection="column"
+          justifyContent="center"
+          alignItems="center"
+          gap={3}
+          sx={{
+            transform: "translate(-50%,-50%)",
+            width: { xs: "80%", sm: "60%" },
+            maxWidth: "small",
+          }}
+        >
+          <CloseIcon
+            sx={{
+              position: "absolute",
+              top: 5,
+              left: 5,
+              fontSize: 40,
+              color: `${green_dark}`,
+              transition: "200ms",
+              "&:hover": {
+                cursor: "pointer",
+                transform: "rotate(180deg) scale(1.05)",
+              },
+            }}
+            onClick={() => {
+              handleCloseKickMemberModal();
+            }}
+          />
+          <Typography width="80%" textAlign="center">
+            Are you sure you want to kick {kickedMember} out of the group?
+          </Typography>
+          <Box
+            onClick={() => {
+              kickMember(kickedMember);
+              handleCloseKickMemberModal();
+            }}
+          >
+            <DarkButton>Kick</DarkButton>
           </Box>
         </Box>
       </Modal>
