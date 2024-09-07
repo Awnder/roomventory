@@ -59,6 +59,9 @@ export default function Page() {
     const res = await fetch("/api/getInvitation", {
       method: "POST",
       headers: {
+        "Access-Control-Allow-Origin": "*",
+        "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, FETCH, OPTIONS",
+        "Access-Control-Allow-Headers": "Content-Type, Authorization",
         "Content-Type": "application/json", // Specify the content type
       },
       body: JSON.stringify({ invitationID: invitationID }), // Ensure this is a valid JSON object

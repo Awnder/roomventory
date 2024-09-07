@@ -230,6 +230,9 @@ export default function Inventory() {
     const res = await fetch("/api/invite", {
       method: "POST",
       headers: {
+        "Access-Control-Allow-Origin": "*",
+        "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, FETCH, OPTIONS",
+        "Access-Control-Allow-Headers": "Content-Type, Authorization",
         "Content-Type": "application/json", // Specify the content type
       },
       body: JSON.stringify({ email: email, group: groupName, invitorID: user.id }), // Stringify the email object
@@ -423,6 +426,9 @@ export default function Inventory() {
     const response = await fetch("/api/generate", {
       method: "POST",
       headers: {
+        "Access-Control-Allow-Origin": "*",
+        "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
+        "Access-Control-Allow-Headers": "Content-Type, Authorization",
         "Content-Type": "application/json",
       },
       body: JSON.stringify({ localInventory }),
