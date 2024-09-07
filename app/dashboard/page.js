@@ -15,6 +15,7 @@ import AddCircleOutlineIcon from "@mui/icons-material/AddCircleOutline";
 import SearchIcon from "@mui/icons-material/Search";
 import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
 import CloseIcon from "@mui/icons-material/Close";
+import EditIcon from "@mui/icons-material/Edit";
 import { DarkButton, LightButtonSimple } from "../../Components/styledbuttons";
 import { useRouter } from "next/navigation";
 import { useUser } from "@clerk/nextjs";
@@ -51,6 +52,7 @@ export default function Dashboard() {
   const [groupName, setGroupName] = useState("");
   const [email, setEmail] = useState("");
   const [groupNameForDeletion, setGroupNameForDeletion] = useState("");
+  const [groupNameToEdit, setGroupNameToEdit] = useState("");
 
   // Real data from Firebase
   const [groups, setGroups] = useState([]);
@@ -59,10 +61,14 @@ export default function Dashboard() {
   const [addInventoryModal, setAddInventoryModal] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
 
-  // Modal
+  // Modals
   const [openDeleteGroupModal, setOpenDeleteGroupModal] = useState(false);
   const handleOpenDeleteGroupModal = () => setOpenDeleteGroupModal(true);
   const handleCloseDeleteGroupModal = () => setOpenDeleteGroupModal(false);
+
+  const [openEditGroupModal, setOpenEditGroupModal] = useState(false);
+  const handleOpenEditGroupModal = () => setOpenEditGroupModal(true);
+  const handleCloseEditGroupModal = () => setOpenEditGroupModal(false);
 
   /****************************************************** Routing ******************************************************/
 
@@ -208,6 +214,81 @@ export default function Dashboard() {
     },
     [groups , user]
   );
+
+  //Function to edit group name
+  const editGroup = useCallback(async (newName) => {
+    if (newName === groupNameToEdit) {
+      return;
+    }
+
+    const prevGroupID = user.id.slice(-5) + " " + groupNameToEdit;
+    const newGroupID = user.id.slice(-5) + " " + newName;
+    const batch = writeBatch(db);
+
+    try {
+      // References to the old and new group documents
+      const prevGroupRef = doc(collection(db, "groups"), prevGroupID);
+      const newGroupRef = doc(collection(db, "groups"), newGroupID);
+  
+      // Get the old group document
+      const oldGroupSnap = await getDoc(prevGroupRef);
+  
+      if (!oldGroupSnap.exists()) {
+        console.error("Old group does not exist.");
+        return;
+      }
+  
+      // Rename group by creating a new document and deleting the old one
+      if (oldGroupSnap.exists()) {
+        // Process inventories under the old group
+        const inventoriesCollection = collection(db, "groups", prevGroupID, "inventories");
+        const inventoriesSnap = await getDocs(inventoriesCollection);
+  
+        // Create new inventories under the new group ID
+        const newInventoriesCollection = collection(db, "groups", newGroupID, "inventories");
+  
+        inventoriesSnap.forEach((inventory) => {
+          const inventoryRef = doc(inventoriesCollection, inventory.id);
+          const newInventoryRef = doc(newInventoriesCollection, inventory.id);
+          batch.set(newInventoryRef, inventory.data()); // Copy the inventory data to the new reference
+          batch.delete(inventoryRef); // Delete the old inventory reference
+        });
+  
+        // Delete the old group document
+        batch.delete(prevGroupRef);
+  
+        // Update the new group document with the old group's data
+        const groupData = oldGroupSnap.data();
+        batch.set(newGroupRef, { ...groupData, name: newName });
+  
+        // Update user's group list
+        const userDocRef = doc(collection(db, "users"), user.id);
+        const userSnap = await getDoc(userDocRef);
+  
+        if (userSnap.exists()) {
+          const userData = userSnap.data();
+          const updatedGroups = userData.groups.map((group) =>
+            group === groupNameToEdit ? newName : group
+          );
+          batch.update(userDocRef, { groups: updatedGroups });
+        }
+  
+        // Commit the batch operation
+        await batch.commit();
+  
+        // Update local state
+        const updatedGroupsList = groups.map((group) =>
+          group.name === groupNameToEdit ? { ...group, name: newName } : group
+        );
+        setGroups(updatedGroupsList);
+  
+        console.log("Group name updated successfully.");
+      }
+    } catch (error) {
+      console.error("Error editing group name:", error);
+      alert("An error occurred while updating the group name. Please try again.");
+    }
+  }, [groupNameToEdit, groups, user]);
 
   // Function to leave a group (1 READ, 2 WRITE)
   const leaveGroup = useCallback(async () => {
@@ -505,6 +586,32 @@ export default function Dashboard() {
                   },
                 }}
               >
+                <TooltipIcon title="Edit Group" placement="top">
+                  <Box
+                    sx={{
+                      position: "absolute",
+                      top: 0,
+                      left: 5,
+                      fontSize: 40,
+                      color: `${green_dark}`,
+                      "&:hover": {
+                        cursor: "pointer",
+                        color: `${green_light}`,
+                        transform: "scale(1.05)",
+                      },
+                    }}
+                    onClick={(event) => {
+                      setGroupName(group.name);
+                      setGroupNameToEdit(group.name);
+                      handleOpenEditGroupModal();
+                      event.stopPropagation();
+                    }}
+                  >
+                    <LightButtonSimple>
+                      <EditIcon />
+                    </LightButtonSimple>
+                  </Box>
+                </TooltipIcon>
                 <TooltipIcon title="Delete Group" placement="top">
                   <Box
                     sx={{
@@ -513,7 +620,6 @@ export default function Dashboard() {
                       right: 5,
                       fontSize: 40,
                       color: `${green_dark}`,
-                      transition: "200ms",
                       "&:hover": {
                         cursor: "pointer",
                         color: `${green_light}`,
@@ -550,6 +656,7 @@ export default function Dashboard() {
         </Grid>
       </Box>
 
+      {/* Modal for adding a new group */}
       <Modal
         open={addInventoryModal}
         onClose={() => setAddInventoryModal(false)}
@@ -571,6 +678,23 @@ export default function Dashboard() {
             transform: "translate(-50%, -50%)",
           }}
         >
+          <CloseIcon
+            sx={{
+              position: "absolute",
+              top: 5,
+              left: 5,
+              fontSize: 40,
+              color: `${green_dark}`,
+              transition: "200ms",
+              "&:hover": {
+                cursor: "pointer",
+                transform: "rotate(180deg) scale(1.05)",
+              },
+            }}
+            onClick={() => {
+              setAddInventoryModal(false);
+            }}
+          />
           <Typography
             textAlign="center"
             color={green_dark}
@@ -593,6 +717,72 @@ export default function Dashboard() {
               }}
             >
               <DarkButton fullWidth>Create</DarkButton>
+            </Box>
+          </Stack>
+        </Box>
+      </Modal>
+
+      {/* Modal for editing an existing group */}
+      <Modal
+        open={openEditGroupModal}
+      >
+        <Box
+          flex="display"
+          justifyContent="center"
+          alignItems="center"
+          bgcolor={green_white}
+          width="lg"
+          height="lg"
+          border="2px solid black"
+          borderRadius="15px"
+          p={3}
+          sx={{
+            position: "absolute",
+            top: "50%",
+            left: "50%",
+            transform: "translate(-50%, -50%)",
+          }}
+        >
+          <CloseIcon
+            sx={{
+              position: "absolute",
+              top: 5,
+              left: 5,
+              fontSize: 40,
+              color: `${green_dark}`,
+              transition: "200ms",
+              "&:hover": {
+                cursor: "pointer",
+                transform: "rotate(180deg) scale(1.05)",
+              },
+            }}
+            onClick={() => {
+              handleCloseEditGroupModal();
+            }}
+          />
+          <Typography
+            textAlign="center"
+            color={green_dark}
+            mb={2}
+            sx={{ typography: { xs: "h6", sm: "h5" } }}
+          >
+            Edit Group
+          </Typography>
+          <Stack sx={{ direction: { xs: "column", sm: "row" } }}>
+            <TextField
+              fullWidth
+              placeholder="Group Name"
+              value={groupName}
+              onChange={(e) => setGroupName(e.target.value)}
+              sx={{ mr: 2, mb: { xs: 2 } }}
+            />
+            <Box
+              onClick={() => {
+                editGroup(groupName);
+                handleCloseEditGroupModal();
+              }}
+            >
+              <DarkButton fullWidth>Save Changes</DarkButton>
             </Box>
           </Stack>
         </Box>
