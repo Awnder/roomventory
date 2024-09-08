@@ -19,6 +19,7 @@
     "axios": "^1.7.5",
     "firebase": "^10.13.1",
     "next": "^14.2.7",
+    "nextjs-cors": "^2.2.0",
     "openai": "^4.58.0",
     "react": "^18",
     "react-dom": "^18",

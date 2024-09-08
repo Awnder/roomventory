@@ -16,7 +16,7 @@ export default function SignUpPage() {
       alignItems="center"
       mb={20}
     >
-      <Typography variant="h4" textAlign="center" color={`${green_dark}`} my={8} borderBottom={`2px solid ${green_main}`}>Welcome To Roomvenetory!</Typography>
+      <Typography variant="h4" textAlign="center" color={`${green_dark}`} my={8} borderBottom={`2px solid ${green_main}`}>Welcome To Roomventory!</Typography>
       <SignUp />
     </Box>
   )

@@ -221,6 +221,14 @@ export default function Inventory() {
 
   // Function to invite a member to the group (only leader can invite members)
   const handleInvite = useCallback( async (event) => {
+    // Run the cors middleware
+    await NextCors(req, res, {
+      // Options
+      methods: ['GET', 'HEAD', 'PUT', 'PATCH', 'POST', 'DELETE'],
+      origin: '*',
+      optionsSuccessStatus: 200, // some legacy browsers (IE11, various SmartTVs) choke on 204
+    });
+
     if (!isLeader) {
       alert("You must be the leader of the group to invite members");
     }
@@ -413,6 +421,14 @@ export default function Inventory() {
 
   // Function to get suggestions from the AI
   const getSuggestions = async (passedInventory) => {
+    // Run the cors middleware
+    await NextCors(req, res, {
+      // Options
+      methods: ['GET', 'HEAD', 'PUT', 'PATCH', 'POST', 'DELETE'],
+      origin: '*',
+      optionsSuccessStatus: 200, // some legacy browsers (IE11, various SmartTVs) choke on 204
+    });
+
     console.log("getting suggestions");
     setLoadingSuggestions(true);
 

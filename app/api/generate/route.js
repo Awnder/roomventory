@@ -75,6 +75,14 @@ DO NOT ADD 'suggestions' as a property name. It should be a list of JSON objects
 `;
 
 export async function POST(req) {
+  // Run the cors middleware
+  await NextCors(req, res, {
+    // Options
+    methods: ['GET', 'HEAD', 'PUT', 'PATCH', 'POST', 'DELETE'],
+    origin: '*',
+    optionsSuccessStatus: 200, // some legacy browsers (IE11, various SmartTVs) choke on 204
+  });
+
   const openai = new OpenAI();
 
   const data = await req.json();

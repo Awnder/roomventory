@@ -10,6 +10,7 @@ import { useAuth } from "@clerk/nextjs";
 import { useUser } from "@clerk/nextjs";
 import { db } from "/firebase";
 import { writeBatch, doc, collection, getDoc } from "firebase/firestore";
+import NextCors from "nextjs-cors";
 
 export default function Page() {
   const { isLoaded, signUp, setActive } = useSignUp();
@@ -55,6 +56,14 @@ export default function Page() {
   }, []);
 
   const fetchInvitation = async () => {
+    // Run the cors middleware
+    await NextCors(req, res, {
+      // Options
+      methods: ['GET', 'HEAD', 'PUT', 'PATCH', 'POST', 'DELETE'],
+      origin: '*',
+      optionsSuccessStatus: 200, // some legacy browsers (IE11, various SmartTVs) choke on 204
+    });
+
     console.log("fetching invitation");
     const res = await fetch("/api/getInvitation", {
       method: "POST",
