@@ -2084,6 +2084,7 @@ export default function Inventory() {
             <Box
               onClick={(e) => {
                 textInput.current.value = "";
+                setEmail('');
                 handleInvite();
               }}
               display="flex"

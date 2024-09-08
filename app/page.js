@@ -68,15 +68,18 @@ export default function Home() {
               The collective inventory for you and your roommates
             </Typography>
             <SignedOut>
+              <Typography>Roomventory is not quite done unpacking all of its features!</Typography>
+              <Typography>Please bare with us as we squash bugs. Note that your accounts might be deleted without notice while we are testing.</Typography>
+              <Typography mb={1}>We appreciate your understanding!</Typography>
               <Box sx={{animation: "entranceButton 2s ease-out"}}>
-                <LightButton href="https://forms.gle/wPFyxPrRYoNdVJuB8"><Typography variant="h6">Waitlist</Typography></LightButton>
+                <LightButton href="/signup"><Typography variant="h6">Start Now</Typography></LightButton>
               </Box>
             </SignedOut>
-            {/* <SignedIn>
+            <SignedIn>
               <Box sx={{animation: "entranceButton 2s ease-out"}}>
-                <DarkButton href="/dashboard" ><Typography variant="h6">To your inventory</Typography></DarkButton>
+                <DarkButton href="/dashboard"><Typography variant="h6">To your inventory</Typography></DarkButton>
               </Box>
-            </SignedIn> */}
+            </SignedIn>
           </Stack>
   {/* Toilet Paper Example */}
         <Box 
