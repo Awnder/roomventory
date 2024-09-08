@@ -55,14 +55,9 @@ export default function Page() {
   const fetchInvitation = async () => {
     console.log("fetching invitation");
 
-    // get the clerk session token to pass it to /api
-    // this is needed for cross-origin requests
-    const { getToken } = useAuth();
-
     const res = await fetch("/api/getInvitation", {
       method: "POST",
       headers: {
-        Authorization: `Bearer ${await getToken()}`,
         "Content-Type": "application/json", // Specify the content type
       },
       body: JSON.stringify({ invitationID: invitationID }), // Ensure this is a valid JSON object
