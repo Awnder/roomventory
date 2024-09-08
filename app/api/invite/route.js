@@ -2,14 +2,6 @@ import { createClerkClient } from "@clerk/backend";
 import { NextResponse } from "next/server";
 
 export async function POST(req) {
-  // Run the cors middleware
-  await NextCors(req, res, {
-    // Options
-    methods: ['GET', 'HEAD', 'PUT', 'PATCH', 'POST', 'DELETE'],
-    origin: '*',
-    optionsSuccessStatus: 200, // some legacy browsers (IE11, various SmartTVs) choke on 204
-  });
-
   const clerkClient = createClerkClient({
     secretKey: process.env.CLERK_SECRET_KEY,
   });

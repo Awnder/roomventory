@@ -3,14 +3,11 @@
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import SignUpPage from "../../signup/[[...sign-up]]/page";
-import { SignUp, SignIn } from "@clerk/nextjs";
+import { SignUp, SignIn, useAuth, useUser } from "@clerk/nextjs";
 import { Box, Typography } from "@mui/material";
 import { SignedIn, SignedOut, useSignUp } from "@clerk/nextjs";
-import { useAuth } from "@clerk/nextjs";
-import { useUser } from "@clerk/nextjs";
 import { db } from "/firebase";
 import { writeBatch, doc, collection, getDoc } from "firebase/firestore";
-import NextCors from "nextjs-cors";
 
 export default function Page() {
   const { isLoaded, signUp, setActive } = useSignUp();
@@ -56,18 +53,16 @@ export default function Page() {
   }, []);
 
   const fetchInvitation = async () => {
-    // Run the cors middleware
-    await NextCors(req, res, {
-      // Options
-      methods: ['GET', 'HEAD', 'PUT', 'PATCH', 'POST', 'DELETE'],
-      origin: '*',
-      optionsSuccessStatus: 200, // some legacy browsers (IE11, various SmartTVs) choke on 204
-    });
-
     console.log("fetching invitation");
+
+    // get the clerk session token to pass it to /api
+    // this is needed for cross-origin requests
+    const { getToken } = useAuth();
+
     const res = await fetch("/api/getInvitation", {
       method: "POST",
       headers: {
+        Authorization: `Bearer ${await getToken()}`,
         "Content-Type": "application/json", // Specify the content type
       },
       body: JSON.stringify({ invitationID: invitationID }), // Ensure this is a valid JSON object
