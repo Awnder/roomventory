@@ -17,7 +17,9 @@ export default function SignUpPage() {
       mb={20}
     >
       <Typography variant="h4" textAlign="center" color={`${green_dark}`} my={8} borderBottom={`2px solid ${green_main}`}>Welcome To Roomvenetory!</Typography>
-      <SignUp />
+      <Box mb={1}>
+        <SignUp />  
+      </Box>
     </Box>
   )
 }
