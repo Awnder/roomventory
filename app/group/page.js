@@ -220,30 +220,53 @@ export default function Inventory() {
   /****************************************************** Handling Group Members ******************************************************/
 
   // Function to invite a member to the group (only leader can invite members)
-  const handleInvite = useCallback( async (event) => {
-    if (!isLeader) {
-      alert("You must be the leader of the group to invite members");
-    }
-    if (!email) {
-      return;
-    }
-    const res = await fetch("/api/invite", {
-      method: "POST",
-      headers: {
-        "Access-Control-Allow-Origin": "*",
-        "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, FETCH, OPTIONS",
-        "Access-Control-Allow-Headers": "Content-Type, Authorization",
-        "Content-Type": "application/json", // Specify the content type
-      },
-      body: JSON.stringify({ email: email, group: groupName, invitorID: user.id }), // Stringify the email object
-    });
+  const handleInvite = useCallback(
+    async (event) => {
+      if (!isLeader) {
+        alert("You must be the leader of the group to invite members");
+      }
+      if (!email) {
+        return;
+      }
 
-    if (!res.ok) {
-      throw new Error(`HTTP error! status: ${res.status}`);
-    }
+      const userCollection = collection(db, "users");
+      const userSnapshot = await getDocs(userCollection);
+      let userExists = false;
+      userSnapshot.forEach((doc) => {
+        if (doc.data().email === email) {
+          userExists = true;
+        }
+      });
 
-    const data = await res.json();
-  }, [email, groupName]);
+      if (!userExists) {
+        alert("User must have an account to be invited");
+        return;
+      }
+
+      const res = await fetch("/api/invite", {
+        method: "POST",
+        headers: {
+          "Access-Control-Allow-Origin": "*",
+          "Access-Control-Allow-Methods":
+            "GET, POST, PUT, DELETE, FETCH, OPTIONS",
+          "Access-Control-Allow-Headers": "Content-Type, Authorization",
+          "Content-Type": "application/json", // Specify the content type
+        },
+        body: JSON.stringify({
+          email: email,
+          group: groupName,
+          invitorID: user.id,
+        }), // Stringify the email object
+      });
+
+      if (!res.ok) {
+        throw new Error(`HTTP error! status: ${res.status}`);
+      }
+
+      const data = await res.json();
+    },
+    [email, groupName]
+  );
 
   // Function to kick a member from the group (only leader can kick members) (2 READ, 2 WRITE operations)
   const kickMember = async (member) => {
@@ -294,18 +317,14 @@ export default function Inventory() {
       console.log("groupSnap", groupSnap);
       console.log("groupData", groupData);
 
-      const kickedUserID = groupData.members.find(
-        (m) => m.name === member
-      )?.id;
+      const kickedUserID = groupData.members.find((m) => m.name === member)?.id;
 
       console.log("kickedUserID", kickedUserID);
       const kickedUserRef = doc(collection(db, "users"), kickedUserID);
       const kickedUserSnap = await getDoc(kickedUserRef);
       if (kickedUserSnap.exists()) {
         const kickedUserData = kickedUserSnap.data();
-        const newGroups = kickedUserData.groups.filter(
-          (g) => g.id !== groupID
-        );
+        const newGroups = kickedUserData.groups.filter((g) => g.id !== groupID);
 
         console.log("newGroups", newGroups);
 
@@ -359,6 +378,7 @@ export default function Inventory() {
     console.log("leaving group");
     const userDocRef = doc(collection(db, "users"), user.id);
 
+    console.log("groupID", groupID);
     const groupDocRef = doc(collection(db, "groups"), groupID);
 
     const batch = writeBatch(db);
@@ -1329,7 +1349,7 @@ export default function Inventory() {
         const userData = userSnap.data();
         const groupIDValue = userData.groups.find(
           (group) => group.name === groupName
-        ).id;
+        )?.id;
         setGroupID(groupIDValue);
       } else {
         console.warn("groupName or user is undefined");
@@ -2084,7 +2104,7 @@ export default function Inventory() {
             <Box
               onClick={(e) => {
                 textInput.current.value = "";
-                setEmail('');
+                setEmail("");
                 handleInvite();
               }}
               display="flex"

@@ -186,6 +186,7 @@ export default function Page() {
           display="flex"
           flexDirection="column"
           alignItems="center"
+          mb={25}
         >
           <Typography
             variant="h4"

@@ -119,6 +119,7 @@ export default function Dashboard() {
           ID: user.id,
           name: userName,
           groups: [newUserGroup],
+          email: user.primaryEmailAddress.emailAddress
         };
         batch.set(userDocRef, newUser);
       } else {
@@ -427,6 +428,7 @@ export default function Dashboard() {
     const getGroups = async () => {
       console.log("Fetching groups");
       if (!user) return;
+      console.log("User ID:", user.id);
 
       const userRef = doc(collection(db, "users"), user.id);
       //READ
