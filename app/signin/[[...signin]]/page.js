@@ -17,7 +17,7 @@ export default function SignInPage() {
       mb={20}
     >
       <Typography variant="h4" textAlign="center" color={`${green_dark}`} my={8} borderBottom={`2px solid ${green_main}`}>Your Inventory Awaits!</Typography>
-      <Box height="90vh" mb={1}>
+      <Box mb={1}>
         <SignIn />
       </Box>
     </Box>
