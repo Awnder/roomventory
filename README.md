@@ -1,6 +1,6 @@
 <img src="./public/rv_logo.png" alt="roomventory logo" width="200px" />
 
-# Roomventory
+# [Roomventory](https://www.roomventory.site/)
 
 ### The collective inventory for you and your roommates
 
